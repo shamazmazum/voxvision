@@ -138,6 +138,12 @@ void filter_set (float in[][N], float out[][N], int *n, uint8_t subspace, const 
     *n = counter;
 }
 
+// Self-explanatory. No, really.
+// Being short: if number of voxels in a set is less or equal
+// to maximum number allowed, create a leaf and store voxels there.
+// Otherwise split the set into 2^N parts and proceed with each of subsets
+// recursively.
+
 /**
    \brief Turn a set of voxels into a tree
    \return a root node of the newly created tree

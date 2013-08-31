@@ -14,6 +14,8 @@
 
 void gen_subspaces (struct tagged_coord subspaces[], int n)
 {
+    // Turn plane numbers into subspace indices by simply XORing
+    // old subspace index with plane number
     int i;
 
     for (i=1; i<n; i++)  subspaces[i].tag = (1 << subspaces[i].tag) ^ subspaces[i-1].tag;
@@ -26,6 +28,8 @@ int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord 
 
     return calc_abs_metric (origin, dot1) - calc_abs_metric (origin, dot2);
 }
+
+// Maybe flollowing deserves a bit more explanation
 
 /**
    \brief Find intersection of a tree and a ray
@@ -45,7 +49,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
 
     if ((tree->dots_num == 0) && (LEAFP (tree))) return 0;
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter))) return 0;
-    if (depth == lod)
+    if (depth == lod) // Desired level of details reached -> intersection found
     {
         memcpy (res, inter, sizeof (float)*N);
         return 1;
@@ -53,8 +57,9 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     
     if (LEAFP(tree))
     {
+        // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
+        // with voxels stored in the leaf and return closest one (also O(tree->dots_num))
         int count = 0;
-        // Can we do it on stack??
         float intersect[MAX_DOTS][N];
         for (i=0; i<tree->dots_num; i++)
         {
@@ -77,8 +82,15 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
 
     struct tagged_coord plane_inter[N+1];
     int plane_counter = 1;
+    // Init tagged_coord structure with "entry point" in the node, so to say
+    // The tag is a subspace index of entry point
     plane_inter[0].tag = get_subspace_idx (tree->dots[0], inter);
     memcpy (plane_inter[0].coord, inter, sizeof(float)*N);
+
+    // Now, search for intersections of the ray and all N axis-aligned planes
+    // for our N-dimentional space.
+    // If such an intersection is inside the node (it means, inside its bounding box),
+    // and it to plane_inter and mark with number of plane where intersection is occured.
     for (i=0; i<N; i++)
     {
         interp = hit_plane (origin, dir, tree->dots[0], i, plane_inter[plane_counter].coord);
@@ -86,9 +98,14 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
         if (interp && (dot_betweenp (tree->bb_min, tree->bb_max, plane_inter[plane_counter].coord))) plane_counter++;
     }
 
+    // We want closest intersection to be found, so sort intersections with planes by proximity to origin
     qsort_r (plane_inter+1, plane_counter-1, sizeof(struct tagged_coord), origin, compare_tagged);
+    // Convert plane numbers to subspace indices
     gen_subspaces (plane_inter, plane_counter);
 
+    // For each intersection call ray_tree_intersection recursively, using child node specified by subspace index
+    // in tagged structure. If intersection is found, return.
+    // Note, what we specify an entry point to that child as a new ray origin
     for (i=0; i<plane_counter; i++)
     {
         interp = ray_tree_intersection (tree->children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod);

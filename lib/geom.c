@@ -63,6 +63,9 @@ int dot_betweenp (const float *min, const float *max, const float *dot)
     return 1;
 }
 
+// Most of the following code is taken from C Graphics Gems
+// See C Graphics Gems code for explanation
+
 /**
    \brief Find intersection of a ray and an axis-aligned box
    \param min minimal coordinates of the box
