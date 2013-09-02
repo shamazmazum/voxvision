@@ -110,7 +110,6 @@ float* align_on_voxel (float *dot)
 struct node* new_node ()
 {
     struct node *res = malloc (sizeof (struct node));
-    res->children = NULL;
     res->dots_num = 0;
     return res;
 }
@@ -155,12 +154,13 @@ struct node* make_tree (float set[][N], int n)
     if (n < MAX_DOTS)
     {
         res->dots_num = n;
+        res->leaf = 1;
         memcpy (res->dots, set, n*sizeof(float)*N);
     }
     else
     {
         int idx;
-        res->children = malloc (sizeof(struct node*) * NS);
+        res->leaf = 0;
         calc_avg (set, n, res->dots[0]);
         align_on_voxel (res->dots[0]);
         float (*subset)[N] = malloc (sizeof(float)*n*N);
@@ -213,7 +213,6 @@ void destroy_tree (struct node *tree)
     {
         int i;
         for (i=0; i<NS; i++) destroy_tree (tree->children[i]);
-        free (tree->children);
     }
     free (tree);
 }

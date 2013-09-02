@@ -7,17 +7,19 @@
 /**
    Is the node a leaf?
 **/
-#define LEAFP(node) !((node)->children)
+#define LEAFP(node) (node)->leaf
 
 /**
    Node of a voxel octree
 **/
 struct node
 {
+    uint8_t leaf; /**< Is this node a leaf? */
+    
     float bb_min[N]; /**< Minimal coordinate of the bounding box */
     float bb_max[N]; /**< Maximal coordinate of the bounding box */
 
-    struct node **children; /**< Children of this node (if any) */
+    struct node *children[NS]; /**< Children of this node (if any) */
     
     uint8_t dots_num; /**< Number of voxels in the node (or 0 if not a leaf) */
     float dots[MAX_DOTS][N]; /**<  Minimal coordinates of voxels in this node
