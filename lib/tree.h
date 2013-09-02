@@ -33,6 +33,6 @@ struct node* make_tree (float [][N], int);
 int voxels_in_tree (struct node*);
 int inacc_depth (struct node*, int);
 float inacc_balanceness (struct node*);
-void destroy_tree (struct node*);
+//void destroy_tree (struct node*);
 
 #endif

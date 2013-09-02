@@ -1,7 +1,7 @@
 #include <SDL/SDL.h>
-#include <stdlib.h>
 #include <sys/time.h>
 #include <string.h>
+#include <gc.h>
 
 #include "renderer.h"
 #include "data.h"
@@ -16,6 +16,8 @@ double gettime ()
 
 int main (int argc, char *argv[])
 {
+    GC_INIT();
+    
     if (argc != 3)
     {
         printf ("Usage: test_renderer tree|skull LOD\n");

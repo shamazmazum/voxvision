@@ -8,10 +8,11 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
+#include <gc.h>
 
 #include "tree.h"
 
-#include <stdlib.h>
+//#include <stdlib.h>
 
 float voxel[3] = {1.0, 1.0, 1.0};
 
@@ -109,7 +110,7 @@ float* align_on_voxel (float *dot)
 **/
 struct node* new_node ()
 {
-    struct node *res = malloc (sizeof (struct node));
+    struct node *res = GC_MALLOC (sizeof (struct node));
     res->dots_num = 0;
     return res;
 }
@@ -163,14 +164,14 @@ struct node* make_tree (float set[][N], int n)
         res->leaf = 0;
         calc_avg (set, n, res->dots[0]);
         align_on_voxel (res->dots[0]);
-        float (*subset)[N] = malloc (sizeof(float)*n*N);
+        float (*subset)[N] = GC_MALLOC_ATOMIC (sizeof(float)*n*N);
         for (idx=0; idx<NS; idx++)
         {
             int sub_n = n;
             filter_set (set, subset, &sub_n, idx, res->dots[0]);
             res->children[idx] = make_tree (subset, sub_n);
         }
-        free (subset);
+//        free (subset);
     }
     return res;
 }
@@ -207,7 +208,7 @@ int inacc_depth (struct node *tree, int res)
     else return inacc_depth (tree->children[res&(NS-1)], res+1);
 }
 
-void destroy_tree (struct node *tree)
+/*void destroy_tree (struct node *tree)
 {
     if (!(LEAFP (tree)))
     {
@@ -215,7 +216,7 @@ void destroy_tree (struct node *tree)
         for (i=0; i<NS; i++) destroy_tree (tree->children[i]);
     }
     free (tree);
-}
+}*/
 
 /* Taken from my voxel-octrees library for common lisp:
 
