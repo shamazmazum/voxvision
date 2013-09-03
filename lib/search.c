@@ -32,7 +32,8 @@ int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord 
 // Maybe flollowing deserves a bit more explanation
 
 /**
-   \brief Find intersection of a tree and a ray
+   \brief Find intersection of a tree and a ray.
+   
    \param tree a tree
    \param origin starting point of the ray
    \param dir direction of the ray

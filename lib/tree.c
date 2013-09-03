@@ -17,7 +17,8 @@
 float voxel[3] = {1.0, 1.0, 1.0};
 
 /**
-   \brief Take sum of two vectors
+   \brief Take sum of two vectors.
+   
    \param res an array where the result is stored
    \return Third passed argument, whichs contains the sum
 **/
@@ -29,7 +30,8 @@ float *sum_vector (const float *a, const float *b, float *res)
 }
 
 /**
-   \brief Calc average dot for the set
+   \brief Calc average dot for the set.
+   
    \param n a number of dots in the set
    \param res an array where the result is stored
    \return Third passed argument, whichs contains the average
@@ -46,7 +48,8 @@ float* calc_avg (float set[][N], int n, float res[N])
 }
 
 /**
-   \brief Calculate the minimal cuboid hull for set of voxels
+   \brief Calculate the minimal cuboid hull for set of voxels.
+   
    \param set the set of voxels
    \param n a number of voxels in the set
    \param min an array where the minimal coordinate is stored
@@ -71,9 +74,10 @@ void calc_bounding_box (float set[][N], int n, float min[N], float max[N])
 }
 
 /**
-   \brief Calculate a subspace index for the dot
+   \brief Calculate a subspace index for the dot.
+   
    For N-dimentional space we have 2^N ways to place the dot
-   around the center of subdivision. Find which way is the case
+   around the center of subdivision. Find which way is the case.
    
    \param dot1 the center of subdivision
    \param dot2 the dot we must calculate index for
@@ -89,7 +93,7 @@ uint8_t get_subspace_idx (const float *dot1, const float *dot2)
 }
 
 /**
-   \brief Align the dot on voxel if needed
+   \brief Align the dot on voxel if needed.
    \return Passed argument
 **/
 float* align_on_voxel (float *dot)
@@ -106,7 +110,7 @@ float* align_on_voxel (float *dot)
 }
 
 /**
-   \brief Allocate a new node
+   \brief Allocate a new node.
 **/
 struct node* new_node ()
 {
@@ -116,7 +120,7 @@ struct node* new_node ()
 }
 
 /**
-   \brief Collect only those dots which are placed in desired subspace
+   \brief Collect only those dots which are placed in desired subspace.
    \param in a set to be filtered
    \param out the result
    \param n points to size of the initial set, becomes a size of the result an exit
@@ -145,7 +149,7 @@ void filter_set (float in[][N], float out[][N], int *n, uint8_t subspace, const 
 // recursively.
 
 /**
-   \brief Turn a set of voxels into a tree
+   \brief Turn a set of voxels into a tree.
    \return a root node of the newly created tree
 **/
 struct node* make_tree (float set[][N], int n)
@@ -177,7 +181,7 @@ struct node* make_tree (float set[][N], int n)
 }
 
 /**
-   \brief return number of voxels in the tree
+   \brief Return number of voxels in the tree.
 **/
 int voxels_in_tree (struct node *tree)
 {
@@ -192,7 +196,8 @@ int voxels_in_tree (struct node *tree)
 }
 
 /**
-   \brief Calculate a depth of the tree
+   \brief Calculate a depth of the tree.
+   
    This function is called inaccurate because
    it uses a predefined path from root to leaf,
    treating all other paths to any leaf having
