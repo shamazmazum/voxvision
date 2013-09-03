@@ -10,7 +10,8 @@
 #include "params.h"
 
 /**
-   \brief Calc metric between two dots
+   \brief Calc metric between two dots.
+   
    A formula used is \f$\rho(x,y) = \Sigma_{i=1}^N \vert x_i - y_i \vert\f$
 **/
 float calc_abs_metric (const float *dot1, const float *dot2)
@@ -22,7 +23,8 @@ float calc_abs_metric (const float *dot1, const float *dot2)
 }
 
 /**
-   \brief Calc metric between two dots (variant 2)
+   \brief Calc metric between two dots (variant 2).
+   
    A formula used is \f$\rho (x,y) = \Sigma_{i=1}^N (x_i-y_i)^2\f$
    A square of usual euclid metric.
 **/
@@ -67,7 +69,8 @@ int dot_betweenp (const float *min, const float *max, const float *dot)
 // See C Graphics Gems code for explanation
 
 /**
-   \brief Find intersection of a ray and an axis-aligned box
+   \brief Find intersection of a ray and an axis-aligned box.
+   
    \param min minimal coordinates of the box
    \param max maximal coordinates of the box
    \param origin a starting point of the ray
@@ -115,7 +118,8 @@ int hit_box (const float *min, const float *max, const float *origin, const floa
 }
 
 /**
-   \brief Find intersection of a ray and a plane
+   \brief Find intersection of a ray and a plane.
+   
    Plane must be axis-aligned
    \param origin a starting point of the ray
    \param dir the direction
@@ -141,7 +145,8 @@ int hit_plane (const float *origin, const float *dir, const float *planedot, int
 }
 
 /**
-   \brief Find intersection of a box and a ball
+   \brief Find intersection of a box and a ball.
+   
    The box and the ball are solid
 **/
 int box_ball_interp (const float *min, const float *max, const float *center, float radius)
