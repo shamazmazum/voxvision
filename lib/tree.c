@@ -59,8 +59,8 @@ void calc_bounding_box (float set[][N], int n, float min[N], float max[N])
 {
     int i,j;
     
-    memcpy (min, set[1], sizeof(float)*N);
-    memcpy (max, set[1], sizeof(float)*N);
+    memcpy (min, set[0], sizeof(float)*N);
+    memcpy (max, set[0], sizeof(float)*N);
 
     for (i=0; i<n; i++)
     {
@@ -156,7 +156,7 @@ struct node* make_tree (float set[][N], int n)
 {
     struct node *res  = new_node();
     if (n > 0) calc_bounding_box (set, n, res->bb_min, res->bb_max);
-    if (n < MAX_DOTS)
+    if (n <= MAX_DOTS)
     {
         res->dots_num = n;
         res->leaf = 1;
