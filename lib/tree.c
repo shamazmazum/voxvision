@@ -110,16 +110,6 @@ float* align_on_voxel (float *dot)
 }
 
 /**
-   \brief Allocate a new node.
-**/
-struct node* new_node ()
-{
-    struct node *res = GC_MALLOC (sizeof (struct node));
-    res->dots_num = 0;
-    return res;
-}
-
-/**
    \brief Collect only those dots which are placed in desired subspace.
    \param in a set to be filtered
    \param out the result
@@ -154,28 +144,34 @@ void filter_set (float in[][N], float out[][N], int *n, uint8_t subspace, const 
 **/
 struct node* make_tree (float set[][N], int n)
 {
-    struct node *res  = new_node();
-    if (n > 0) calc_bounding_box (set, n, res->bb_min, res->bb_max);
+    struct node *res  = GC_MALLOC(sizeof(struct node));
+    res->flags = 0;
+    if (n > 0)
+    {
+        res->flags |= 1<<FULL;
+        calc_bounding_box (set, n, res->bb_min, res->bb_max);
+    }
+    
     if (n <= MAX_DOTS)
     {
-        res->dots_num = n;
-        res->leaf = 1;
-        memcpy (res->dots, set, n*sizeof(float)*N);
+        res->flags |= 1<<LEAF;
+        leaf_data *leaf = &(res->data.leaf);
+        leaf->dots_num = n;
+        memcpy (leaf->dots, set, n*sizeof(float)*N);
     }
     else
     {
         int idx;
-        res->leaf = 0;
-        calc_avg (set, n, res->dots[0]);
-        align_on_voxel (res->dots[0]);
+        inner_data *inner = &(res->data.inner);
+        calc_avg (set, n, inner->center);
+        align_on_voxel (inner->center);
         float (*subset)[N] = GC_MALLOC_ATOMIC (sizeof(float)*n*N);
         for (idx=0; idx<NS; idx++)
         {
             int sub_n = n;
-            filter_set (set, subset, &sub_n, idx, res->dots[0]);
-            res->children[idx] = make_tree (subset, sub_n);
+            filter_set (set, subset, &sub_n, idx, inner->center);
+            inner->children[idx] = make_tree (subset, sub_n);
         }
-//        free (subset);
     }
     return res;
 }
@@ -186,11 +182,11 @@ struct node* make_tree (float set[][N], int n)
 int voxels_in_tree (struct node *tree)
 {
     int res, i;
-    if (LEAFP (tree)) res = tree->dots_num;
+    if (LEAFP (tree)) res = tree->data.leaf.dots_num;
     else
     {
         res = 0;
-        for (i=0; i<NS; i++) res += voxels_in_tree (tree->children[i]);
+        for (i=0; i<NS; i++) res += voxels_in_tree (tree->data.inner.children[i]);
     }
     return res;
 }
@@ -210,7 +206,7 @@ int voxels_in_tree (struct node *tree)
 int inacc_depth (struct node *tree, int res)
 {
     if (LEAFP (tree)) return res;
-    else return inacc_depth (tree->children[res&(NS-1)], res+1);
+    else return inacc_depth (tree->data.inner.children[res&(NS-1)], res+1);
 }
 
 /*void destroy_tree (struct node *tree)

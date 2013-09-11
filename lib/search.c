@@ -48,7 +48,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     float tmp[N];
     int interp, i;
 
-    if ((tree->dots_num == 0) && (LEAFP (tree))) return 0;
+    if (!(FULLP (tree))) return 0;
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter))) return 0;
     if (depth == lod) // Desired level of details reached -> intersection found
     {
@@ -62,10 +62,11 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
         // with voxels stored in the leaf and return closest one (also O(tree->dots_num))
         int count = 0;
         float intersect[MAX_DOTS][N];
-        for (i=0; i<tree->dots_num; i++)
+        leaf_data leaf = tree->data.leaf;
+        for (i=0; i<leaf.dots_num; i++)
         {
-            sum_vector (tree->dots[i], voxel, tmp);
-            interp = hit_box (tree->dots[i], tmp, origin, dir, inter);
+            sum_vector (leaf.dots[i], voxel, tmp);
+            interp = hit_box (leaf.dots[i], tmp, origin, dir, inter);
             if (interp)
             {
                 memcpy (intersect[count], inter, sizeof(float)*N);
@@ -81,11 +82,12 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     }
     // ELSE
 
+    inner_data inner = tree->data.inner;
     struct tagged_coord plane_inter[N+1];
     int plane_counter = 1;
     // Init tagged_coord structure with "entry point" in the node, so to say
     // The tag is a subspace index of entry point
-    plane_inter[0].tag = get_subspace_idx (tree->dots[0], inter);
+    plane_inter[0].tag = get_subspace_idx (inner.center, inter);
     memcpy (plane_inter[0].coord, inter, sizeof(float)*N);
 
     // Now, search for intersections of the ray and all N axis-aligned planes
@@ -94,7 +96,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     // and it to plane_inter and mark with number of plane where intersection is occured.
     for (i=0; i<N; i++)
     {
-        interp = hit_plane (origin, dir, tree->dots[0], i, plane_inter[plane_counter].coord);
+        interp = hit_plane (origin, dir, inner.center, i, plane_inter[plane_counter].coord);
         plane_inter[plane_counter].tag = i;
         if (interp && (dot_betweenp (tree->bb_min, tree->bb_max, plane_inter[plane_counter].coord))) plane_counter++;
     }
@@ -109,7 +111,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     // Note, what we specify an entry point to that child as a new ray origin
     for (i=0; i<plane_counter; i++)
     {
-        interp = ray_tree_intersection (tree->children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod);
+        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod);
         if (interp) return 1;
     }
     
