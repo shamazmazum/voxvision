@@ -16,14 +16,13 @@ void color_coeff (struct node *tree, float *mul, float *add)
     }
 }
 
-void render (struct node *tree, SDL_Surface *screen, float fov, int lod)
+void render (struct node *tree, SDL_Surface *screen, const float *origin, float fov, int lod)
 {
     float color_mul[3];
     float color_add[3];
     color_coeff (tree, color_mul, color_add);
 
     int sx,sy;
-    float origin[3] = {0.0, 0.0, 0.0};
     float dir[3];
     float d = 400.0;
     dir[1] = d;

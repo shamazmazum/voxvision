@@ -63,8 +63,10 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
+    float origin[3] = {0,0,0};
+    
     time = gettime();
-    render (tree, screen, 1.2, lod);
+    render (tree, screen, origin, 1.2, lod);
     time = gettime() - time;
 
     printf ("Rendering took %f\n", time);
@@ -75,6 +77,15 @@ int main (int argc, char *argv[])
         if (SDL_WaitEvent(&event))
         {
             switch (event.type) {
+            case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_a) origin[0] -= 5.0;
+                else if (event.key.keysym.sym == SDLK_d) origin[0] += 5.0;
+                else if (event.key.keysym.sym == SDLK_s) origin[2] -= 5.0;
+                else if (event.key.keysym.sym == SDLK_w) origin[2] += 5.0;
+                SDL_Rect rect = {0,0,800,600};
+                SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
+                render (tree, screen, origin, 1.2, lod);
+                break;
             case SDL_QUIT:
                 SDL_Quit();
                 exit(0);

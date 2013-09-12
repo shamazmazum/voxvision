@@ -4,6 +4,6 @@
 #include <SDL/SDL.h>
 #include "../lib/tree.h"
 
-void render (struct node*, SDL_Surface*, float, int);
+void render (struct node*, SDL_Surface*, const float*, float, int);
 
 #endif
