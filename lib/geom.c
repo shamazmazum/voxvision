@@ -107,6 +107,8 @@ int hit_box (const float *min, const float *max, const float *origin, const floa
         }
     }
 
+    if (max_dist < 0) return 0;
+
     for (i=0; i<N; i++)
     {
         if (i==plane_num) res[i] = candidate_plane[i];
