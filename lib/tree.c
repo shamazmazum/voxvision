@@ -135,7 +135,7 @@ struct node* make_tree (float set[][N], int n)
         res->flags |= 1<<LEAF;
         leaf_data *leaf = &(res->data.leaf);
         leaf->dots_num = n;
-        memcpy (leaf->dots, set, n*sizeof(float)*N);
+        leaf->dots = set;
     }
     else
     {

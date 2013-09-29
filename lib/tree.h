@@ -30,7 +30,7 @@
 typedef struct
 {
     unsigned int dots_num; /**< Number of voxels in this node */
-    float dots[MAX_DOTS][N]; /**< Minimal coordinates of voxels in this node */
+    float (*dots)[N]; /**< Pointer to minimal coordinates of voxels in this node */
 } leaf_data;
 
 /**
