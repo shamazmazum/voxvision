@@ -1,10 +1,3 @@
-/**
-   @file tree.h
-   @brief Things related to tree construction
-
-   Functions for tree construction/deletion/statistical info are defined here
-**/
-
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
@@ -16,12 +9,6 @@
 
 float voxel[3] = {1.0, 1.0, 1.0};
 
-/**
-   \brief Take sum of two vectors.
-   
-   \param res an array where the result is stored
-   \return Third passed argument, whichs contains the sum
-**/
 float *sum_vector (const float *a, const float *b, float *res)
 {
     int i;
@@ -73,16 +60,6 @@ void calc_bounding_box (float set[][N], int n, float min[N], float max[N])
     sum_vector (max, voxel, max);
 }
 
-/**
-   \brief Calculate a subspace index for the dot.
-   
-   For N-dimentional space we have 2^N ways to place the dot
-   around the center of subdivision. Find which way is the case.
-   
-   \param dot1 the center of subdivision
-   \param dot2 the dot we must calculate index for
-   \return The subspace index in the range [0,2^N-1]
-**/
 uint8_t get_subspace_idx (const float *dot1, const float *dot2)
 {
     uint8_t res = 0;
@@ -137,11 +114,6 @@ void filter_set (float in[][N], float out[][N], int *n, uint8_t subspace, const 
 // to maximum number allowed, create a leaf and store voxels there.
 // Otherwise split the set into 2^N parts and proceed with each of subsets
 // recursively.
-
-/**
-   \brief Turn a set of voxels into a tree.
-   \return a root node of the newly created tree
-**/
 struct node* make_tree (float set[][N], int n)
 {
     struct node *res  = GC_MALLOC(sizeof(struct node));
@@ -176,9 +148,6 @@ struct node* make_tree (float set[][N], int n)
     return res;
 }
 
-/**
-   \brief Return number of voxels in the tree.
-**/
 int voxels_in_tree (struct node *tree)
 {
     int res, i;
@@ -191,18 +160,6 @@ int voxels_in_tree (struct node *tree)
     return res;
 }
 
-/**
-   \brief Calculate a depth of the tree.
-   
-   This function is called inaccurate because
-   it uses a predefined path from root to leaf,
-   treating all other paths to any leaf having
-   the same length
-
-   \param tree the tree
-   \param res an initial value of depth
-   \return res + actual depth
-**/
 int inacc_depth (struct node *tree, int res)
 {
     if (LEAFP (tree)) return res;

@@ -7,24 +7,24 @@
 #define _PARAMS_H_
 
 /**
-   Number of dimensions
+   Number of dimensions.
 **/
 #define N 3
 
 /**
-   Two in power of N
-   Number of subspaces
+   Two in power of N.
+   Number of subspaces.
 **/
 #define NS 8
 
 /**
    Maximum number of dots
-   in tree leaf
+   in tree leaf.
 **/
 #define MAX_DOTS 7
 
 /**
-   Sides of voxel
+   Sides of voxel.
 **/
 extern float voxel[N];
 

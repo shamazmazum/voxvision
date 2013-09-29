@@ -1,10 +1,3 @@
-/**
-   @file search.h
-   @brief Algorithms for searching in tree
-
-   Searching for intersection with a ray and a tree and (maybe) other
-**/
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,18 +23,6 @@ int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord 
 }
 
 // Maybe flollowing deserves a bit more explanation
-
-/**
-   \brief Find intersection of a tree and a ray.
-   
-   \param tree a tree
-   \param origin starting point of the ray
-   \param dir direction of the ray
-   \param res where result is stored
-   \param depth an initial depth of recursion. Better to specify 1
-   \param lod Level of Detail. depth = 1, lod = 0 means no level of detail
-   \return 1 if intersection was found, 0 otherwise
-**/
 int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, int depth, int lod)
 {
     float inter[N];
