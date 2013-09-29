@@ -87,26 +87,32 @@ float* align_on_voxel (float *dot)
 }
 
 /**
-   \brief Collect only those dots which are placed in desired subspace.
-   \param in a set to be filtered
-   \param out the result
-   \param n points to size of the initial set, becomes a size of the result an exit
+   \brief Move dots with needed subspace close to offset
+   \param in a set to be modified
+   \param n number of dots in set
+   \param offset where to start
    \param subspace a desired subspace
    \param center the center of subdivision
+   \return offset + how many dots were moved
 **/
-void filter_set (float in[][N], float out[][N], int *n, uint8_t subspace, const float center[N])
+int filter_set (float set[][N], int n, int offset, uint8_t subspace, const float center[N])
 {
     int i;
-    int counter = 0;
-    for (i=0; i<*n; i++)
+    float tmp[N];
+    int counter = offset;
+
+    for (i=offset; i<n; i++)
     {
-        if (get_subspace_idx (center, in[i]) == subspace)
+        if (get_subspace_idx (center, set[i]) == subspace)
         {
-            memcpy (out[counter], in[i], sizeof(float)*N);
+            memcpy (tmp, set[counter], sizeof (float)*N);
+            memcpy (set[counter], set[i], sizeof (float)*N);
+            memcpy (set[i], tmp, sizeof (float)*N);
             counter++;
         }
     }
-    *n = counter;
+    
+    return counter;
 }
 
 // Self-explanatory. No, really.
@@ -135,14 +141,17 @@ struct node* make_tree (float set[][N], int n)
     {
         int idx;
         inner_data *inner = &(res->data.inner);
+        int new_offset, offset;
+        offset = 0;
+        
         calc_avg (set, n, inner->center);
         align_on_voxel (inner->center);
-        float (*subset)[N] = GC_MALLOC_ATOMIC (sizeof(float)*n*N);
+
         for (idx=0; idx<NS; idx++)
         {
-            int sub_n = n;
-            filter_set (set, subset, &sub_n, idx, inner->center);
-            inner->children[idx] = make_tree (subset, sub_n);
+            new_offset = filter_set (set, n, offset, idx, inner->center);
+            inner->children[idx] = make_tree (set+offset, new_offset-offset);
+            offset = new_offset;
         }
     }
     return res;
