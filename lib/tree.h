@@ -25,7 +25,7 @@
 #define FULLP(node) ((node)->flags & (1<<FULL))
 
 /**
-   Data specific to leaf nodes
+   \brief Data specific to leaf nodes
 **/
 typedef struct
 {
@@ -34,7 +34,7 @@ typedef struct
 } leaf_data;
 
 /**
-   Data specific to inner nodes
+   \brief Data specific to inner nodes
 **/
 typedef struct
 {
@@ -43,7 +43,7 @@ typedef struct
 } inner_data;
 
 /**
-   Data specific to inner and leaf nodes
+   \brief Data specific to inner and leaf nodes
 **/
 union node_data
 {
@@ -52,7 +52,7 @@ union node_data
 };
 
 /**
-   Node of a voxel octree
+   \brief Node of a voxel octree
 **/
 struct node
 {
