@@ -86,12 +86,12 @@ uint8_t get_subspace_idx (const float*, const float*);
    \brief Turn a set of voxels into a tree.
    \return a root node of the newly created tree
 **/
-struct node* make_tree (float [][N], int);
+struct node* make_tree (float [][N], unsigned int);
 
 /**
    \brief Return number of voxels in the tree.
 **/
-int voxels_in_tree (struct node*);
+unsigned int voxels_in_tree (struct node*);
 
 /**
    \brief Calculate a depth of the tree.
@@ -105,7 +105,7 @@ int voxels_in_tree (struct node*);
    \param res an initial value of depth
    \return res + actual depth
 **/
-int inacc_depth (struct node*, int);
+unsigned int inacc_depth (struct node*, unsigned int);
 float inacc_balanceness (struct node*);
 //void destroy_tree (struct node*);
 

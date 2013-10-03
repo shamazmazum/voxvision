@@ -12,7 +12,7 @@
 
 struct tagged_coord
 {
-    int tag;
+    uint8_t tag;
     float coord[N];
 };
 
@@ -27,5 +27,5 @@ struct tagged_coord
    \param lod Level of Detail. depth = 1, lod = 0 means no level of detail
    \return 1 if intersection was found, 0 otherwise
 **/
-int ray_tree_intersection (struct node*, const float*, const float*, float*, int, int);
+int ray_tree_intersection (struct node*, const float*, const float*, float*, unsigned int, unsigned int);
 #endif

@@ -5,7 +5,7 @@
 #include "geom.h"
 #include "search.h"
 
-void gen_subspaces (struct tagged_coord subspaces[], int n)
+static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n)
 {
     // Turn plane numbers into subspace indices by simply XORing
     // old subspace index with plane number
@@ -14,7 +14,7 @@ void gen_subspaces (struct tagged_coord subspaces[], int n)
     for (i=1; i<n; i++)  subspaces[i].tag = (1 << subspaces[i].tag) ^ subspaces[i-1].tag;
 }
 
-int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord *c2)
+static int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord *c2)
 {
     float *dot1 = c1->coord;
     float *dot2 = c2->coord;
@@ -23,7 +23,7 @@ int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord 
 }
 
 // Maybe flollowing deserves a bit more explanation
-int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, int depth, int lod)
+int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int lod)
 {
     float inter[N];
     float tmp[N];

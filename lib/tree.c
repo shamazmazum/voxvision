@@ -23,7 +23,7 @@ float *sum_vector (const float *a, const float *b, float *res)
    \param res an array where the result is stored
    \return Third passed argument, whichs contains the average
 **/
-float* calc_avg (float set[][N], int n, float res[N])
+static float* calc_avg (float set[][N], unsigned int n, float res[N])
 {
     int i;
     float lenmul = 1.0/n;
@@ -42,7 +42,7 @@ float* calc_avg (float set[][N], int n, float res[N])
    \param min an array where the minimal coordinate is stored
    \param max an array where the maximal coordinate is stored
 **/
-void calc_bounding_box (float set[][N], int n, float min[N], float max[N])
+static void calc_bounding_box (float set[][N], unsigned int n, float min[N], float max[N])
 {
     int i,j;
     
@@ -73,7 +73,7 @@ uint8_t get_subspace_idx (const float *dot1, const float *dot2)
    \brief Align the dot on voxel if needed.
    \return Passed argument
 **/
-float* align_on_voxel (float *dot)
+static float* align_on_voxel (float *dot)
 {
     int i;
     float tmp;
@@ -95,11 +95,11 @@ float* align_on_voxel (float *dot)
    \param center the center of subdivision
    \return offset + how many dots were moved
 **/
-int filter_set (float set[][N], int n, int offset, uint8_t subspace, const float center[N])
+static unsigned int filter_set (float set[][N], unsigned int n, unsigned int offset, uint8_t subspace, const float center[N])
 {
     int i;
     float tmp[N];
-    int counter = offset;
+    unsigned int counter = offset;
 
     for (i=offset; i<n; i++)
     {
@@ -120,7 +120,7 @@ int filter_set (float set[][N], int n, int offset, uint8_t subspace, const float
 // to maximum number allowed, create a leaf and store voxels there.
 // Otherwise split the set into 2^N parts and proceed with each of subsets
 // recursively.
-struct node* make_tree (float set[][N], int n)
+struct node* make_tree (float set[][N], unsigned int n)
 {
     struct node *res  = GC_MALLOC(sizeof(struct node));
     res->flags = 0;
@@ -141,7 +141,7 @@ struct node* make_tree (float set[][N], int n)
     {
         int idx;
         inner_data *inner = &(res->data.inner);
-        int new_offset, offset;
+        unsigned int new_offset, offset;
         offset = 0;
         
         calc_avg (set, n, inner->center);
@@ -157,9 +157,9 @@ struct node* make_tree (float set[][N], int n)
     return res;
 }
 
-int voxels_in_tree (struct node *tree)
+unsigned int voxels_in_tree (struct node *tree)
 {
-    int res, i;
+    unsigned int res, i;
     if (LEAFP (tree)) res = tree->data.leaf.dots_num;
     else
     {
@@ -169,7 +169,7 @@ int voxels_in_tree (struct node *tree)
     return res;
 }
 
-int inacc_depth (struct node *tree, int res)
+unsigned int inacc_depth (struct node *tree, unsigned int res)
 {
     if (LEAFP (tree)) return res;
     else return inacc_depth (tree->data.inner.children[res&(NS-1)], res+1);
