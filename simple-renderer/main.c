@@ -6,12 +6,19 @@
 #include "renderer.h"
 #include "data.h"
 #include "../lib/tree.h"
+#include "../lib/search.h"
 
 double gettime ()
 {
     struct timeval tv;
     gettimeofday (&tv, 0);
     return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
+}
+
+static void origin_inc_test (struct node *tree, float *origin, int idx, float val)
+{
+    origin[idx] += val;
+    if (tree_ball_collisionp (tree, origin, 50)) origin[idx] -= val;
 }
 
 int main (int argc, char *argv[])
@@ -78,10 +85,12 @@ int main (int argc, char *argv[])
         {
             switch (event.type) {
             case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_a) origin[0] -= 5.0;
-                else if (event.key.keysym.sym == SDLK_d) origin[0] += 5.0;
-                else if (event.key.keysym.sym == SDLK_s) origin[2] -= 5.0;
-                else if (event.key.keysym.sym == SDLK_w) origin[2] += 5.0;
+                if (event.key.keysym.sym == SDLK_a) origin_inc_test (tree, origin, 0, -5.0);
+                else if (event.key.keysym.sym == SDLK_d) origin_inc_test (tree, origin, 0, 5.0);
+                else if (event.key.keysym.sym == SDLK_s) origin_inc_test (tree, origin, 2, -5.0);
+                else if (event.key.keysym.sym == SDLK_w) origin_inc_test (tree, origin, 2, 5.0);
+                else if (event.key.keysym.sym == SDLK_DOWN) origin_inc_test (tree, origin, 1, -5.0);
+                else if (event.key.keysym.sym == SDLK_UP) origin_inc_test (tree, origin, 1, 5.0);
                 SDL_Rect rect = {0,0,800,600};
                 SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
                 render (tree, screen, origin, 1.2, lod);
