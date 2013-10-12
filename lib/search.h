@@ -28,4 +28,13 @@ struct tagged_coord
    \return 1 if intersection was found, 0 otherwise
 **/
 int ray_tree_intersection (struct node*, const float*, const float*, float*, unsigned int, unsigned int);
+
+/**
+   \brief Returns non-zero value if a ball collides with voxels in a tree
+   \param tree the tree
+   \param center center of the ball
+   \param radius radius of the ball
+   \return 1 if collision was found, 0 otherwise
+**/
+int tree_ball_collisionp (struct node*, const float*, float);
 #endif

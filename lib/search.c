@@ -98,3 +98,31 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     
     return 0;
 }
+
+int tree_ball_collisionp (struct node *tree, const float *center, float radius)
+{
+    int i;
+    if (!(FULLP (tree))) return 0;
+    if (box_ball_interp (tree->bb_min, tree->bb_max, center, radius))
+    {
+        if (LEAFP (tree))
+        {
+            float tmp[N];
+            leaf_data leaf = tree->data.leaf;
+            for (i=0; i<leaf.dots_num; i++)
+            {
+                sum_vector (leaf.dots[i], voxel, tmp);
+                if (box_ball_interp (leaf.dots[i], tmp, center, radius)) return 1;
+            }
+        }
+        else
+        {
+            inner_data inner = tree->data.inner;
+            for (i=0; i<NS; i++)
+            {
+                if (tree_ball_collisionp (inner.children[i], center, radius)) return 1;
+            }
+        }
+    }
+    return 0;
+}
