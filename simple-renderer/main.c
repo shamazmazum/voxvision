@@ -5,8 +5,7 @@
 
 #include "renderer.h"
 #include "data.h"
-#include "../lib/tree.h"
-#include "../lib/search.h"
+#include "../lib/voxvision.h"
 
 double gettime ()
 {
