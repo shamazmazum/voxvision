@@ -10,12 +10,6 @@
 
 #include "tree.h"
 
-struct tagged_coord
-{
-    uint8_t tag;
-    float coord[N];
-};
-
 /**
    \brief Find intersection of a tree and a ray.
    

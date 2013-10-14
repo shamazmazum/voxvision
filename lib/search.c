@@ -5,6 +5,12 @@
 #include "geom.h"
 #include "search.h"
 
+struct tagged_coord
+{
+    uint8_t tag;
+    float coord[N];
+};
+
 static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n)
 {
     // Turn plane numbers into subspace indices by simply XORing
