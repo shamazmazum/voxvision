@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -29,18 +30,21 @@ static int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged
 }
 
 // Maybe flollowing deserves a bit more explanation
-int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int lod)
+int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int lod, tree_path path)
 {
     float inter[N];
     float tmp[N];
     int interp, i;
+
+    assert (depth < MAX_DEPTH);
+    path[depth-1] = tree;
 
     if (!(FULLP (tree))) return 0;
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter))) return 0;
     if (depth == lod) // Desired level of details reached -> intersection found
     {
         memcpy (res, inter, sizeof (float)*N);
-        return 1;
+        return depth;
     }
     
     if (LEAFP(tree))
@@ -63,7 +67,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
         if (count)
         {
             memcpy (res, closest_in_set (intersect, count, origin, calc_abs_metric), sizeof(float)*N);
-            return 1;
+            return depth;
         }
         else return 0;
     }
@@ -98,8 +102,8 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     // Note, what we specify an entry point to that child as a new ray origin
     for (i=0; i<plane_counter; i++)
     {
-        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod);
-        if (interp) return 1;
+        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod, path);
+        if (interp) return interp;
     }
     
     return 0;
