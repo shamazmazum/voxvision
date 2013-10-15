@@ -109,6 +109,21 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     return 0;
 }
 
+// Top call must be with idx = 0
+int local_rays_tree_intersection (const tree_path path, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int n)
+{
+    if ((depth <= n) && (depth <= MAX_DEPTH_LOCAL))
+    {
+        tree_path ignored_path;
+        // FIXME: breaks LOD.
+        // Maybe specify it in global variable?
+        int interp = ray_tree_intersection (path[n-depth], origin, dir, res, 1, 0, ignored_path);
+        if (interp) return depth;
+        else return local_rays_tree_intersection (path, origin, dir, res, depth+1, n);
+    }
+    return 0;
+}
+
 int tree_ball_collisionp (struct node *tree, const float *center, float radius)
 {
     int i;
