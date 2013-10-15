@@ -12,6 +12,8 @@ struct tagged_coord
     float coord[N];
 };
 
+unsigned int lod = 0;
+
 static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n)
 {
     // Turn plane numbers into subspace indices by simply XORing
@@ -30,7 +32,7 @@ static int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged
 }
 
 // Maybe flollowing deserves a bit more explanation
-int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int lod, tree_path path)
+int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, tree_path path)
 {
     float inter[N];
     float tmp[N];
@@ -102,7 +104,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     // Note, what we specify an entry point to that child as a new ray origin
     for (i=0; i<plane_counter; i++)
     {
-        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod, path);
+        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, path);
         if (interp) return interp;
     }
     
@@ -115,9 +117,7 @@ int local_rays_tree_intersection (const tree_path path, const float *origin, con
     if ((depth <= n) && (depth <= MAX_DEPTH_LOCAL))
     {
         tree_path ignored_path;
-        // FIXME: breaks LOD.
-        // Maybe specify it in global variable?
-        int interp = ray_tree_intersection (path[n-depth], origin, dir, res, 1, 0, ignored_path);
+        int interp = ray_tree_intersection (path[n-depth], origin, dir, res, 1, ignored_path);
         if (interp) return depth;
         else return local_rays_tree_intersection (path, origin, dir, res, depth+1, n);
     }

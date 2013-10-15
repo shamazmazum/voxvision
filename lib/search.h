@@ -18,11 +18,10 @@
    \param dir direction of the ray
    \param res where result is stored
    \param depth an initial depth of recursion. Must be 1
-   \param lod Level of Detail. lod = 0 means no level of detail
    \param path where the path to found voxel will be stored
    \return number of elements in path if intersection was found, 0 otherwise
 **/
-int ray_tree_intersection (struct node*, const float*, const float*, float*, unsigned int, unsigned int, tree_path);
+int ray_tree_intersection (struct node*, const float*, const float*, float*, unsigned int, tree_path);
 
 /**
    \brief Find intersection of a tree and local rays using data locality.

@@ -15,7 +15,7 @@ void color_coeff (struct node *tree, float *mul, float *add)
     }
 }
 
-void render (struct node *tree, SDL_Surface *screen, const float *origin, float fov, int lod)
+void render (struct node *tree, SDL_Surface *screen, const float *origin, float fov)
 {
     float color_mul[3];
     float color_add[3];
@@ -39,7 +39,7 @@ void render (struct node *tree, SDL_Surface *screen, const float *origin, float 
             dir[0] = d * (-fov + (2*sx*fov)/screen->w);
             dir[2] = d * (-fov + (2*sy*fov)/screen->h);
 
-            interp = ray_tree_intersection (tree, origin, dir, inter, 1, lod, path);
+            interp = ray_tree_intersection (tree, origin, dir, inter, 1, path);
             if (interp)
             {
                 Uint8 r = color_mul[0]*inter[0]+color_add[0];

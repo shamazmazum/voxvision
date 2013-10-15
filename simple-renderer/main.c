@@ -30,7 +30,7 @@ int main (int argc, char *argv[])
         exit (1);
     }
     
-    int lod = atoi (argv[2]);
+    lod = atoi (argv[2]);
     float (*set)[N];
     int length;
     if (strcmp (argv[1], "tree") == 0)
@@ -72,7 +72,7 @@ int main (int argc, char *argv[])
     float origin[3] = {0,0,0};
     
     time = gettime();
-    render (tree, screen, origin, 1.2, lod);
+    render (tree, screen, origin, 1.2);
     time = gettime() - time;
 
     printf ("Rendering took %f\n", time);
@@ -92,7 +92,7 @@ int main (int argc, char *argv[])
                 else if (event.key.keysym.sym == SDLK_UP) origin_inc_test (tree, origin, 1, 5.0);
                 SDL_Rect rect = {0,0,800,600};
                 SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
-                render (tree, screen, origin, 1.2, lod);
+                render (tree, screen, origin, 1.2);
                 break;
             case SDL_QUIT:
                 SDL_Quit();

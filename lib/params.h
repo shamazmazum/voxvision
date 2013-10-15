@@ -43,4 +43,9 @@ typedef struct node* tree_path[MAX_DEPTH];
 **/
 extern float voxel[N];
 
+/**
+   Level of details (LOD)
+**/
+extern unsigned int lod;
+
 #endif
