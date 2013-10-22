@@ -89,6 +89,13 @@ uint8_t get_subspace_idx (const float*, const float*);
 struct node* make_tree (float [][N], unsigned int);
 
 /**
+   \brief Free resources used by a tree.
+
+   Optional with GC.
+**/
+void destroy_tree (struct node*);
+
+/**
    \brief Return number of voxels in the tree.
 **/
 unsigned int voxels_in_tree (struct node*);
@@ -107,6 +114,5 @@ unsigned int voxels_in_tree (struct node*);
 **/
 unsigned int inacc_depth (struct node*, unsigned int);
 float inacc_balanceness (struct node*);
-//void destroy_tree (struct node*);
 
 #endif

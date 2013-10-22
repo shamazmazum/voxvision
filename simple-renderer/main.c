@@ -1,7 +1,11 @@
 #include <SDL/SDL.h>
 #include <sys/time.h>
 #include <string.h>
+#if 0
 #include <gc.h>
+#else
+#include <stdlib.h>
+#endif
 
 #include "renderer.h"
 #include "data.h"
@@ -22,7 +26,9 @@ static void origin_inc_test (struct node *tree, float *origin, int idx, float va
 
 int main (int argc, char *argv[])
 {
+#if 0
     GC_INIT();
+#endif
     
     if (argc != 3)
     {

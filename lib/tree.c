@@ -1,7 +1,11 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
+#if 0
 #include <gc.h>
+#else
+#include <stdlib.h>
+#endif
 
 #include "tree.h"
 
@@ -122,7 +126,11 @@ static unsigned int filter_set (float set[][N], unsigned int n, unsigned int off
 // recursively.
 struct node* make_tree (float set[][N], unsigned int n)
 {
+#if 0
     struct node *res  = GC_MALLOC(sizeof(struct node));
+#else
+    struct node *res  = malloc (sizeof(struct node));
+#endif
     res->flags = 0;
     if (n > 0)
     {
@@ -175,15 +183,19 @@ unsigned int inacc_depth (struct node *tree, unsigned int res)
     else return inacc_depth (tree->data.inner.children[res&(NS-1)], res+1);
 }
 
-/*void destroy_tree (struct node *tree)
+void destroy_tree (struct node *tree)
 {
     if (!(LEAFP (tree)))
     {
         int i;
-        for (i=0; i<NS; i++) destroy_tree (tree->children[i]);
+        for (i=0; i<NS; i++) destroy_tree (tree->data.inner.children[i]);
     }
+#if 0
+    GC_FREE (tree);
+#else
     free (tree);
-}*/
+#endif
+}
 
 /* Taken from my voxel-octrees library for common lisp:
 
