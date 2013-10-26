@@ -18,10 +18,10 @@ double gettime ()
     return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
 }
 
-static void origin_inc_test (struct node *tree, float *origin, int idx, float val)
+static void origin_inc_test (struct vox_node *tree, float *origin, int idx, float val)
 {
     origin[idx] += val;
-    if (tree_ball_collisionp (tree, origin, 50)) origin[idx] -= val;
+    if (vox_tree_ball_collidep (tree, origin, 50)) origin[idx] -= val;
 }
 
 int main (int argc, char *argv[])
@@ -36,8 +36,8 @@ int main (int argc, char *argv[])
         exit (1);
     }
     
-    lod = atoi (argv[2]);
-    float (*set)[N];
+    vox_lod = atoi (argv[2]);
+    float (*set)[VOX_N];
     int length;
     if (strcmp (argv[1], "tree") == 0)
     {
@@ -56,11 +56,11 @@ int main (int argc, char *argv[])
     }
     
     double time = gettime ();
-    struct node *tree = make_tree (set, length);
+    struct vox_node *tree = vox_make_tree (set, length);
     time = gettime() - time;
 
-    printf ("Building tree (%i voxels, %i depth) took %f\n", voxels_in_tree (tree), inacc_depth (tree, 0), time);
-    printf ("Tree balanceness %f\n", inacc_balanceness (tree));
+    printf ("Building tree (%i voxels, %i depth) took %f\n", vox_voxels_in_tree (tree), vox_inacc_depth (tree, 0), time);
+    printf ("Tree balanceness %f\n", vox_inacc_balanceness (tree));
 
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
     {

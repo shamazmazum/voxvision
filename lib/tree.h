@@ -8,21 +8,20 @@
 #ifndef _TREE_H_
 #define _TREE_H_
 
-#include <stdint.h>
 #include "params.h"
 
-#define LEAF 0
-#define FULL 1
+#define VOX_LEAF 0
+#define VOX_FULL 1
 
 /**
    Is the node a leaf?
 **/
-#define LEAFP(node) ((node)->flags & (1<<LEAF))
+#define VOX_LEAFP(node) ((node)->flags & (1<<VOX_LEAF))
 
 /**
    Is the node full?
 **/
-#define FULLP(node) ((node)->flags & (1<<FULL))
+#define VOX_FULLP(node) ((node)->flags & (1<<VOX_FULL))
 
 /**
    \brief Data specific to leaf nodes
@@ -30,75 +29,61 @@
 typedef struct
 {
     unsigned int dots_num; /**< Number of voxels in this node */
-    float (*dots)[N]; /**< Pointer to minimal coordinates of voxels in this node */
-} leaf_data;
+    float (*dots)[VOX_N]; /**< Pointer to minimal coordinates of voxels in this node */
+} vox_leaf_data;
 
 /**
    \brief Data specific to inner nodes
 **/
 typedef struct
 {
-    float center[N]; /**< Center of subdivision */
-    struct node *children[NS]; /**< Children of this node */
-} inner_data;
+    float center[VOX_N]; /**< Center of subdivision */
+    struct vox_node *children[VOX_NS]; /**< Children of this node */
+} vox_inner_data;
 
 /**
    \brief Data specific to inner and leaf nodes
 **/
-union node_data
+union vox_node_data
 {
-    leaf_data leaf;
-    inner_data inner;
+    vox_leaf_data leaf;
+    vox_inner_data inner;
 };
 
 /**
    \brief Node of a voxel octree
 **/
-struct node
+struct vox_node
 {
     unsigned int flags; /**< Fill and leaf flags */
-    float bb_min[N]; /**< Minimal coordinate of the bounding box */
-    float bb_max[N]; /**< Maximal coordinate of the bounding box */
-    union node_data data; /**< Data specific to inner and leaf nodes */
+    float bb_min[VOX_N]; /**< Minimal coordinate of the bounding box */
+    float bb_max[VOX_N]; /**< Maximal coordinate of the bounding box */
+    union vox_node_data data; /**< Data specific to inner and leaf nodes */
 };
 
 /**
-   \brief Take sum of two vectors.
-   
-   \param res an array where the result is stored
-   \return Third passed argument, whichs contains the sum
+   \brief Align vector on voxel
+   \return passed argument
 **/
-float* sum_vector (const float*, const float*, float*);
-
-/**
-   \brief Calculate a subspace index for the dot.
-   
-   For N-dimentional space we have 2^N ways to place the dot
-   around the center of subdivision. Find which way is the case.
-   
-   \param dot1 the center of subdivision
-   \param dot2 the dot we must calculate index for
-   \return The subspace index in the range [0,2^N-1]
-**/
-uint8_t get_subspace_idx (const float*, const float*);
+float* vox_align (float*);
 
 /**
    \brief Turn a set of voxels into a tree.
    \return a root node of the newly created tree
 **/
-struct node* make_tree (float [][N], unsigned int);
+struct vox_node* vox_make_tree (float [][VOX_N], unsigned int);
 
 /**
    \brief Free resources used by a tree.
 
    Optional with GC.
 **/
-void destroy_tree (struct node*);
+void vox_destory_tree (struct vox_node*);
 
 /**
    \brief Return number of voxels in the tree.
 **/
-unsigned int voxels_in_tree (struct node*);
+unsigned int vox_voxels_in_tree (struct vox_node*);
 
 /**
    \brief Calculate a depth of the tree.
@@ -112,7 +97,7 @@ unsigned int voxels_in_tree (struct node*);
    \param res an initial value of depth
    \return res + actual depth
 **/
-unsigned int inacc_depth (struct node*, unsigned int);
-float inacc_balanceness (struct node*);
+unsigned int vox_inacc_depth (struct vox_node*, unsigned int);
+float vox_inacc_balanceness (struct vox_node*);
 
 #endif

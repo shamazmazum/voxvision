@@ -9,43 +9,43 @@
 /**
    Number of dimensions.
 **/
-#define N 3
+#define VOX_N 3
 
 /**
-   Two in power of N.
+   Two in power of VOX_N.
    Number of subspaces.
 **/
-#define NS 8
+#define VOX_NS 8
 
 /**
    Maximum number of dots
    in tree leaf.
 **/
-#define MAX_DOTS 7
+#define VOX_MAX_DOTS 7
 
 /**
    Maximal depth of tree.
    Used only for path saver
 **/
-#define MAX_DEPTH 15
+#define VOX_MAX_DEPTH 15
 
 /**
    Maximal depth between 2 nodes
    which still considered local.
-   Must be < MAX_DEPTH
+   Must be < VOX_MAX_DEPTH
 **/
-#define MAX_DEPTH_LOCAL 3
+#define VOX_MAX_DEPTH_LOCAL 3
 
-typedef struct node* tree_path[MAX_DEPTH];
+typedef struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
 
 /**
    Sides of voxel.
 **/
-extern float voxel[N];
+extern float vox_voxel[VOX_N];
 
 /**
    Level of details (LOD)
 **/
-extern unsigned int lod;
+extern unsigned int vox_lod;
 
 #endif
