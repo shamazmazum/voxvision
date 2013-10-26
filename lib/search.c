@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -10,6 +11,8 @@ struct tagged_coord
     uint8_t tag;
     float coord[N];
 };
+
+unsigned int lod = 0;
 
 static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n)
 {
@@ -29,18 +32,21 @@ static int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged
 }
 
 // Maybe flollowing deserves a bit more explanation
-int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int lod)
+int ray_tree_intersection (struct node *tree, const float *origin, const float *dir, float *res, unsigned int depth, tree_path path)
 {
     float inter[N];
     float tmp[N];
     int interp, i;
+
+    assert (depth < MAX_DEPTH);
+    path[depth-1] = tree;
 
     if (!(FULLP (tree))) return 0;
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter))) return 0;
     if (depth == lod) // Desired level of details reached -> intersection found
     {
         memcpy (res, inter, sizeof (float)*N);
-        return 1;
+        return depth;
     }
     
     if (LEAFP(tree))
@@ -63,7 +69,7 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
         if (count)
         {
             memcpy (res, closest_in_set (intersect, count, origin, calc_abs_metric), sizeof(float)*N);
-            return 1;
+            return depth;
         }
         else return 0;
     }
@@ -98,10 +104,23 @@ int ray_tree_intersection (struct node *tree, const float *origin, const float *
     // Note, what we specify an entry point to that child as a new ray origin
     for (i=0; i<plane_counter; i++)
     {
-        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, lod);
-        if (interp) return 1;
+        interp = ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, path);
+        if (interp) return interp;
     }
     
+    return 0;
+}
+
+// Top call must be with idx = 0
+int local_rays_tree_intersection (const tree_path path, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int n)
+{
+    if ((depth <= n) && (depth <= MAX_DEPTH_LOCAL))
+    {
+        tree_path ignored_path;
+        int interp = ray_tree_intersection (path[n-depth], origin, dir, res, 1, ignored_path);
+        if (interp) return depth;
+        else return local_rays_tree_intersection (path, origin, dir, res, depth+1, n);
+    }
     return 0;
 }
 

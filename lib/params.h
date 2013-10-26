@@ -24,8 +24,28 @@
 #define MAX_DOTS 7
 
 /**
+   Maximal depth of tree.
+   Used only for path saver
+**/
+#define MAX_DEPTH 15
+
+/**
+   Maximal depth between 2 nodes
+   which still considered local.
+   Must be < MAX_DEPTH
+**/
+#define MAX_DEPTH_LOCAL 3
+
+typedef struct node* tree_path[MAX_DEPTH];
+
+/**
    Sides of voxel.
 **/
 extern float voxel[N];
+
+/**
+   Level of details (LOD)
+**/
+extern unsigned int lod;
 
 #endif
