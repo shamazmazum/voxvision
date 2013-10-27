@@ -4,41 +4,40 @@
 #include "geom.h"
 #include "params.h"
 
-float *sum_vector (const float *a, const float *b, float *res)
+void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
-    int i;
+    vox_uint i;
     for (i=0; i<VOX_N; i++) res[i] = a[i] + b[i];
-    return res;
 }
 
-uint8_t get_subspace_idx (const float *dot1, const float *dot2)
+vox_uint get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 {
-    uint8_t res = 0;
-    int i;
+    vox_uint res, i;
+    res = 0;
 
     for (i=0; i<VOX_N; i++) res |= ((dot1[i] > dot2[i]) ? 1 : 0) << i;
     return res;
 }
 
-float calc_abs_metric (const float *dot1, const float *dot2)
+float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
 {
-    int i;
+    vox_uint i;
     float res = 0;
     for (i=0; i<VOX_N; i++) res += fabsf (dot1[i] - dot2[i]);
     return res;
 }
 
-float calc_sqr_metric (const float *dot1, const float *dot2)
+float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 {
-    int i;
+    vox_uint i;
     float res = 0;
     for (i=0; i<VOX_N; i++) res += powf (dot1[i] - dot2[i], 2.0);
     return res;
 }
 
-int fit_into_box (const float *min, const float *max, const float *dot, float *res)
+int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
 {
-    int i;
+    vox_uint i;
     int the_same = 1;
     for (i=0; i<VOX_N; i++)
     {
@@ -57,9 +56,9 @@ int fit_into_box (const float *min, const float *max, const float *dot, float *r
     return the_same;
 }
 
-int dot_betweenp (const float *min, const float *max, const float *dot)
+int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
 {
-    int i;
+    vox_uint i;
 
     for (i=0; i<VOX_N; i++) {if ((dot[i] < min[i]) || (dot[i] > max[i])) return 0;}
     return 1;
@@ -67,16 +66,15 @@ int dot_betweenp (const float *min, const float *max, const float *dot)
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation
-int hit_box (const float *min, const float *max, const float *origin, const float *dir, float *res)
+int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const vox_dot dir, vox_dot res)
 {
-    float candidate_plane[VOX_N];
-    float tdist[VOX_N];
+    vox_dot candidate_plane, tdist;
     float max_dist;
     int i, plane_num;
     int insidep = fit_into_box (min, max, origin, candidate_plane);
     if (insidep)
     {
-        memcpy (res, origin, sizeof(float)*3);
+        memcpy (res, origin, sizeof(vox_dot));
         return 1;
     }
 
@@ -108,7 +106,7 @@ int hit_box (const float *min, const float *max, const float *origin, const floa
     else return 0;
 }
 
-int hit_plane (const float *origin, const float *dir, const float *planedot, int planenum, float *res)
+int hit_plane (const vox_dot origin, const vox_dot dir, const vox_dot planedot, int planenum, vox_dot res)
 {
     int i;
     if (dir[planenum] == 0.0) return 0;
@@ -124,14 +122,14 @@ int hit_plane (const float *origin, const float *dir, const float *planedot, int
     return 1;
 }
 
-int box_ball_interp (const float *min, const float *max, const float *center, float radius)
+int box_ball_interp (const vox_dot min, const vox_dot max, const vox_dot center, float radius)
 {
-    float fitted[VOX_N];
+    vox_dot fitted;
     fit_into_box (min, max, center, fitted);
     return (calc_sqr_metric (fitted, center) < (radius*radius)) ? 1 : 0;
 }
 
-float* closest_in_set (float set[][VOX_N], int n, const float *dot, float (*metric) (const float*, const float*))
+float* closest_in_set (vox_dot set[], int n, const vox_dot dot, float (*metric) (const vox_dot, const vox_dot))
 {
     float *res = set[0];
     float dist = metric(dot, res);

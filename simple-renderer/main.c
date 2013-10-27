@@ -18,7 +18,7 @@ double gettime ()
     return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
 }
 
-static void origin_inc_test (struct vox_node *tree, float *origin, int idx, float val)
+static void origin_inc_test (struct vox_node *tree, vox_dot origin, int idx, float val)
 {
     origin[idx] += val;
     if (vox_tree_ball_collidep (tree, origin, 50)) origin[idx] -= val;
@@ -37,7 +37,7 @@ int main (int argc, char *argv[])
     }
     
     vox_lod = atoi (argv[2]);
-    float (*set)[VOX_N];
+    vox_dot *set;
     int length;
     if (strcmp (argv[1], "tree") == 0)
     {
@@ -75,7 +75,7 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    float origin[3] = {0,0,0};
+    vox_dot origin = {0,0,0};
     
     time = gettime();
     render (tree, screen, origin, 1.2);

@@ -8,22 +8,22 @@
 
 struct tagged_coord
 {
-    uint8_t tag;
-    float coord[VOX_N];
+    vox_uint tag;
+    vox_dot coord;
 };
 
-unsigned int vox_lod = 0;
+vox_uint vox_lod = 0;
 
 static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n)
 {
     // Turn plane numbers into subspace indices by simply XORing
     // old subspace index with plane number
-    int i;
+    vox_uint i;
 
     for (i=1; i<n; i++)  subspaces[i].tag = (1 << subspaces[i].tag) ^ subspaces[i-1].tag;
 }
 
-static int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged_coord *c2)
+static int compare_tagged (vox_dot origin, struct tagged_coord *c1, struct tagged_coord *c2)
 {
     float *dot1 = c1->coord;
     float *dot2 = c2->coord;
@@ -32,11 +32,10 @@ static int compare_tagged (float *origin, struct tagged_coord *c1, struct tagged
 }
 
 // Maybe flollowing deserves a bit more explanation
-int vox_ray_tree_intersection (struct vox_node *tree, const float *origin, const float *dir, float *res, unsigned int depth, vox_tree_path path)
+vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin, const vox_dot dir, vox_dot res, vox_uint depth, vox_tree_path path)
 {
-    float inter[VOX_N];
-    float tmp[VOX_N];
-    int interp, i;
+    vox_dot inter, tmp;
+    vox_uint interp, i;
 
     assert (depth < VOX_MAX_DEPTH);
     path[depth-1] = tree;
@@ -45,7 +44,7 @@ int vox_ray_tree_intersection (struct vox_node *tree, const float *origin, const
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter))) return 0;
     if (depth == vox_lod) // Desired level of details reached -> intersection found
     {
-        memcpy (res, inter, sizeof (float)*VOX_N);
+        memcpy (res, inter, sizeof (vox_dot));
         return depth;
     }
     
@@ -54,7 +53,7 @@ int vox_ray_tree_intersection (struct vox_node *tree, const float *origin, const
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
         // with voxels stored in the leaf and return closest one (also O(tree->dots_num))
         int count = 0;
-        float intersect[VOX_MAX_DOTS][VOX_N];
+        vox_dot intersect[VOX_MAX_DOTS];
         vox_leaf_data leaf = tree->data.leaf;
         for (i=0; i<leaf.dots_num; i++)
         {
@@ -62,13 +61,13 @@ int vox_ray_tree_intersection (struct vox_node *tree, const float *origin, const
             interp = hit_box (leaf.dots[i], tmp, origin, dir, inter);
             if (interp)
             {
-                memcpy (intersect[count], inter, sizeof(float)*VOX_N);
+                memcpy (intersect[count], inter, sizeof(vox_dot));
                 count++;
             }
         }
         if (count)
         {
-            memcpy (res, closest_in_set (intersect, count, origin, calc_abs_metric), sizeof(float)*VOX_N);
+            memcpy (res, closest_in_set (intersect, count, origin, calc_abs_metric), sizeof(vox_dot));
             return depth;
         }
         else return 0;
@@ -81,7 +80,7 @@ int vox_ray_tree_intersection (struct vox_node *tree, const float *origin, const
     // Init tagged_coord structure with "entry point" in the node, so to say
     // The tag is a subspace index of entry point
     plane_inter[0].tag = get_subspace_idx (inner.center, inter);
-    memcpy (plane_inter[0].coord, inter, sizeof(float)*VOX_N);
+    memcpy (plane_inter[0].coord, inter, sizeof(vox_dot));
 
     // Now, search for intersections of the ray and all N axis-aligned planes
     // for our N-dimentional space.
@@ -112,27 +111,27 @@ int vox_ray_tree_intersection (struct vox_node *tree, const float *origin, const
 }
 
 // Top call must be with idx = 0
-int vox_local_rays_tree_intersection (const vox_tree_path path, const float *origin, const float *dir, float *res, unsigned int depth, unsigned int n)
+vox_uint vox_local_rays_tree_intersection (const vox_tree_path path, const vox_dot origin, const vox_dot dir, vox_dot res, vox_uint depth, vox_uint n)
 {
     if ((depth <= n) && (depth <= VOX_MAX_DEPTH_LOCAL))
     {
         vox_tree_path ignored_path;
-        int interp = vox_ray_tree_intersection (path[n-depth], origin, dir, res, 1, ignored_path);
+        vox_uint interp = vox_ray_tree_intersection (path[n-depth], origin, dir, res, 1, ignored_path);
         if (interp) return depth;
         else return vox_local_rays_tree_intersection (path, origin, dir, res, depth+1, n);
     }
     return 0;
 }
 
-int vox_tree_ball_collidep (struct vox_node *tree, const float *center, float radius)
+int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float radius)
 {
-    int i;
+    vox_uint i;
     if (!(VOX_FULLP (tree))) return 0;
     if (box_ball_interp (tree->bb_min, tree->bb_max, center, radius))
     {
         if (VOX_LEAFP (tree))
         {
-            float tmp[VOX_N];
+            vox_dot tmp;
             vox_leaf_data leaf = tree->data.leaf;
             for (i=0; i<leaf.dots_num; i++)
             {

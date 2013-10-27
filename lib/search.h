@@ -21,7 +21,7 @@
    \param path where the path to found voxel will be stored
    \return number of elements in path if intersection was found, 0 otherwise
 **/
-int vox_ray_tree_intersection (struct vox_node*, const float*, const float*, float*, unsigned int, vox_tree_path);
+vox_uint vox_ray_tree_intersection (struct vox_node*, const vox_dot, const vox_dot, vox_dot, vox_uint, vox_tree_path);
 
 /**
    \brief Find intersection of a tree and local rays using data locality.
@@ -37,7 +37,7 @@ int vox_ray_tree_intersection (struct vox_node*, const float*, const float*, flo
    \param n returned value of vox_ray_tree_intersection. Number of elements in path.
    \return new idx value best suited for future calls
 **/
-int vox_local_rays_tree_intersection (const vox_tree_path, const float*, const float*, float*, unsigned int, unsigned int);
+vox_uint vox_local_rays_tree_intersection (const vox_tree_path, const vox_dot, const vox_dot, vox_dot, vox_uint, vox_uint);
 
 /**
    \brief Returns non-zero value if a ball collides with voxels in a tree
@@ -46,5 +46,5 @@ int vox_local_rays_tree_intersection (const vox_tree_path, const float*, const f
    \param radius radius of the ball
    \return 1 if collision was found, 0 otherwise
 **/
-int vox_tree_ball_collidep (struct vox_node*, const float*, float);
+int vox_tree_ball_collidep (struct vox_node*, const vox_dot, float);
 #endif

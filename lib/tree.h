@@ -28,8 +28,8 @@
 **/
 typedef struct
 {
-    unsigned int dots_num; /**< Number of voxels in this node */
-    float (*dots)[VOX_N]; /**< Pointer to minimal coordinates of voxels in this node */
+    vox_uint dots_num; /**< Number of voxels in this node */
+    vox_dot *dots; /**< Pointer to minimal coordinates of voxels in this node */
 } vox_leaf_data;
 
 /**
@@ -37,7 +37,7 @@ typedef struct
 **/
 typedef struct
 {
-    float center[VOX_N]; /**< Center of subdivision */
+    vox_dot center; /**< Center of subdivision */
     struct vox_node *children[VOX_NS]; /**< Children of this node */
 } vox_inner_data;
 
@@ -55,23 +55,26 @@ union vox_node_data
 **/
 struct vox_node
 {
-    unsigned int flags; /**< Fill and leaf flags */
-    float bb_min[VOX_N]; /**< Minimal coordinate of the bounding box */
-    float bb_max[VOX_N]; /**< Maximal coordinate of the bounding box */
+    vox_uint flags; /**< Fill and leaf flags */
+    vox_dot bb_min; /**< Minimal coordinate of the bounding box */
+    vox_dot bb_max; /**< Maximal coordinate of the bounding box */
     union vox_node_data data; /**< Data specific to inner and leaf nodes */
 };
 
 /**
-   \brief Align vector on voxel
-   \return passed argument
+   \brief Align vector on voxel.
+
+   This is destructive operation.
+   
+   \dot dot to be aligned
 **/
-float* vox_align (float*);
+void vox_align (vox_dot);
 
 /**
    \brief Turn a set of voxels into a tree.
    \return a root node of the newly created tree
 **/
-struct vox_node* vox_make_tree (float [][VOX_N], unsigned int);
+struct vox_node* vox_make_tree (vox_dot[], vox_uint);
 
 /**
    \brief Free resources used by a tree.
@@ -83,7 +86,7 @@ void vox_destory_tree (struct vox_node*);
 /**
    \brief Return number of voxels in the tree.
 **/
-unsigned int vox_voxels_in_tree (struct vox_node*);
+vox_uint vox_voxels_in_tree (struct vox_node*);
 
 /**
    \brief Calculate a depth of the tree.
@@ -97,7 +100,7 @@ unsigned int vox_voxels_in_tree (struct vox_node*);
    \param res an initial value of depth
    \return res + actual depth
 **/
-unsigned int vox_inacc_depth (struct vox_node*, unsigned int);
+vox_uint vox_inacc_depth (struct vox_node*, vox_uint);
 float vox_inacc_balanceness (struct vox_node*);
 
 #endif

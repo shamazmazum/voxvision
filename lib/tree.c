@@ -1,5 +1,4 @@
 #include <string.h>
-#include <stdint.h>
 #include <math.h>
 #if 0
 #include <gc.h>
@@ -12,7 +11,7 @@
 
 //#include <stdlib.h>
 
-float vox_voxel[VOX_N] = {1.0, 1.0, 1.0};
+vox_dot vox_voxel = {1.0, 1.0, 1.0};
 
 /**
    \brief Calc average dot for the set.
@@ -21,15 +20,14 @@ float vox_voxel[VOX_N] = {1.0, 1.0, 1.0};
    \param res an array where the result is stored
    \return Third passed argument, whichs contains the average
 **/
-static float* calc_avg (float set[][VOX_N], unsigned int n, float res[VOX_N])
+static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
 {
-    int i;
+    vox_uint i;
     float lenmul = 1.0/n;
-    memset (res, 0, sizeof(float)*VOX_N);
+    memset (res, 0, sizeof(vox_dot));
 
     for (i=0; i<n; i++) sum_vector (set[i], res, res);
     for (i=0; i<VOX_N; i++) res[i] *= lenmul;
-    return res;
 }
 
 /**
@@ -40,12 +38,12 @@ static float* calc_avg (float set[][VOX_N], unsigned int n, float res[VOX_N])
    \param min an array where the minimal coordinate is stored
    \param max an array where the maximal coordinate is stored
 **/
-static void calc_bounding_box (float set[][VOX_N], unsigned int n, float min[VOX_N], float max[VOX_N])
+static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot max)
 {
-    int i,j;
+    vox_uint i,j;
     
-    memcpy (min, set[0], sizeof(float)*VOX_N);
-    memcpy (max, set[0], sizeof(float)*VOX_N);
+    memcpy (min, set[0], sizeof(vox_dot));
+    memcpy (max, set[0], sizeof(vox_dot));
 
     for (i=0; i<n; i++)
     {
@@ -58,13 +56,9 @@ static void calc_bounding_box (float set[][VOX_N], unsigned int n, float min[VOX
     sum_vector (max, vox_voxel, max);
 }
 
-/**
-   \brief Align the dot on voxel if needed.
-   \return Passed argument
-**/
-float* vox_align (float *dot)
+void vox_align (vox_dot dot)
 {
-    int i;
+    vox_uint i;
     float tmp;
 
     for (i=0; i<VOX_N; i++)
@@ -72,7 +66,6 @@ float* vox_align (float *dot)
         tmp = ceilf (dot[i] / vox_voxel[i]);
         dot[i] = vox_voxel[i] * tmp;
     }
-    return dot;
 }
 
 /**
@@ -84,19 +77,19 @@ float* vox_align (float *dot)
    \param center the center of subdivision
    \return offset + how many dots were moved
 **/
-static unsigned int filter_set (float set[][VOX_N], unsigned int n, unsigned int offset, uint8_t subspace, const float center[VOX_N])
+static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint subspace, const vox_dot center)
 {
-    int i;
-    float tmp[VOX_N];
-    unsigned int counter = offset;
+    vox_uint i;
+    vox_dot tmp;
+    vox_uint counter = offset;
 
     for (i=offset; i<n; i++)
     {
         if (get_subspace_idx (center, set[i]) == subspace)
         {
-            memcpy (tmp, set[counter], sizeof (float)*VOX_N);
-            memcpy (set[counter], set[i], sizeof (float)*VOX_N);
-            memcpy (set[i], tmp, sizeof (float)*VOX_N);
+            memcpy (tmp, set[counter], sizeof (vox_dot));
+            memcpy (set[counter], set[i], sizeof (vox_dot));
+            memcpy (set[i], tmp, sizeof (vox_dot));
             counter++;
         }
     }
@@ -109,7 +102,7 @@ static unsigned int filter_set (float set[][VOX_N], unsigned int n, unsigned int
 // to maximum number allowed, create a leaf and store voxels there.
 // Otherwise split the set into 2^N parts and proceed with each of subsets
 // recursively.
-struct vox_node* vox_make_tree (float set[][VOX_N], unsigned int n)
+struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
 {
 #if 0
     struct vox_node *res  = GC_MALLOC(sizeof(struct vox_node));
@@ -132,9 +125,9 @@ struct vox_node* vox_make_tree (float set[][VOX_N], unsigned int n)
     }
     else
     {
-        int idx;
+        vox_uint idx;
         vox_inner_data *inner = &(res->data.inner);
-        unsigned int new_offset, offset;
+        vox_uint new_offset, offset;
         offset = 0;
         
         calc_avg (set, n, inner->center);
@@ -150,9 +143,9 @@ struct vox_node* vox_make_tree (float set[][VOX_N], unsigned int n)
     return res;
 }
 
-unsigned int vox_voxels_in_tree (struct vox_node *tree)
+vox_uint vox_voxels_in_tree (struct vox_node *tree)
 {
-    unsigned int res, i;
+    vox_uint res, i;
     if (VOX_LEAFP (tree)) res = tree->data.leaf.dots_num;
     else
     {
@@ -162,7 +155,7 @@ unsigned int vox_voxels_in_tree (struct vox_node *tree)
     return res;
 }
 
-unsigned int vox_inacc_depth (struct vox_node *tree, unsigned int res)
+vox_uint vox_inacc_depth (struct vox_node *tree, vox_uint res)
 {
     if (VOX_LEAFP (tree)) return res;
     else return vox_inacc_depth (tree->data.inner.children[res&(VOX_NS-1)], res+1);
@@ -172,7 +165,7 @@ void vox_destory_tree (struct vox_node *tree)
 {
     if (!(VOX_LEAFP (tree)))
     {
-        int i;
+        vox_uint i;
         for (i=0; i<VOX_NS; i++) vox_destory_tree (tree->data.inner.children[i]);
     }
 #if 0

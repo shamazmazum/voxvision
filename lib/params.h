@@ -6,6 +6,8 @@
 #ifndef _PARAMS_H_
 #define _PARAMS_H_
 
+// Macros
+
 /**
    Number of dimensions.
 **/
@@ -36,7 +38,13 @@
 **/
 #define VOX_MAX_DEPTH_LOCAL 3
 
+// Types
+
 typedef struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
+typedef unsigned int vox_uint;
+typedef float vox_dot[VOX_N];
+
+// Global vars
 
 /**
    Sides of voxel.
@@ -46,6 +54,6 @@ extern float vox_voxel[VOX_N];
 /**
    Level of details (LOD)
 **/
-extern unsigned int vox_lod;
+extern vox_uint vox_lod;
 
 #endif

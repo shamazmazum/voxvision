@@ -15,19 +15,19 @@ void color_coeff (struct vox_node *tree, float *mul, float *add)
     }
 }
 
-void render (struct vox_node *tree, SDL_Surface *screen, const float *origin, float fov)
+void render (struct vox_node *tree, SDL_Surface *screen, const vox_dot origin, float fov)
 {
     float color_mul[3];
     float color_add[3];
     color_coeff (tree, color_mul, color_add);
 
     int sx,sy;
-    float dir[3];
+    vox_dot dir;
     float d = 400.0;
     dir[1] = d;
 
     int interp;
-    float inter[3];
+    vox_dot inter;
     int p = 0;
 
     vox_tree_path path;

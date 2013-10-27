@@ -6,16 +6,16 @@
 #ifndef __GEOM_H_
 #define __GEOM_H_
 
-#include <stdint.h>
 #include "params.h"
 
 /**
    \brief Take sum of two vectors.
-   
+
+   \param a
+   \param b
    \param res an array where the result is stored
-   \return Third passed argument, whichs contains the sum
 **/
-float* sum_vector (const float*, const float*, float*);
+void sum_vector (const vox_dot, const vox_dot, vox_dot);
 
 /**
    \brief Calculate a subspace index for the dot.
@@ -27,14 +27,14 @@ float* sum_vector (const float*, const float*, float*);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
-uint8_t get_subspace_idx (const float*, const float*);
+vox_uint get_subspace_idx (const vox_dot, const vox_dot);
 
 /**
    \brief Calc metric between two dots.
    
    A formula used is \f$\rho(x,y) = \Sigma_{i=1}^N \vert x_i - y_i \vert\f$
 **/
-float calc_abs_metric (const float*, const float*);
+float calc_abs_metric (const vox_dot, const vox_dot);
 
 /**
    \brief Calc metric between two dots (variant 2).
@@ -42,10 +42,10 @@ float calc_abs_metric (const float*, const float*);
    A formula used is \f$\rho (x,y) = \Sigma_{i=1}^N (x_i-y_i)^2\f$
    A square of usual euclid metric.
 **/
-float calc_sqr_metric (const float*, const float*);
+float calc_sqr_metric (const vox_dot, const vox_dot);
 
-int fit_into_box (const float*, const float*, const float*, float*);
-int dot_betweenp (const float*, const float*, const float*);
+int fit_into_box (const vox_dot, const vox_dot, const vox_dot, vox_dot);
+int dot_betweenp (const vox_dot, const vox_dot, const vox_dot);
 
 /**
    \brief Find intersection of a ray and an axis-aligned box.
@@ -57,7 +57,7 @@ int dot_betweenp (const float*, const float*, const float*);
    \param res where intersection is stored
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_box (const float*, const float*, const float*, const float*, float*);
+int hit_box (const vox_dot, const vox_dot, const vox_dot, const vox_dot, vox_dot);
 
 /**
    \brief Find intersection of a ray and a plane.
@@ -70,14 +70,14 @@ int hit_box (const float*, const float*, const float*, const float*, float*);
    \param res where intersection is stored
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_plane (const float*, const float*, const float*, int, float*);
+int hit_plane (const vox_dot, const vox_dot, const vox_dot, int, vox_dot);
 
 /**
    \brief Find intersection of a box and a ball.
    
    The box and the ball are solid
 **/
-int box_ball_interp (const float*, const float*, const float*, float);
-float* closest_in_set (float[][VOX_N], int, const float*, float (*) (const float*, const float*));
+int box_ball_interp (const vox_dot, const vox_dot, const vox_dot, float);
+float* closest_in_set (vox_dot[], int, const vox_dot, float (*) (const vox_dot, const vox_dot));
 
 #endif
