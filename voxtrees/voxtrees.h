@@ -1,9 +1,9 @@
 /**
-   @file voxvision.h
+   @file voxtrees.h
    @brief All headers you need
 **/
-#ifndef _VOXVISION_H_
-#define _VOXVISION_H_
+#ifndef _VOXTREES_H_
+#define _VOXTREES_H_
 
 #include "tree.h"
 #include "search.h"

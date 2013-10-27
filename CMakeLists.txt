@@ -14,7 +14,7 @@ include_directories (${SDL_INCLUDE_DIR})
 #find_package (GC REQUIRED)
 #include_directories (${BOEHM_GC_INCLUDE_DIR})
 
-add_subdirectory (lib)
+add_subdirectory (voxtrees)
 add_subdirectory (simple-renderer)
 
 find_package(Doxygen)

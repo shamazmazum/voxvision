@@ -2,7 +2,7 @@
 #include <SDL/SDL.h>
 #include <stdio.h>
 
-#include "../lib/voxvision.h"
+#include "../voxtrees/voxtrees.h"
 #include "renderer.h"
 
 void color_coeff (struct vox_node *tree, float *mul, float *add)

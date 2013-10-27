@@ -9,7 +9,7 @@
 
 #include "renderer.h"
 #include "data.h"
-#include "../lib/voxvision.h"
+#include "../voxtrees/voxtrees.h"
 
 double gettime ()
 {
