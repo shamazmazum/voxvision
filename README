@@ -1,7 +1,7 @@
 My voxel octrees library implemented in C + the simplest renderer with 2 sets of data.
 
 How to build:
-1) Install Boehm-GC and SDL
+1) Install SDL
 2) cd into directory with this file.
 3) mkdir mybuild && cd mybuild && cmake .. && make
 
@@ -10,3 +10,14 @@ Now try either execute './simple-renderer/test_renderer skull 0' or './simple-re
 I hope that someday it will be possible to use this library in games or same applications, so any reductions
 to this use case are possible. Use of any x86-only features is also possible in future with or without
 provision of portable code.
+
+Update:
+
+1) Try "cmake -DCMAKE_BUILD_TYPE=RELEASE .." instead of "cmake .." to switch optimization flags on.
+   This will help a lot with performance.
+2) You can use SSE instructions to deal with vectors in one shot now. This will speed up tree construction
+   because average and bounding box calculation does a lot of arithmetic and min/max operations on vectors.
+   Using of SIMD instructions with geometry/search algorithms is not that trivial, so vector arithmetic is
+   rarely used there. If you want to try SSE SIMD instructions, try invoke cmake with  -DSSE_ENABLE_CONS,
+   -DSSE_ENABLE_SEARCH or -DSSE_ENABLE arguments. CONS means tree construction, SEARCH means
+   geometry/search algorithms and just SSE_ENABLE enables SSE everywhere.
