@@ -8,8 +8,3 @@
 #cmakedefine SSE_ENABLE
 #cmakedefine SSE_ENABLE_CONS
 #cmakedefine SSE_ENABLE_SEARCH
-
-#ifdef SSE_ENABLE
-#define SSE_ENABLE_CONS
-#define SSE_ENABLE_SEARCH
-#endif

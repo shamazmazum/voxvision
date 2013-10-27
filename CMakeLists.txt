@@ -14,6 +14,11 @@ option (SSE_ENABLE "Enable SSE instructions everywhere" OFF)
 option (SSE_ENABLE_CONS "Enable SSE instructions while tree construction" OFF)
 option (SSE_ENABLE_SEARCH "Enable SSE instructions while searching" OFF)
 
+if (SSE_ENABLE)
+set (SSE_ENABLE_CONS ON)
+set (SSE_ENABLE_SEARCH ON)
+endif (SSE_ENABLE)
+
 add_subdirectory (voxtrees)
 add_subdirectory (simple-renderer)
 

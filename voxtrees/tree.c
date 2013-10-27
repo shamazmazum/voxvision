@@ -9,17 +9,25 @@
 #include "tree.h"
 #include "geom.h"
 
-//#include <stdlib.h>
+#ifdef SSE_ENABLE_CONS
+#include <xmmintrin.h>
+#endif
 
 vox_dot vox_voxel = {1.0, 1.0, 1.0};
 
-/**
-   \brief Calc average dot for the set.
-   
-   \param n a number of dots in the set
-   \param res an array where the result is stored
-   \return Third passed argument, whichs contains the average
-**/
+#ifdef SSE_ENABLE_CONS
+static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
+{
+    vox_uint i;
+    __v4sf lenmul = _mm_set_ps1 (1.0/n);
+    __v4sf resv = _mm_set_ps1 (0.0);
+
+    for (i=0; i<n; i++) resv += _mm_load_ps (set[i]);
+    resv *= lenmul;
+
+    _mm_store_ps (res, resv);
+}
+#else /* SSE_ENABLE_CONS */
 static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
 {
     vox_uint i;
@@ -29,15 +37,26 @@ static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
     for (i=0; i<n; i++) sum_vector (set[i], res, res);
     for (i=0; i<VOX_N; i++) res[i] *= lenmul;
 }
+#endif /* SSE_ENABLE_CONS */
 
-/**
-   \brief Calculate the minimal cuboid hull for set of voxels.
-   
-   \param set the set of voxels
-   \param n a number of voxels in the set
-   \param min an array where the minimal coordinate is stored
-   \param max an array where the maximal coordinate is stored
-**/
+#ifdef SSE_ENABLE_CONS
+static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot max)
+{
+    vox_uint i;
+    __v4sf minv = _mm_load_ps (set[0]);
+    __v4sf maxv = minv;
+
+    for (i=1; i<n; i++)
+    {
+        minv = __builtin_ia32_minps (minv, _mm_load_ps (set[i]));
+        maxv = __builtin_ia32_maxps (maxv, _mm_load_ps (set[i]));
+    }
+    maxv += _mm_load_ps (vox_voxel);
+
+    _mm_store_ps (min, minv);
+    _mm_store_ps (max, maxv);
+}
+#else /* SSE_ENABLE_CONS */
 static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot max)
 {
     vox_uint i,j;
@@ -55,6 +74,7 @@ static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot m
     }
     sum_vector (max, vox_voxel, max);
 }
+#endif /* SSE_ENABLE_CONS */
 
 void vox_align (vox_dot dot)
 {
