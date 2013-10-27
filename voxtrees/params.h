@@ -6,10 +6,14 @@
 #ifndef _PARAMS_H_
 #define _PARAMS_H_
 
+#include "params_var.h"
+
 // Macros
 
 /**
-   Number of dimensions.
+   \brief Number of dimensions.
+
+   With SSE support must be 0<VOX_N<=4.
 **/
 #define VOX_N 3
 
@@ -42,14 +46,18 @@
 
 typedef struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
 typedef unsigned int vox_uint;
+#if defined(SSE_ENABLE_CONS) || defined(SSE_ENABLE_SEARCH)
+typedef float vox_dot[4] __attribute__ ((aligned (16)));
+#else
 typedef float vox_dot[VOX_N];
+#endif
 
 // Global vars
 
 /**
    Sides of voxel.
 **/
-extern float vox_voxel[VOX_N];
+extern vox_dot vox_voxel;
 
 /**
    Level of details (LOD)

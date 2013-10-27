@@ -6,13 +6,13 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/.")
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
-#set (CMAKE_BUILD_TYPE RELEASE)
-
-find_package (SDL REQUIRED)
-include_directories (${SDL_INCLUDE_DIR})
 
 #find_package (GC REQUIRED)
 #include_directories (${BOEHM_GC_INCLUDE_DIR})
+
+option (SSE_ENABLE "Enable SSE instructions everywhere" OFF)
+option (SSE_ENABLE_CONS "Enable SSE instructions while tree construction" OFF)
+option (SSE_ENABLE_SEARCH "Enable SSE instructions while searching" OFF)
 
 add_subdirectory (voxtrees)
 add_subdirectory (simple-renderer)
