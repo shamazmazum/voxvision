@@ -28,8 +28,8 @@
 **/
 typedef struct
 {
-    vox_uint dots_num; /**< Number of voxels in this node */
-    vox_dot *dots; /**< Pointer to minimal coordinates of voxels in this node */
+    vox_uint dots_num; /**< \brief Number of voxels in this node */
+    vox_dot *dots; /**< \brief Pointer to minimal coordinates of voxels in this node */
 } vox_leaf_data;
 
 /**
@@ -37,8 +37,8 @@ typedef struct
 **/
 typedef struct
 {
-    vox_dot center; /**< Center of subdivision */
-    struct vox_node *children[VOX_NS]; /**< Children of this node */
+    vox_dot center; /**< \brief Center of subdivision */
+    struct vox_node *children[VOX_NS]; /**< \brief Children of this node */
 } vox_inner_data;
 
 /**
@@ -55,23 +55,28 @@ union vox_node_data
 **/
 struct vox_node
 {
-    vox_uint flags; /**< Fill and leaf flags */
-    vox_dot bb_min; /**< Minimal coordinate of the bounding box */
-    vox_dot bb_max; /**< Maximal coordinate of the bounding box */
-    union vox_node_data data; /**< Data specific to inner and leaf nodes */
+    vox_uint flags; /**< \brief FILL and LEAF flags */
+    vox_dot bb_min; /**< \brief Minimal coordinate of the bounding box */
+    vox_dot bb_max; /**< \brief Maximal coordinate of the bounding box */
+    union vox_node_data data; /**< \brief Data specific to inner and leaf nodes */
 };
 
 /**
    \brief Align vector on voxel.
 
-   This is destructive operation.
+   This is a destructive operation.
    
-   \dot dot to be aligned
+   \param dot dot to be aligned
 **/
 void vox_align (vox_dot);
 
 /**
    \brief Turn a set of voxels into a tree.
+
+   The Underlying set must remain valid when tree is used.
+
+   \param set
+   \param n number of voxels in the set
    \return a root node of the newly created tree
 **/
 struct vox_node* vox_make_tree (vox_dot[], vox_uint);

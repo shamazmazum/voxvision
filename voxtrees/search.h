@@ -35,7 +35,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node*, const vox_dot, const vox_d
    \param res where result is stored
    \param depth an initial depth of recursion. Must be 1 for the first call
    \param n returned value of vox_ray_tree_intersection. Number of elements in path.
-   \return new idx value best suited for future calls
+   \return new depth value best suited for future calls
 **/
 vox_uint vox_local_rays_tree_intersection (const vox_tree_path, const vox_dot, const vox_dot, vox_dot, vox_uint, vox_uint);
 
