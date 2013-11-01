@@ -125,7 +125,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     return 0;
 }
 
-// Top call must be with idx = 0
+// Top call must be with depth = 1
 vox_uint vox_local_rays_tree_intersection (const vox_tree_path path, const vox_dot origin, const vox_dot dir, vox_dot res, vox_uint depth, vox_uint n)
 {
     if ((depth <= n) && (depth <= VOX_MAX_DEPTH_LOCAL))
