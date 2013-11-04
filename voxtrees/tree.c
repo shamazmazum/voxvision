@@ -1,4 +1,3 @@
-#include <string.h>
 #include <math.h>
 #if 0
 #include <gc.h>
@@ -8,10 +7,6 @@
 
 #include "tree.h"
 #include "geom.h"
-
-#ifdef SSE_ENABLE_CONS
-#include <xmmintrin.h>
-#endif
 
 vox_dot vox_voxel = {1.0, 1.0, 1.0};
 
@@ -61,8 +56,8 @@ static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot m
 {
     vox_uint i,j;
     
-    memcpy (min, set[0], sizeof(vox_dot));
-    memcpy (max, set[0], sizeof(vox_dot));
+    vox_dot_copy (min, set[0]);
+    vox_dot_copy (max, set[0]);
 
     for (i=0; i<n; i++)
     {
@@ -107,9 +102,9 @@ static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint
     {
         if (get_subspace_idx (center, set[i]) == subspace)
         {
-            memcpy (tmp, set[counter], sizeof (vox_dot));
-            memcpy (set[counter], set[i], sizeof (vox_dot));
-            memcpy (set[i], tmp, sizeof (vox_dot));
+            vox_dot_copy (tmp, set[counter]);
+            vox_dot_copy (set[counter], set[i]);
+            vox_dot_copy (set[i], tmp);
             counter++;
         }
     }

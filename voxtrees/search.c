@@ -1,14 +1,9 @@
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 
 #include "tree.h"
 #include "geom.h"
 #include "search.h"
-
-#ifdef SSE_ENABLE_SEARCH
-#include <xmmintrin.h>
-#endif
 
 struct tagged_coord
 {
@@ -48,11 +43,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter))) return 0;
     if (depth == vox_lod) // Desired level of details reached -> intersection found
     {
-#ifdef SSE_ENABLE_SEARCH
-        _mm_store_ps (res, _mm_load_ps (inter));
-#else
-        memcpy (res, inter, sizeof (vox_dot));
-#endif
+        vox_dot_copy (res, inter);
         return depth;
     }
     
@@ -76,13 +67,13 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
             interp = hit_box (leaf.dots[i], tmp, origin, dir, inter);
             if (interp)
             {
-                memcpy (intersect[count], inter, sizeof(vox_dot));
+                vox_dot_copy (intersect[count], inter);
                 count++;
             }
         }
         if (count)
         {
-            memcpy (res, closest_in_set (intersect, count, origin, calc_abs_metric), sizeof(vox_dot));
+            vox_dot_copy (res, closest_in_set (intersect, count, origin, calc_abs_metric));
             return depth;
         }
         else return 0;
@@ -95,7 +86,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     // Init tagged_coord structure with "entry point" in the node, so to say
     // The tag is a subspace index of entry point
     plane_inter[0].tag = get_subspace_idx (inner.center, inter);
-    memcpy (plane_inter[0].coord, inter, sizeof(vox_dot));
+    vox_dot_copy (plane_inter[0].coord, inter);
 
     // Now, search for intersections of the ray and all N axis-aligned planes
     // for our N-dimentional space.

@@ -48,9 +48,13 @@
 typedef struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
 typedef unsigned int vox_uint;
 #if defined(SSE_ENABLE_CONS) || defined(SSE_ENABLE_SEARCH)
+#include <xmmintrin.h>
 typedef float vox_dot[4] __attribute__ ((aligned (16)));
+#define vox_dot_copy(d1, d2) _mm_store_ps ((d1), _mm_load_ps ((d2)))
 #else
 typedef float vox_dot[VOX_N];
+#include <string.h>
+#define vox_dot_copy(d1, d2) memcpy ((d1), (d2), sizeof (vox_dot))
 #endif
 
 // Global vars

@@ -1,12 +1,9 @@
 #include <math.h>
-#include <string.h>
 
 #include "geom.h"
 #include "params.h"
 
 #ifdef SSE_ENABLE_SEARCH
-#include <xmmintrin.h>
-#include <stdlib.h>
 #define SSE_CMP_MASK ((1<<VOX_N) - 1)
 #endif
 
@@ -106,7 +103,7 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
     int insidep = fit_into_box (min, max, origin, candidate_plane);
     if (insidep)
     {
-        memcpy (res, origin, sizeof(vox_dot));
+        vox_dot_copy (res, origin);
         return 1;
     }
 
