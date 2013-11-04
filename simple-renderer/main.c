@@ -30,13 +30,12 @@ int main (int argc, char *argv[])
     GC_INIT();
 #endif
     
-    if (argc != 3)
+    if (argc != 2)
     {
-        printf ("Usage: test_renderer tree|skull LOD\n");
+        printf ("Usage: test_renderer tree|skull\n");
         exit (1);
     }
     
-    vox_lod = atoi (argv[2]);
     vox_dot *set;
     int length;
     if (strcmp (argv[1], "tree") == 0)
@@ -75,10 +74,16 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    vox_dot origin = {0,0,0};
+    struct renderer rnd;
+    rnd.fov = 1.2;
+    rnd.origin[0] = 0;
+    rnd.origin[1] = 0;
+    rnd.origin[2] = 0;
+    rnd.surf = screen;
+    init_renderer (&rnd, tree);
     
     time = gettime();
-    render (tree, screen, origin, 1.2);
+    render (&rnd, tree);
     time = gettime() - time;
 
     printf ("Rendering took %f\n", time);
@@ -89,16 +94,16 @@ int main (int argc, char *argv[])
         if (SDL_WaitEvent(&event))
         {
             switch (event.type) {
-            case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_a) origin_inc_test (tree, origin, 0, -5.0);
-                else if (event.key.keysym.sym == SDLK_d) origin_inc_test (tree, origin, 0, 5.0);
-                else if (event.key.keysym.sym == SDLK_s) origin_inc_test (tree, origin, 2, -5.0);
-                else if (event.key.keysym.sym == SDLK_w) origin_inc_test (tree, origin, 2, 5.0);
-                else if (event.key.keysym.sym == SDLK_DOWN) origin_inc_test (tree, origin, 1, -5.0);
-                else if (event.key.keysym.sym == SDLK_UP) origin_inc_test (tree, origin, 1, 5.0);
+                case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_a) origin_inc_test (tree, rnd.origin, 0, -5.0);
+                else if (event.key.keysym.sym == SDLK_d) origin_inc_test (tree, rnd.origin, 0, 5.0);
+                else if (event.key.keysym.sym == SDLK_s) origin_inc_test (tree, rnd.origin, 2, -5.0);
+                else if (event.key.keysym.sym == SDLK_w) origin_inc_test (tree, rnd.origin, 2, 5.0);
+                else if (event.key.keysym.sym == SDLK_DOWN) origin_inc_test (tree, rnd.origin, 1, -5.0);
+                else if (event.key.keysym.sym == SDLK_UP) origin_inc_test (tree, rnd.origin, 1, 5.0);
                 SDL_Rect rect = {0,0,800,600};
                 SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
-                render (tree, screen, origin, 1.2);
+                render (&rnd, tree);
                 break;
             case SDL_QUIT:
                 SDL_Quit();
