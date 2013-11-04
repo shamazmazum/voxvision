@@ -128,11 +128,14 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
     for (i=0; i<VOX_N; i++)
     {
         if (i==plane_num) res[i] = candidate_plane[i];
-        else res[i] = origin[i] + max_dist*dir[i];
+        else
+        {
+            res[i] = origin[i] + max_dist*dir[i];
+            if ((res[i] < min[i]) || (res[i] > max[i])) return 0;
+        }
     }
     
-    if (dot_betweenp (min, max, res)) return 1;
-    else return 0;
+    return 1;
 }
 
 int hit_plane (const vox_dot origin, const vox_dot dir, const vox_dot planedot, int planenum, vox_dot res)

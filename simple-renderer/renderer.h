@@ -13,6 +13,7 @@ struct renderer
     float cmul[3];
     float cadd[3];
     float dx, dy;
+    int p;
 };
 
 void init_renderer (struct renderer*, struct vox_node*);

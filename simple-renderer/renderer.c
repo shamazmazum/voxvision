@@ -25,7 +25,7 @@ static void draw_pixel (struct renderer *rnd, vox_dot inter, int p)
     *((Uint32*)rnd->surf->pixels+p) = color;
 }
 
-static void render_line (struct renderer *rnd, struct vox_node *tree, int p)
+static void render_line (struct renderer *rnd, struct vox_node *tree)
 {
     int i,j;
     int n, state;
@@ -35,7 +35,7 @@ static void render_line (struct renderer *rnd, struct vox_node *tree, int p)
 
     n = vox_ray_tree_intersection (tree, rnd->origin, rnd->dir, inter, 1, path);
     state = n;
-    if (state) draw_pixel (rnd, inter, p);
+    if (state) draw_pixel (rnd, inter, rnd->p);
     rnd->dir[0] += rnd->dx;
 
     for (i=1; i<4; i++)
@@ -48,9 +48,10 @@ static void render_line (struct renderer *rnd, struct vox_node *tree, int p)
         if (!(state)) path_idx = vox_ray_tree_intersection (tree, rnd->origin, rnd->dir, inter, 1, path);
         
         // End loop
-        if (path_idx) draw_pixel (rnd, inter, p+i);
+        if (path_idx) draw_pixel (rnd, inter, rnd->p+i);
         rnd->dir[0] += rnd->dx;
     }
+    rnd->p+=4;
 }
 
 void init_renderer (struct renderer *rnd, struct vox_node *tree)
@@ -65,18 +66,14 @@ void init_renderer (struct renderer *rnd, struct vox_node *tree)
 void render (struct renderer *rnd, struct vox_node *tree)
 {
     assert (rnd->surf->w%4 == 0);
-    int p = 0;
+    rnd->p = 0;
     
     int i,j;
     rnd->dir[2] = -400*rnd->fov;
     for (i=0; i<rnd->surf->h; i++)
     {
         rnd->dir[0] = -400*rnd->fov;
-        for (j=0; j<rnd->surf->w; j+=4)
-        {
-            render_line (rnd, tree, p);
-            p+=4;
-        }
+        for (j=0; j<rnd->surf->w; j+=4) render_line (rnd, tree);
         rnd->dir[2] += rnd->dy;
     }
 
