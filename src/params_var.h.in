@@ -8,3 +8,6 @@
 #cmakedefine SSE_ENABLE
 #cmakedefine SSE_ENABLE_CONS
 #cmakedefine SSE_ENABLE_SEARCH
+
+#define VOX_VERSION_MAJOR @voxvision_VERSION_MAJOR@
+#define VOX_VERSION_MINOR @voxvision_VERSION_MINOR@

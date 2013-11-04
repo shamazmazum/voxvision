@@ -1,8 +1,11 @@
 cmake_minimum_required (VERSION 2.6)
 
-project (voxel_octrees)
+project (voxvision)
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/.")
+
+set (voxvision_VERSION_MAJOR 0)
+set (voxvision_VERSION_MINOR 5)
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
@@ -19,8 +22,7 @@ set (SSE_ENABLE_CONS ON)
 set (SSE_ENABLE_SEARCH ON)
 endif (SSE_ENABLE)
 
-add_subdirectory (voxtrees)
-add_subdirectory (simple-renderer)
+add_subdirectory (src)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

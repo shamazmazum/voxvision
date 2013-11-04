@@ -29,7 +29,8 @@ int main (int argc, char *argv[])
 #if 0
     GC_INIT();
 #endif
-    
+
+    printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
     if (argc != 2)
     {
         printf ("Usage: test_renderer tree|skull\n");

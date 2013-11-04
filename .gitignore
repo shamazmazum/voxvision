@@ -1,3 +1,2 @@
 mybuild/*
-doc/*
-voxtrees/params_var.h
+src/params_var.h

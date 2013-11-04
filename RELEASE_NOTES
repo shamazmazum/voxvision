@@ -1,0 +1,5 @@
+Version 0.5 (initial):
+   * Creation of voxel trees over a static set of voxel data
+   * Searching for the closest intersection with a ray
+   * Searching for (the fact of) intersection with a ball
+   * (Example) The simple renderer with 2 data sets.
