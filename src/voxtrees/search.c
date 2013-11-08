@@ -1,9 +1,25 @@
+#include <sys/param.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include "tree.h"
 #include "geom.h"
 #include "search.h"
+
+#if (defined __APPLE__ || defined __MACH__ || defined __DARWIN__ || \
+     defined __FreeBSD__ || defined __DragonFly__ ||  \
+     defined __OpenBSD__ || defined __NetBSD__)
+#define qsort_with_arg(base,nel,width,thunk,compar) qsort_r(base,nel,width,thunk,compar)
+
+#elif (defined _GNU_SOURCE || defined __GNU__ || defined __linux__)
+#define qsort_with_arg(base,nel,width,thunk,compar) qsort_r(base, nel, width, compar, thunk)
+
+#elif (defined _WIN32 || defined _WIN64 || defined __WINDOWS__)
+#define qsort_with_arg(base,nel,width,thunk,compar) qsort_s(base,nel,width,compar,thunk)
+
+#else
+#error Cannot detect operating system
+#endif
 
 struct tagged_coord
 {
@@ -100,7 +116,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     }
 
     // We want closest intersection to be found, so sort intersections with planes by proximity to origin
-    qsort_r (plane_inter+1, plane_counter-1, sizeof(struct tagged_coord), origin, compare_tagged);
+    qsort_with_arg (plane_inter+1, plane_counter-1, sizeof(struct tagged_coord), origin, compare_tagged);
     // Convert plane numbers to subspace indices
     gen_subspaces (plane_inter, plane_counter);
 
