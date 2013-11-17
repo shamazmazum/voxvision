@@ -2,12 +2,46 @@
    @file params_var.h
    @brief Variable parameters configured with cmake.
 
-   Do not modify manually!
+   Do not modify manually! Look at params_var.h.in
+   
+   But it would be better if you do not touch it too.
 **/
 
+/**
+   \brief SSE is enabled both for tree construction and search algorithms
+**/
 #cmakedefine SSE_ENABLE
+
+/**
+   \brief SSE is enabled for tree construction
+**/
 #cmakedefine SSE_ENABLE_CONS
+
+/**
+   \brief SSE is enabled for search algorithms
+**/
 #cmakedefine SSE_ENABLE_SEARCH
 
 #define VOX_VERSION_MAJOR @voxvision_VERSION_MAJOR@
 #define VOX_VERSION_MINOR @voxvision_VERSION_MINOR@
+
+/**
+   \brief Number of dimensions.
+
+   With SSE support must be 0<VOX_N<=4.
+**/
+#define VOX_N 3
+
+// Types
+
+#if defined(SSE_ENABLE_CONS) || defined(SSE_ENABLE_SEARCH)
+#include <xmmintrin.h>
+typedef float vox_dot[4] __attribute__ ((aligned (16)));
+typedef float vox_quat[4] __attribute__ ((aligned (16)));
+#define vox_dot_copy(d1, d2) _mm_store_ps ((d1), _mm_load_ps ((d2)))
+#else
+typedef float vox_dot[VOX_N];
+typedef float vox_quat[4];
+#include <string.h>
+#define vox_dot_copy(d1, d2) memcpy ((d1), (d2), sizeof (vox_dot))
+#endif

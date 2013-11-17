@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project (voxvision)
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/.")
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules")
 
 set (voxvision_VERSION_MAJOR 0)
 set (voxvision_VERSION_MINOR 5)
@@ -33,3 +33,8 @@ WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
+
+find_package (CUnit)
+if(CUNIT_FOUND)
+add_subdirectory (tests)
+endif(CUNIT_FOUND)
