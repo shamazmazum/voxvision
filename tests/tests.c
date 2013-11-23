@@ -9,6 +9,7 @@
 
 #include "../src/vect-ops/vect-ops.h"
 #include "../src/voxtrees/voxtrees.h"
+#include "../src/voxtrees/geom.h"
 
 #define PROC_SUIT_ERROR do {res = CU_get_error (); \
         printf ("Failed to add a suite\n");        \

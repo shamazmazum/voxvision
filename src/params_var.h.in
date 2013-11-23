@@ -7,6 +7,10 @@
    But it would be better if you do not touch it too.
 **/
 
+#ifndef PARAMS_VAR_H
+#define PARAMS_VAR_H
+
+
 /**
    \brief SSE is enabled both for tree construction and search algorithms
 **/
@@ -44,4 +48,6 @@ typedef float vox_dot[VOX_N];
 typedef float vox_quat[4];
 #include <string.h>
 #define vox_dot_copy(d1, d2) memcpy ((d1), (d2), sizeof (vox_dot))
+#endif
+
 #endif
