@@ -50,7 +50,7 @@ float* rotate_vector (vox_quat base, vox_dot vector, vox_dot res)
 }
 
 float* vector_inv (vox_dot v, vox_dot res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
-float* quat_conj (vox_dot v, vox_dot res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
+float* quat_conj (vox_quat v, vox_quat res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
 
 float dot_product (vox_dot v1, vox_dot v2)
 {
