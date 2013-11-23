@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include "../src/vect-ops/vect-ops.h"
+#include "../src/voxtrees/voxtrees.h"
 
 #define PROC_SUIT_ERROR do {res = CU_get_error (); \
         printf ("Failed to add a suite\n");        \
@@ -20,6 +21,10 @@
     while (0)
 
 #define PREC 0.00001
+#define NSET 2000000
+
+vox_dot *working_set;
+struct vox_node *working_tree;
 
 int vect_eq (vox_dot v1, vox_dot v2)
 {
@@ -141,6 +146,64 @@ void rot_saves_norm ()
     CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PREC);
 }
 
+void prepare_rnd_set_and_tree (struct vox_node **node_ptr, vox_dot **set_ptr)
+{
+    int i;
+    vox_dot *set = malloc (sizeof (vox_dot) * NSET);
+    for (i=0; i<NSET; i++)
+    {
+        set[i][0] = 1.0*rand();
+        set[i][1] = 1.0*rand();
+        set[i][2] = 1.0*rand();
+    }
+
+    *node_ptr = vox_make_tree (set, NSET);
+    *set_ptr = set;
+}
+
+void check_tree (struct vox_node *tree)
+{
+    vox_dot snd_corner;
+    vox_uint i;
+    
+    if (VOX_LEAFP (tree))
+    {
+        vox_leaf_data leaf = tree->data.leaf;
+        
+        // Check if empty leaf is really empty
+        if (leaf.dots_num == 0) CU_ASSERT (!(VOX_FULLP (tree)));
+        // Check that all voxels are covered by bounding box
+        for (i=0; i<leaf.dots_num; i++)
+        {
+            sum_vector (leaf.dots[i], vox_voxel, snd_corner);
+            CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, leaf.dots[i]));
+            CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, snd_corner));
+        }
+    }
+    else
+    {
+        vox_inner_data inner = tree->data.inner;
+        for (i=0; i<VOX_NS; i++)
+        {
+            struct vox_node *child = inner.children[i];
+            if (VOX_FULLP (child))
+            {
+                // Check if child's bounding box is inside parent's
+                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_min));
+                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_max));
+
+                // Check subspace
+                CU_ASSERT (get_subspace_idx (inner.center, child->bb_min) == i);
+                CU_ASSERT (get_subspace_idx (inner.center, child->bb_max) == i);
+            }
+            // Test a child recursively
+            check_tree (child);
+        }
+    }
+}
+
+void test_tree_cons () {check_tree (working_tree);}
+
 int main ()
 {
     CU_pTest test;
@@ -152,6 +215,7 @@ int main ()
         goto exit_;
     }
 
+    // Working with vectors
     CU_pSuite vect_suite = CU_add_suite ("vect-ops", NULL, NULL);
     if (vect_suite == NULL) PROC_SUIT_ERROR;
 
@@ -169,6 +233,16 @@ int main ()
 
     test = CU_add_test (vect_suite, "Rotation saves norm", rot_saves_norm);
     if (test == NULL) PROC_TEST_ERROR;
+
+    // Tree construction and searching
+    CU_pSuite vox_suite = CU_add_suite ("voxtrees", NULL, NULL);
+    if (vox_suite == NULL) PROC_SUIT_ERROR;
+
+    test = CU_add_test (vox_suite, "Tree construction", test_tree_cons);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    printf ("Creating working set and working tree\n");
+    prepare_rnd_set_and_tree (&working_tree, &working_set);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
