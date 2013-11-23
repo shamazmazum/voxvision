@@ -62,5 +62,5 @@ float dot_product (vox_dot v1, vox_dot v2)
     vect2 = quat_im (vect2);
 
     __v4sf prod = dp (vect1, vect2);
-    return prod[0];    
+    return prod[0];
 }
