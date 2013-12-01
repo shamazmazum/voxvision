@@ -56,13 +56,13 @@ void test_rotation_around_itself ()
     vox_dot vectz = {0.0, 0.0, 1.0};
     vox_dot resz;
     
-    rotate_vector (basex, vectx, resx);
+    vox_rotate_vector (basex, vectx, resx);
     CU_ASSERT (vect_eq (resx, vectx));
     
-    rotate_vector (basey, vecty, resy);
+    vox_rotate_vector (basey, vecty, resy);
     CU_ASSERT (vect_eq (resy, vecty));
 
-    rotate_vector (basez, vectz, resz);
+    vox_rotate_vector (basez, vectz, resz);
     CU_ASSERT (vect_eq (resz, vectz));
 }
 
@@ -83,13 +83,13 @@ void test_change_axis ()
     vox_dot vectz = {0.0, 0.0, 1.0};
     vox_dot expz = {0.0, -1.0, 0.0};
     
-    rotate_vector (basex, vectx, vectx);
+    vox_rotate_vector (basex, vectx, vectx);
     CU_ASSERT (vect_eq (expx, vectx));
     
-    rotate_vector (basey, vecty, vecty);
+    vox_rotate_vector (basey, vecty, vecty);
     CU_ASSERT (vect_eq (expy, vecty));
 
-    rotate_vector (basez, vectz, vectz);
+    vox_rotate_vector (basez, vectz, vectz);
     CU_ASSERT (vect_eq (expz, vectz));
 }
 
@@ -105,10 +105,10 @@ void test_anticommut ()
     vox_dot vecty = {0.0, 1.0, 0.0};
     
     vox_dot res1, res2;
-    rotate_vector (basex, vecty, res1);
-    rotate_vector (basey, vectx, res2);
+    vox_rotate_vector (basex, vecty, res1);
+    vox_rotate_vector (basey, vectx, res2);
     
-    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2)));
+    CU_ASSERT (vect_eq (res1, vox_vector_inv (res2, res2)));
 }
 
 void rot_composition ()
@@ -129,9 +129,9 @@ void rot_composition ()
     vox_dot vect = {132, 2, 35};
 
     vox_dot res1, res2;
-    rotate_vector (base2, vect, res1);
-    rotate_vector (base1, res1, res1);
-    rotate_vector (base_res, vect, res2);
+    vox_rotate_vector (base2, vect, res1);
+    vox_rotate_vector (base1, res1, res1);
+    vox_rotate_vector (base_res, vect, res2);
 
     CU_ASSERT (vect_eq (res1, res2));
 }
@@ -142,9 +142,9 @@ void rot_saves_norm ()
     // Random numbers
     vox_dot vect = {1, 5, 2};
     vox_dot res;
-    rotate_vector (base, vect, res);
+    vox_rotate_vector (base, vect, res);
 
-    CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PREC);
+    CU_ASSERT (fabsf (vox_dot_product (vect, vect) - vox_dot_product (res, res)) < PREC);
 }
 
 void prepare_rnd_set_and_tree (struct vox_node **node_ptr, vox_dot **set_ptr)

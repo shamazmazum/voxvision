@@ -32,7 +32,7 @@ static __v4sf cp (__v4sf v1, __v4sf v2)
     return m1-m2;
 }
 
-float* rotate_vector (vox_quat base, vox_dot vector, vox_dot res)
+float* vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
 {
     __v4sf basev = _mm_load_ps (base);
     __v4sf vect = _mm_load_ps (vector);
@@ -49,10 +49,10 @@ float* rotate_vector (vox_quat base, vox_dot vector, vox_dot res)
     return res;
 }
 
-float* vector_inv (vox_dot v, vox_dot res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
-float* quat_conj (vox_quat v, vox_quat res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
+float* vox_vector_inv (const vox_dot v, vox_dot res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
+float* vox_quat_conj (const vox_quat v, vox_quat res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
 
-float dot_product (vox_dot v1, vox_dot v2)
+float vox_dot_product (const vox_dot v1, const vox_dot v2)
 {
     __v4sf vect1 = _mm_load_ps (v1);
     __v4sf vect2 = _mm_load_ps (v2);

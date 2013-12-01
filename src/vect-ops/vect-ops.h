@@ -3,10 +3,10 @@
 
 #include "../params_var.h"
 
-float* rotate_vector (vox_quat, vox_dot, vox_dot);
-float* vector_inv (vox_dot, vox_dot);
-float* quat_conj (vox_quat, vox_quat);
+float* vox_rotate_vector (const vox_quat, const vox_dot, vox_dot);
+float* vox_vector_inv (const vox_dot, vox_dot);
+float* vox_quat_conj (const vox_quat, vox_quat);
 
-float dot_product (vox_dot, vox_dot);
+float vox_dot_product (const vox_dot, const vox_dot);
 
 #endif
