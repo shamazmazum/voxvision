@@ -37,4 +37,8 @@ endif(DOXYGEN_FOUND)
 find_package (CUnit)
 if(CUNIT_FOUND)
 add_subdirectory (tests)
+add_custom_target (test
+run-tests
+COMMENT "Run tests"
+)
 endif(CUNIT_FOUND)
