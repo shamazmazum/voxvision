@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stddef.h>
 #if 0
 #include <gc.h>
 #else
@@ -112,6 +113,14 @@ static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint
     return counter;
 }
 
+// FIXME: Is this dangerous?
+static void* node_alloc (int leaf)
+{
+    size_t alloc_base = offsetof (struct vox_node, data);
+    size_t size = alloc_base + ((leaf) ? sizeof (vox_leaf_data) : sizeof (vox_inner_data));
+    return malloc (size);
+}
+
 // Self-explanatory. No, really.
 // Being short: if number of voxels in a set is less or equal
 // to maximum number allowed, create a leaf and store voxels there.
@@ -119,19 +128,15 @@ static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint
 // recursively.
 struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
 {
+    int leaf = n <= VOX_MAX_DOTS;
 #if 0
     struct vox_node *res  = GC_MALLOC(sizeof(struct vox_node));
 #else
-    struct vox_node *res  = malloc (sizeof(struct vox_node));
+    struct vox_node *res  = node_alloc (leaf);
 #endif
     res->flags = 0;
-    if (n > 0)
-    {
-        res->flags |= 1<<VOX_FULL;
-        calc_bounding_box (set, n, res->bb_min, res->bb_max);
-    }
-    
-    if (n <= VOX_MAX_DOTS)
+
+    if (leaf)
     {
         res->flags |= 1<<VOX_LEAF;
         vox_leaf_data *leaf = &(res->data.leaf);
@@ -154,6 +159,12 @@ struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
             inner->children[idx] = vox_make_tree (set+offset, new_offset-offset);
             offset = new_offset;
         }
+    }
+
+    if (n > 0)
+    {
+        res->flags |= 1<<VOX_FULL;
+        calc_bounding_box (set, n, res->bb_min, res->bb_max);
     }
     return res;
 }
