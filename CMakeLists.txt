@@ -13,6 +13,8 @@ set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 #find_package (GC REQUIRED)
 #include_directories (${BOEHM_GC_INCLUDE_DIR})
 
+find_package (SDL REQUIRED)
+
 option (SSE_ENABLE "Enable SSE instructions everywhere" OFF)
 option (SSE_ENABLE_CONS "Enable SSE instructions while tree construction" OFF)
 option (SSE_ENABLE_SEARCH "Enable SSE instructions while searching" OFF)

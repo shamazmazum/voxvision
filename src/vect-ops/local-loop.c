@@ -8,7 +8,7 @@ void vox_local_loop (struct vox_node *tree, int n, void (*action) (vox_rnd_conte
     int depth = 1;
     vox_tree_path path;
 
-    pn = vox_ray_tree_intersection (tree, ctx->origin, ctx->dir, ctx->inter, 1, path);
+    pn = vox_ray_tree_intersection (tree, ctx->camera->origin, ctx->dir, ctx->inter, 1, path);
     state = pn;
     if (state) action (ctx);
     inc (ctx);
@@ -17,10 +17,10 @@ void vox_local_loop (struct vox_node *tree, int n, void (*action) (vox_rnd_conte
     {
         if (state)
         {
-            depth = vox_local_rays_tree_intersection (path, ctx->origin, ctx->dir, ctx->inter, depth, pn);
+            depth = vox_local_rays_tree_intersection (path, ctx->camera->origin, ctx->dir, ctx->inter, depth, pn);
             state = depth;
         }
-        if (!(state)) depth = vox_ray_tree_intersection (tree, ctx->origin, ctx->dir, ctx->inter, 1, path);
+        if (!(state)) depth = vox_ray_tree_intersection (tree, ctx->camera->origin, ctx->dir, ctx->inter, 1, path);
         
         if (depth) action (ctx);
         inc (ctx);

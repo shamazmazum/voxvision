@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
 
-find_package (SDL REQUIRED)
 include_directories (${SDL_INCLUDE_DIR})
 
 if (SSE_ENABLE_CONS OR SSE_ENABLE_SEARCH)
