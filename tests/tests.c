@@ -8,8 +8,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "../src/vect-ops/voxrnd.h"
-#include "../src/vect-ops/vect-ops.h"
+#include "../src/voxrnd/voxrnd.h"
+#include "../src/voxrnd/vect-ops.h"
 #include "../src/voxtrees/voxtrees.h"
 #include "../src/voxtrees/geom.h"
 

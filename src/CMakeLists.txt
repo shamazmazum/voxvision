@@ -4,4 +4,4 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/params_var.h.in ${CMAKE_CURRENT_SOURC
 
 add_subdirectory (voxtrees)
 add_subdirectory (simple-renderer)
-add_subdirectory (vect-ops)     
+add_subdirectory (voxrnd)
