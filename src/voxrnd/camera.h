@@ -13,8 +13,8 @@ typedef struct
     
     vox_dot position;
     float fov;
-    float phi;
-    float psi;
+    float rotx;
+    float rotz;
     
     vox_quat rotation;
 } vox_simple_camera;
@@ -28,10 +28,13 @@ float* vox_camera_position_ptr (const class_t*);
 GETTER_PROTO (fov, float)
 SETTER_PROTO (fov, float)
 
-GETTER_PROTO (phi, float)
-SETTER_PROTO (phi, float)
+GETTER_PROTO (rotx, float)
+SETTER_PROTO (rotx, float)
 
-GETTER_PROTO (psi, float)
-SETTER_PROTO (psi, float)
+GETTER_PROTO (roty, float)
+SETTER_PROTO (roty, float)
+
+GETTER_PROTO (rotz, float)
+SETTER_PROTO (rotz, float)
 
 #endif

@@ -296,13 +296,13 @@ void test_simp_camera ()
 
     float phi = 0.2;
     float psi = 0.1;
-    SETTER_NAME(phi) (obj, phi);
-    SETTER_NAME(psi) (obj, psi);
-    CU_ASSERT (GETTER_NAME(phi) (obj) == phi);
-    CU_ASSERT (GETTER_NAME(psi) (obj) == psi);
+    SETTER_NAME(rotx) (obj, phi);
+    SETTER_NAME(rotz) (obj, psi);
+    CU_ASSERT (GETTER_NAME(rotx) (obj) == phi);
+    CU_ASSERT (GETTER_NAME(rotz) (obj) == psi);
 
-    SETTER_NAME(phi) (obj, M_PI/4);
-    SETTER_NAME(psi) (obj, M_PI/4);
+    SETTER_NAME(rotx) (obj, M_PI/4);
+    SETTER_NAME(rotz) (obj, M_PI/4);
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 400};
     vox_camera_screen2world (obj, world_coord, 100, 100, 50, 50);
