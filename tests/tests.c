@@ -23,7 +23,7 @@
         goto regcleanup;}                          \
     while (0)
 
-#define PREC 0.00001
+#define PREC 0.0001
 #define NSET 2000000
 
 vox_dot *working_set;
@@ -222,12 +222,19 @@ void test_simp_camera ()
     SETTER_NAME(fov) (obj, fov);
     CU_ASSERT (GETTER_NAME(fov) (obj) == fov);
 
-/*    float phi = 0.2;
+    float phi = 0.2;
     float psi = 0.1;
-    vox_camera_set_angles (&cam, phi, psi);
-*/
+    SETTER_NAME(phi) (obj, phi);
+    SETTER_NAME(psi) (obj, psi);
+    CU_ASSERT (GETTER_NAME(phi) (obj) == phi);
+    CU_ASSERT (GETTER_NAME(psi) (obj) == psi);
 
-    // Rotation test here
+    SETTER_NAME(phi) (obj, M_PI/4);
+    SETTER_NAME(psi) (obj, M_PI/4);
+    vox_dot world_coord;
+    vox_dot world_coord_expected = {0, 0, 400};
+    vox_camera_screen2world (obj, world_coord, 100, 100, 50, 50);
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected));
 }
 
 int main ()

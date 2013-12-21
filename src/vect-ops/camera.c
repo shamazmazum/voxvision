@@ -18,7 +18,7 @@ static void simple_update_rotation (vox_simple_camera *camera)
     float sinpsi = sinf(camera->psi);
     float cospsi = cosf(camera->psi);
     camera->rotation[0] = sinphi*cospsi;
-    camera->rotation[1] = -sinphi*sinpsi;
+    camera->rotation[1] = sinphi*sinpsi;
     camera->rotation[2] = cosphi*sinpsi;
     camera->rotation[3] = cosphi*cospsi;
 }
@@ -34,7 +34,7 @@ void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot posit
     simple_update_rotation (camera);
 }
 
-static void simple_screen_2_world (const class_t *cam, vox_dot ray, int w, int h, int sx, int sy)
+static void simple_screen2world (const class_t *cam, vox_dot ray, int w, int h, int sx, int sy)
 {
     vox_simple_camera *camera = (vox_simple_camera*)cam;
     ray[0] = RAY_DIST*camera->fov*(2.0*sx/w - 1.0);
@@ -73,7 +73,7 @@ static float* simple_position_ptr (const class_t *cam)
 
 static const struct
 {
-    void   (*screen_2_world) (const class_t*, vox_dot, int, int, int, int);
+    void   (*screen2world) (const class_t*, vox_dot, int, int, int, int);
     float* (*camera_position_ptr) (const class_t*);
     GETTER_DISPATCH (fov, float)
     SETTER_DISPATCH (fov, float)
@@ -84,7 +84,7 @@ static const struct
     GETTER_DISPATCH (psi, float)
     SETTER_DISPATCH (psi, float)
 } camera_dispatch_table[] =
-{{simple_screen_2_world,
+{{simple_screen2world,
   simple_position_ptr,
   GETTER_IMPL_NAME(vox_simple_camera, fov),
   SETTER_IMPL_NAME(vox_simple_camera, fov),
@@ -95,6 +95,10 @@ static const struct
   GETTER_IMPL_NAME(vox_simple_camera, psi),
   SETTER_IMPL_NAME(vox_simple_camera, psi)}};
 
+void vox_camera_screen2world (const class_t *cam, vox_dot dir, int w, int h, int sx, int sy)
+{
+    camera_dispatch_table[cam->obj_type].screen2world (cam, dir, w, h, sx, sy);
+}
 
 float* vox_camera_position_ptr (const class_t *cam)
 {

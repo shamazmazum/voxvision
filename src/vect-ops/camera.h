@@ -20,6 +20,7 @@ typedef struct
 } vox_simple_camera;
 
 void vox_make_simple_camera (vox_simple_camera*, float, vox_dot);
+void vox_camera_screen2world (const class_t*, vox_dot, int, int, int, int);
 
 // Getter/Setter stuff.
 float* vox_camera_position_ptr (const class_t*);
