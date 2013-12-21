@@ -28,8 +28,7 @@ typedef struct vox_simple_camera_ vox_simple_camera;
 void vox_make_simple_camera (vox_simple_camera*, float, vox_dot);
 
 // Getter/Setter stuff. Handwrite job, but I want it to be generated in future
-float* vox_camera_get_position (const vox_camera*);
-void vox_camera_set_position (vox_camera*, vox_dot);
+float* vox_camera_position_ptr (const vox_camera*);
 
 float vox_camera_get_fov (const vox_camera*);
 void vox_camera_set_fov (vox_camera*, float);

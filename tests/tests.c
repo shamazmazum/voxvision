@@ -5,8 +5,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
+#include "../src/vect-ops/voxrnd.h"
 #include "../src/vect-ops/vect-ops.h"
 #include "../src/voxtrees/voxtrees.h"
 #include "../src/voxtrees/geom.h"
@@ -205,6 +207,28 @@ void check_tree (struct vox_node *tree)
 
 void test_tree_cons () {check_tree (working_tree);}
 
+void test_simp_camera ()
+{
+    vox_simple_camera cam;
+    vox_dot pos = {0,0,0};
+    float fov = 1.2;
+    vox_make_simple_camera (&cam, fov, pos);
+
+    CU_ASSERT (memcmp (pos, vox_camera_position_ptr (&cam), sizeof(vox_dot)) == 0);
+    CU_ASSERT (fov == vox_camera_get_fov (&cam));
+
+    fov = 1.3;
+    vox_camera_set_fov (&cam, fov);
+    CU_ASSERT (vox_camera_get_fov (&cam) == fov);
+
+/*    float phi = 0.2;
+    float psi = 0.1;
+    vox_camera_set_angles (&cam, phi, psi);
+*/
+
+    // Rotation test here
+}
+
 int main ()
 {
     CU_pTest test;
@@ -241,6 +265,14 @@ int main ()
 
     test = CU_add_test (vox_suite, "Tree construction", test_tree_cons);
     if (test == NULL) PROC_TEST_ERROR;
+
+    // Renderer library
+    CU_pSuite rnd_suite = CU_add_suite ("voxrnd", NULL, NULL);
+    if (vox_suite == NULL) PROC_SUIT_ERROR;
+
+    test = CU_add_test (rnd_suite, "Camera class", test_simp_camera);
+    if (test == NULL) PROC_TEST_ERROR;
+    
 
     printf ("Creating working set and working tree\n");
     prepare_rnd_set_and_tree (&working_tree, &working_set);

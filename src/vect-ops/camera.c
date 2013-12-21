@@ -25,7 +25,7 @@ static void simple_update_rotation (vox_simple_camera *camera)
 
 void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot position)
 {
-    camera->cam_type = VOX_CAMERA_MAX;
+    camera->cam_type = VOX_CAMERA_SIMPLE;
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
 
@@ -70,42 +70,29 @@ static void simple_set_angles (vox_camera *cam, float phi, float psi)
     camera->psi = psi;
 }
 
-static float* simple_get_position (const vox_camera *cam)
+static float* simple_position_ptr (const vox_camera *cam)
 {
     vox_simple_camera *camera = (vox_simple_camera*)cam;
-    return camera->position;
-}
-
-static void simple_set_position (vox_camera *cam, vox_dot pos)
-{
-    vox_simple_camera *camera = (vox_simple_camera*)cam;
-    vox_dot_copy (camera->position, pos);
+    return &(camera->position);
 }
 
 static const struct
 {
     void   (*screen_2_world) (vox_camera*, vox_dot, int, int, int, int);
-    float* (*camera_get_position) (const vox_camera*);
-    void   (*camera_set_position) (vox_camera*, vox_dot);
+    float* (*camera_position_ptr) (const vox_camera*);
     float  (*camera_get_fov) (const vox_camera*);
     void   (*camera_set_fov) (vox_camera*, float);
     void   (*camera_get_angles) (const vox_camera*, float*, float*);
     void   (*camera_set_angles) (vox_camera*, float, float);
 } cam_methods_dispatch[] =
-{{simple_screen_2_world, simple_get_position, simple_set_position,
-  simple_get_fov, simple_set_fov, simple_get_angles, simple_set_angles}};
+{{simple_screen_2_world, simple_position_ptr, simple_get_fov,
+  simple_set_fov, simple_get_angles, simple_set_angles}};
 
 
-float* vox_camera_get_position (const vox_camera *cam)
+float* vox_camera_position_ptr (const vox_camera *cam)
 {
     assert ((cam->cam_type >= 0) && (cam->cam_type < VOX_CAMERA_MAX));
-    return cam_methods_dispatch[cam->cam_type].camera_get_position (cam);
-}
-
-void vox_camera_set_position (vox_camera *cam, vox_dot pos)
-{
-    assert ((cam->cam_type >= 0) && (cam->cam_type < VOX_CAMERA_MAX));
-    cam_methods_dispatch[cam->cam_type].camera_set_position (cam, pos);
+    return cam_methods_dispatch[cam->cam_type].camera_position_ptr (cam);
 }
 
 float vox_camera_get_fov (const vox_camera *cam)
