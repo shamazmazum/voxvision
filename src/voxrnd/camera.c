@@ -60,7 +60,7 @@ static float SETTER_IMPL_NAME(vox_simple_camera, rotx) (class_t *obj, float phi)
     return phi;
 }
 
-static float GETTER_IMPL_NAME(vox_simple_camera, roty) (class_t *obj)
+static float GETTER_IMPL_NAME(vox_simple_camera, roty) (const class_t *obj)
 {
     fprintf (stderr, "6 degrees of freedom is not implemented in this camera\n");
     return 0;
