@@ -2,5 +2,6 @@
 #define __VOXRND__
 
 #include "camera.h"
+#include "methods.h"
 
 #endif

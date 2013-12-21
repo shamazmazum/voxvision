@@ -212,14 +212,15 @@ void test_simp_camera ()
     vox_simple_camera cam;
     vox_dot pos = {0,0,0};
     float fov = 1.2;
+    class_t *obj = (class_t*)&cam;
     vox_make_simple_camera (&cam, fov, pos);
 
     CU_ASSERT (memcmp (pos, vox_camera_position_ptr (&cam), sizeof(vox_dot)) == 0);
-    CU_ASSERT (fov == vox_camera_get_fov (&cam));
+    CU_ASSERT (fov == GETTER_NAME(fov) (obj));
 
     fov = 1.3;
-    vox_camera_set_fov (&cam, fov);
-    CU_ASSERT (vox_camera_get_fov (&cam) == fov);
+    SETTER_NAME(fov) (obj, fov);
+    CU_ASSERT (GETTER_NAME(fov) (obj) == fov);
 
 /*    float phi = 0.2;
     float psi = 0.1;

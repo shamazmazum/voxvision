@@ -2,19 +2,14 @@
 #define CAMERA_H
 
 #include "../params_var.h"
+#include "methods.h"
 
 #define VOX_CAMERA_SIMPLE 0
-#define VOX_CAMERA_MAX 1
+//#define VOX_CAMERA_MAX 1
 
-struct vox_camera_
+typedef struct
 {
-    int cam_type;
-};
-typedef struct vox_camera_ vox_camera;
-
-struct vox_simple_camera_
-{
-    int cam_type;
+    int obj_type;
     
     vox_dot position;
     float fov;
@@ -22,18 +17,20 @@ struct vox_simple_camera_
     float psi;
     
     vox_quat rotation;
-};
-typedef struct vox_simple_camera_ vox_simple_camera;
+} vox_simple_camera;
 
 void vox_make_simple_camera (vox_simple_camera*, float, vox_dot);
 
-// Getter/Setter stuff. Handwrite job, but I want it to be generated in future
-float* vox_camera_position_ptr (const vox_camera*);
+// Getter/Setter stuff.
+float* vox_camera_position_ptr (const class_t*);
 
-float vox_camera_get_fov (const vox_camera*);
-void vox_camera_set_fov (vox_camera*, float);
+GETTER_PROTO (fov, float)
+SETTER_PROTO (fov, float)
 
-void vox_camera_get_angles (const vox_camera*, float*, float*);
-void vox_camera_set_angles (vox_camera*, float, float);
+GETTER_PROTO (phi, float)
+SETTER_PROTO (phi, float)
+
+GETTER_PROTO (psi, float)
+SETTER_PROTO (psi, float)
 
 #endif

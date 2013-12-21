@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "renderer-ctx.h"
 
-void vox_init_renderer_context (vox_rnd_context *ctx, SDL_Surface *surf, vox_camera *camera)
+void vox_init_renderer_context (vox_rnd_context *ctx, SDL_Surface *surf, class_t *camera)
 {
     ctx->user_data = malloc (sizeof (vox_rnd_aux_ctx));
     vox_rnd_aux_ctx *aux_ctx = ctx->user_data;

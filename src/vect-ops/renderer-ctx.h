@@ -2,7 +2,8 @@
 #define RENDERER_CTX_H
 
 #include <SDL/SDL.h>
-#include "camera.h"
+#include "methods.h"
+#include "../params_var.h"
 
 typedef struct
 {
@@ -15,13 +16,13 @@ typedef struct
 typedef struct
 {
     SDL_Surface *surface;
-    vox_camera *camera;
+    class_t *camera;
 //    float dx, dy;
     int p;
     int sx, sy;
 } vox_rnd_aux_ctx;
 
-void vox_init_renderer_context (vox_rnd_context*, SDL_Surface*, vox_camera*);
+void vox_init_renderer_context (vox_rnd_context*, SDL_Surface*, class_t*);
 void vox_free_renderer_context (vox_rnd_context*);
 
 #endif
