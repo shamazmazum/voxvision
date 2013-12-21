@@ -52,6 +52,32 @@ float* vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res
 float* vox_vector_inv (const vox_dot v, vox_dot res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
 float* vox_quat_conj (const vox_quat v, vox_quat res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
 
+float* vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
+{
+    __v4sf v1 = _mm_load_ps (q1);
+    __v4sf v2 = _mm_load_ps (q2);
+    __v4sf tmp1, tmp2, tmp3, tmp4, resv;
+    __v4sf sign_mask = (__v4sf)_mm_set_epi32 (0x80000000, 0, 0, 0);
+
+    tmp1 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (3, 0, 2, 1)) *      \
+        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (3, 1, 0, 2));
+
+    tmp2 = -_mm_shuffle_ps (v1, v1, _MM_SHUFFLE (0, 1, 0, 2)) *      \
+        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (0, 0, 2, 1));
+
+    tmp3 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (1, 2, 1, 0)) *    \
+        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (1, 3, 3, 3));
+    tmp3 = _mm_xor_ps (tmp3, sign_mask);
+    
+    tmp4 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (2, 3, 3, 3)) *    \
+        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (2, 2, 1, 0));
+    tmp4 = _mm_xor_ps (tmp4, sign_mask);
+
+    resv = tmp1+tmp2+tmp3+tmp4;
+    _mm_store_ps (res, resv);
+    return res;
+}
+
 float vox_dot_product (const vox_dot v1, const vox_dot v2)
 {
     __v4sf vect1 = _mm_load_ps (v1);

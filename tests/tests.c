@@ -43,6 +43,20 @@ int vect_eq (vox_dot v1, vox_dot v2)
     else return 0;
 }
 
+int quat_eq (vox_quat v1, vox_quat v2)
+{
+    int i;
+    float mdiff = PREC;
+    for (i=0; i<4; i++)
+    {
+        float diff = fabsf (v1[i] - v2[i]);
+        mdiff = (diff > mdiff) ? diff : mdiff;
+    }
+
+    if (mdiff <= PREC) return 1;
+    else return 0;
+}
+
 void test_rotation_around_itself ()
 {
     // Rotate vector around itself on 0.2 radian
@@ -205,6 +219,64 @@ void check_tree (struct vox_node *tree)
     }
 }
 
+void quat_mul ()
+{
+    vox_quat res;
+    
+    // Check multiplication table
+    vox_quat q11 = {1, 0, 0, 0};
+    vox_quat q12 = {0, 1, 0, 0};
+    vox_quat e1  = {0, 0, 1, 0};
+    vox_quat_mul (q11, q12, res);
+    CU_ASSERT (quat_eq (e1, res));
+
+    vox_quat q21 = {0, 1, 0, 0};
+    vox_quat q22 = {0, 0, 1, 0};
+    vox_quat e2  = {1, 0, 0, 0};
+    vox_quat_mul (q21, q22, res);
+    CU_ASSERT (quat_eq (e2, res));
+
+    vox_quat q31 = {0, 0, 1, 0};
+    vox_quat q32 = {1, 0, 0, 0};
+    vox_quat e3  = {0, 1, 0, 0};
+    vox_quat_mul (q31, q32, res);
+    CU_ASSERT (quat_eq (e3, res));
+
+    // And in another direction...
+    vox_quat q41 = {0, 1, 0, 0};
+    vox_quat q42 = {1, 0, 0, 0};
+    vox_quat e4  = {0, 0, -1, 0};
+    vox_quat_mul (q41, q42, res);
+    CU_ASSERT (quat_eq (e4, res));
+
+    vox_quat q51 = {0, 0, 1, 0};
+    vox_quat q52 = {0, 1, 0, 0};
+    vox_quat e5  = {-1, 0, 0, 0};
+    vox_quat_mul (q51, q52, res);
+    CU_ASSERT (quat_eq (e5, res));
+
+    vox_quat q61 = {1, 0, 0, 0};
+    vox_quat q62 = {0, 0, 1, 0};
+    vox_quat e6  = {0, -1, 0, 0};
+    vox_quat_mul (q61, q62, res);
+    CU_ASSERT (quat_eq (e6, res));
+
+    // Neutral element
+    vox_quat qn1 = {4, 3, 2, 1};
+    vox_quat n =   {0, 0, 0, 1};
+    vox_quat_mul (qn1, n, res);
+    CU_ASSERT (quat_eq (res, qn1));
+    vox_quat_mul (n, qn1, res);
+    CU_ASSERT (quat_eq (res, qn1));
+    
+    // Some random quaterions
+    vox_quat q1 = {1, 2, 3, 4};
+    vox_quat q2 = {0, 2, 0, 2};
+    vox_quat e  = {-4, 12, 8, 4};
+    vox_quat_mul (q1, q2, res);
+    CU_ASSERT (quat_eq (res, e));
+}
+
 void test_tree_cons () {check_tree (working_tree);}
 
 void test_simp_camera ()
@@ -265,6 +337,9 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vect_suite, "Rotation saves norm", rot_saves_norm);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vect_suite, "Quaternion multiplication", quat_mul);
     if (test == NULL) PROC_TEST_ERROR;
 
     // Tree construction and searching
