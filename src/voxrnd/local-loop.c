@@ -13,7 +13,7 @@ void vox_local_loop (struct vox_node *tree, int n, void (*action) (vox_rnd_conte
     if (state) action (ctx);
     inc (ctx);
 
-    for (i=0; i<n; i++)
+    for (i=1; i<n; i++)
     {
         if (state)
         {
