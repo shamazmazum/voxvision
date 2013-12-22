@@ -86,7 +86,7 @@ struct vox_node* vox_make_tree (vox_dot[], vox_uint);
 
    Optional with GC.
 **/
-void vox_destory_tree (struct vox_node*);
+void vox_destroy_tree (struct vox_node*);
 
 /**
    \brief Return number of voxels in the tree.
