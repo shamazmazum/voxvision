@@ -1,3 +1,7 @@
+/**
+   @file voxrnd.h
+   @brief All headers you need for rendering library
+**/
 #ifndef __VOXRND__
 #define __VOXRND__
 
