@@ -19,6 +19,10 @@ typedef struct
     class_t *camera;
     int p;
     int sx, sy;
+
+    // FIXME: this must not be here
+    float col_mul[3];
+    float col_add[3];
 } vox_rnd_aux_ctx;
 
 vox_rnd_context* vox_init_renderer_context (SDL_Surface*, class_t*);
