@@ -70,6 +70,8 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
+    SDL_EnableUNICODE(SDL_ENABLE);
+
     SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
     if (screen == NULL)
     {
@@ -96,12 +98,17 @@ int main (int argc, char *argv[])
         {
             switch (event.type) {
                 case SDL_KEYDOWN:
-                    if (event.key.keysym.sym == SDLK_a) origin_inc_test (tree, cam, 0, -5.0);
-                    else if (event.key.keysym.sym == SDLK_d) origin_inc_test (tree, cam, 0, 5.0);
-                    else if (event.key.keysym.sym == SDLK_s) origin_inc_test (tree, cam, 2, -5.0);
-                    else if (event.key.keysym.sym == SDLK_w) origin_inc_test (tree, cam, 2, 5.0);
-                    else if (event.key.keysym.sym == SDLK_DOWN) origin_inc_test (tree, cam, 1, -5.0);
-                    else if (event.key.keysym.sym == SDLK_UP) origin_inc_test (tree, cam, 1, 5.0);
+                    if (event.key.keysym.unicode == 'a') origin_inc_test (tree, cam, 0, -5.0);
+                    else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, cam, 0, 5.0);
+                    else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, cam, 2, -5.0);
+                    else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, cam, 2, 5.0);
+                    else if (event.key.keysym.unicode == 's') origin_inc_test (tree, cam, 1, -5.0);
+                    else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, cam, 1, 5.0);
+                    else if (event.key.keysym.unicode == 'x') SETTER_NAME(rotx) (cam, GETTER_NAME(rotx) (cam) + 0.01);
+                    else if (event.key.keysym.unicode == 'X') SETTER_NAME(rotx) (cam, GETTER_NAME(rotx) (cam) - 0.01);
+                    else if (event.key.keysym.unicode == 'z') SETTER_NAME(rotz) (cam, GETTER_NAME(rotz) (cam) + 0.01);
+                    else if (event.key.keysym.unicode == 'Z') SETTER_NAME(rotz) (cam, GETTER_NAME(rotz) (cam) - 0.01);
+
                     SDL_Rect rect = {0,0,800,600};
                     SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
                     vox_render (tree, ctx);
