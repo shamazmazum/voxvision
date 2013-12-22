@@ -187,12 +187,12 @@ vox_uint vox_inacc_depth (struct vox_node *tree, vox_uint res)
     else return vox_inacc_depth (tree->data.inner.children[res&(VOX_NS-1)], res+1);
 }
 
-void vox_destory_tree (struct vox_node *tree)
+void vox_destroy_tree (struct vox_node *tree)
 {
     if (!(VOX_LEAFP (tree)))
     {
         vox_uint i;
-        for (i=0; i<VOX_NS; i++) vox_destory_tree (tree->data.inner.children[i]);
+        for (i=0; i<VOX_NS; i++) vox_destroy_tree (tree->data.inner.children[i]);
     }
 #if 0
     GC_FREE (tree);
