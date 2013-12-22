@@ -3,5 +3,7 @@
 
 #include "camera.h"
 #include "methods.h"
+#include "renderer.h"
+#include "renderer-ctx.h"
 
 #endif
