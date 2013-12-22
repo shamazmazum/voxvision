@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project (voxvision)
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/.")
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules")
 
 set (voxvision_VERSION_MAJOR 0)
 set (voxvision_VERSION_MINOR 5)
@@ -12,6 +12,8 @@ set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
 #find_package (GC REQUIRED)
 #include_directories (${BOEHM_GC_INCLUDE_DIR})
+
+find_package (SDL REQUIRED)
 
 option (SSE_ENABLE "Enable SSE instructions everywhere" OFF)
 option (SSE_ENABLE_CONS "Enable SSE instructions while tree construction" OFF)
@@ -33,3 +35,12 @@ WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
+
+find_package (CUnit)
+if(CUNIT_FOUND)
+add_subdirectory (tests)
+add_custom_target (test
+run-tests
+COMMENT "Run tests"
+)
+endif(CUNIT_FOUND)
