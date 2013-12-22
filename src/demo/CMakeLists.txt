@@ -1,0 +1,12 @@
+cmake_minimum_required (VERSION 2.6)
+
+include_directories (${SDL_INCLUDE_DIR})
+
+if (SSE_ENABLE_CONS OR SSE_ENABLE_SEARCH)
+add_executable (demo main.c skull_sse.o xmas_tree_sse.o) 
+else (SSE_ENABLE_CONS OR SSE_ENABLE_SEARCH)
+add_executable (demo main.c skull.o xmas_tree.o)
+endif(SSE_ENABLE_CONS OR SSE_ENABLE_SEARCH)
+
+#target_link_libraries (test_renderer ${SDL_LIBRARY} voxtrees)
+target_link_libraries (demo voxrnd voxtrees)
