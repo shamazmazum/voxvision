@@ -4,8 +4,6 @@
 #include "vect-ops.h"
 #include "camera.h"
 
-#define RAY_DIST 400.0
-
 static void simple_update_rotation (vox_simple_camera *camera)
 {
     // Update rotation quaternion
@@ -41,9 +39,9 @@ void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot posit
 static void simple_screen2world (const class_t *cam, vox_dot ray, int w, int h, int sx, int sy)
 {
     vox_simple_camera *camera = (vox_simple_camera*)cam;
-    ray[0] = RAY_DIST*camera->fov*(2.0*sx/w - 1.0);
-    ray[1] = RAY_DIST;
-    ray[2] = RAY_DIST*camera->fov*(2.0*sy/h - 1.0);
+    ray[0] = camera->fov*(2.0*sx/w - 1.0);
+    ray[1] = 1.0;
+    ray[2] = camera->fov*(2.0*sy/h - 1.0);
 
     vox_rotate_vector (camera->rotation, ray, ray);
 }
