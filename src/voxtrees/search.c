@@ -47,7 +47,8 @@ static int compare_tagged (vox_dot origin, struct tagged_coord *c1, struct tagge
 }
 
 // Maybe flollowing deserves a bit more explanation
-vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin, const vox_dot dir, vox_dot res, vox_uint depth, vox_tree_path path)
+vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin, const vox_dot dir,
+                                    vox_dot res, vox_uint depth, vox_tree_path path)
 {
     vox_dot tmp;
     vox_uint interp, i;
@@ -114,7 +115,8 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     // Note, what we specify an entry point to that child as a new ray origin
     for (i=0; i<plane_counter; i++)
     {
-        interp = vox_ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir, res, depth+1, path);
+        interp = vox_ray_tree_intersection (inner.children[plane_inter[i].tag], plane_inter[i].coord, dir,
+                                            res, depth+1, path);
         if (interp) return interp;
     }
     
@@ -122,7 +124,8 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
 }
 
 // Top call must be with depth = 1
-vox_uint vox_local_rays_tree_intersection (const vox_tree_path path, const vox_dot origin, const vox_dot dir, vox_dot res, vox_uint depth, vox_uint n)
+vox_uint vox_local_rays_tree_intersection (const vox_tree_path path, const vox_dot origin, const vox_dot dir,
+                                           vox_dot res, vox_uint depth, vox_uint n)
 {
     if ((depth <= n) && (depth <= VOX_MAX_DEPTH_LOCAL))
     {
