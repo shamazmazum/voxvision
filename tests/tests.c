@@ -304,7 +304,7 @@ void test_simp_camera ()
     SETTER_NAME(rotx) (obj, M_PI/4);
     SETTER_NAME(rotz) (obj, M_PI/4);
     vox_dot world_coord;
-    vox_dot world_coord_expected = {0, 0, 400};
+    vox_dot world_coord_expected = {0, 0, 1};
     vox_camera_screen2world (obj, world_coord, 100, 100, 50, 50);
     CU_ASSERT (vect_eq (world_coord, world_coord_expected));
 }
