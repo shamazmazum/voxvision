@@ -1,0 +1,14 @@
+VOXTREES_@voxvision_VERSION@ {
+    global: vox_align;
+            vox_destroy_tree;
+            vox_inacc_balanceness;
+            vox_inacc_depth;
+            vox_local_rays_tree_intersection;
+            vox_lod;
+            vox_make_tree;
+            vox_ray_tree_intersection;
+            vox_tree_ball_collidep;
+            vox_voxel;
+            vox_voxels_in_tree;
+    local: *;
+};
