@@ -11,7 +11,7 @@
 
 vox_dot vox_voxel = {1.0, 1.0, 1.0};
 
-#ifdef SSE_ENABLE_CONS
+#ifdef SSE_INTRIN
 static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
 {
     vox_uint i;
@@ -23,7 +23,7 @@ static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
 
     _mm_store_ps (res, resv);
 }
-#else /* SSE_ENABLE_CONS */
+#else /* SSE_INTRIN */
 static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
 {
     vox_uint i;
@@ -33,9 +33,9 @@ static void calc_avg (vox_dot set[], vox_uint n, vox_dot res)
     for (i=0; i<n; i++) sum_vector (set[i], res, res);
     for (i=0; i<VOX_N; i++) res[i] *= lenmul;
 }
-#endif /* SSE_ENABLE_CONS */
+#endif /* SSE_INTRIN */
 
-#ifdef SSE_ENABLE_CONS
+#ifdef SSE_INTRIN
 static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot max)
 {
     vox_uint i;
@@ -52,7 +52,7 @@ static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot m
     _mm_store_ps (min, minv);
     _mm_store_ps (max, maxv);
 }
-#else /* SSE_ENABLE_CONS */
+#else /* SSE_INTRIN */
 static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot max)
 {
     vox_uint i,j;
@@ -70,7 +70,7 @@ static void calc_bounding_box (vox_dot set[], vox_uint n, vox_dot min, vox_dot m
     }
     sum_vector (max, vox_voxel, max);
 }
-#endif /* SSE_ENABLE_CONS */
+#endif /* SSE_INTRIN */
 
 void vox_align (vox_dot dot)
 {

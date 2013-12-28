@@ -3,10 +3,6 @@
 #include "geom.h"
 #include "params.h"
 
-#ifdef SSE_ENABLE_SEARCH
-#define SSE_CMP_MASK ((1<<VOX_N) - 1)
-#endif
-
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
     vox_uint i;
@@ -38,31 +34,6 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
     return res;
 }
 
-#ifdef SSE_ENABLE_SEARCH
-static inline int fit_and_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
-{
-    __v4sf dotv = _mm_load_ps (dot);
-    __v4sf fittedv;
-
-    fittedv = __builtin_ia32_maxps (dotv,    _mm_load_ps (min));
-    fittedv = __builtin_ia32_minps (fittedv, _mm_load_ps (max));
-    if (res != NULL) _mm_store_ps (res, fittedv);
-
-    __v4sf eqv = fittedv == dotv;
-    return (__builtin_ia32_movmskps (eqv) & SSE_CMP_MASK) == SSE_CMP_MASK;
-}
-
-int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
-{
-    return fit_and_betweenp (min, max, dot, res);
-}
-
-int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
-{
-    return fit_and_betweenp (min, max, dot, NULL);
-}
-
-#else /* SSE_ENABLE_SEARCH */
 int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
 {
     vox_uint i;
@@ -91,7 +62,6 @@ int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
     for (i=0; i<VOX_N; i++) {if ((dot[i] < min[i]) || (dot[i] > max[i])) return 0;}
     return 1;
 }
-#endif /* SSE_ENABLE_SEARCH */
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation

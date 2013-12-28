@@ -15,14 +15,7 @@ set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
 find_package (SDL REQUIRED)
 
-option (SSE_ENABLE "Enable SSE instructions everywhere" OFF)
-option (SSE_ENABLE_CONS "Enable SSE instructions while tree construction" OFF)
-option (SSE_ENABLE_SEARCH "Enable SSE instructions while searching" OFF)
-
-if (SSE_ENABLE)
-set (SSE_ENABLE_CONS ON)
-set (SSE_ENABLE_SEARCH ON)
-endif (SSE_ENABLE)
+option (SSE_INTRIN "Enable SSE intrinsic")
 
 add_subdirectory (src)
 

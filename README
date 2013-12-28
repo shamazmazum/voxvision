@@ -11,7 +11,7 @@ I hope that someday it will be possible to use this library in games or same app
 to this use case are possible. Use of any x86-only features is also possible in future with or without
 provision of portable code.
 
-Version 0.5+:
+Version 0.5:
 
 1) Try "cmake -DCMAKE_BUILD_TYPE=RELEASE .." instead of "cmake .." to switch optimization flags on.
    This will help a lot with performance.
@@ -21,3 +21,6 @@ Version 0.5+:
    rarely used there. If you want to try SSE SIMD instructions, try invoke cmake with  -DSSE_ENABLE_CONS,
    -DSSE_ENABLE_SEARCH or -DSSE_ENABLE arguments. CONS means tree construction, SEARCH means
    geometry/search algorithms and just SSE_ENABLE enables SSE everywhere.
+
+Version 0.5+:
+1) -DSSE_ENABLE* flags was replaced by one -DSSE_INTRIN flag

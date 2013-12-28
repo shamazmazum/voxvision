@@ -71,16 +71,10 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
         int count = 0;
         vox_dot intersect[VOX_MAX_DOTS];
         vox_leaf_data leaf = tree->data.leaf;
-#ifdef SSE_ENABLE_SEARCH
-        __v4sf voxv = _mm_load_ps (vox_voxel);
-#endif
+
         for (i=0; i<leaf.dots_num; i++)
         {
-#ifdef SSE_ENABLE_SEARCH
-            _mm_store_ps (tmp, _mm_load_ps (leaf.dots[i]) + voxv);
-#else
             sum_vector (leaf.dots[i], vox_voxel, tmp);
-#endif
             interp = hit_box (leaf.dots[i], tmp, origin, dir, intersect[count]);
             if (interp) count++;
         }
