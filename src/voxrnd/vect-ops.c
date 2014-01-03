@@ -37,6 +37,8 @@ float* vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
     res[1] = q1[2]*q2[0] - q1[0]*q2[2] + q1[1]*q2[3] + q1[3]*q2[1];
     res[2] = q1[0]*q2[1] - q1[1]*q2[0] + q1[2]*q2[3] + q1[3]*q2[2];
     res[3] = q1[3]*q2[3] - q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2];
+
+    return res;
 }
 
 float* vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
