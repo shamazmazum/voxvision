@@ -10,5 +10,9 @@ VOXTREES_@voxvision_VERSION@ {
             vox_tree_ball_collidep;
             vox_voxel;
             vox_voxels_in_tree;
+# FIXME: Used only for tests:
+            sum_vector;
+            dot_betweenp;
+            get_subspace_idx;
     local: *;
 };
