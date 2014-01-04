@@ -12,9 +12,8 @@ double gettime ()
     return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
 }
 
-static void origin_inc_test (struct vox_node *tree, class_t *camera, int idx, float val)
+static void origin_inc_test (struct vox_node *tree, float *pos, int idx, float val)
 {
-    float *pos = vox_camera_position_ptr (camera);
     pos[idx] += val;
     if (vox_tree_ball_collidep (tree, pos, 50)) pos[idx] -= val;
 }
@@ -49,7 +48,6 @@ int main (int argc, char *argv[])
     double time = gettime ();
     struct vox_node *tree = vox_make_tree (set, length);
     time = gettime() - time;
-
     printf ("Building tree (%i voxels, %i depth) took %f\n", vox_voxels_in_tree (tree), vox_inacc_depth (tree, 0), time);
     printf ("Tree balanceness %f\n", vox_inacc_balanceness (tree));
 
@@ -77,7 +75,6 @@ int main (int argc, char *argv[])
     time = gettime();
     vox_render (tree, ctx);
     time = gettime() - time;
-
     printf ("Rendering took %f\n", time);
 
     while (1)
@@ -87,12 +84,14 @@ int main (int argc, char *argv[])
         {
             switch (event.type) {
                 case SDL_KEYDOWN:
-                    if (event.key.keysym.unicode == 'a') origin_inc_test (tree, cam, 0, -5.0);
-                    else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, cam, 0, 5.0);
-                    else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, cam, 2, -5.0);
-                    else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, cam, 2, 5.0);
-                    else if (event.key.keysym.unicode == 's') origin_inc_test (tree, cam, 1, -5.0);
-                    else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, cam, 1, 5.0);
+                    time = gettime();
+                    float *pos = vox_camera_position_ptr (cam);
+                    if (event.key.keysym.unicode == 'a') origin_inc_test (tree, pos, 0, -5.0);
+                    else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, pos, 0, 5.0);
+                    else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, pos, 2, -5.0);
+                    else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, pos, 2, 5.0);
+                    else if (event.key.keysym.unicode == 's') origin_inc_test (tree, pos, 1, -5.0);
+                    else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, pos, 1, 5.0);
                     else if (event.key.keysym.unicode == 'x') SETTER_NAME(rotx) (cam, GETTER_NAME(rotx) (cam) + 0.01);
                     else if (event.key.keysym.unicode == 'X') SETTER_NAME(rotx) (cam, GETTER_NAME(rotx) (cam) - 0.01);
                     else if (event.key.keysym.unicode == 'z') SETTER_NAME(rotz) (cam, GETTER_NAME(rotz) (cam) + 0.01);
@@ -101,6 +100,11 @@ int main (int argc, char *argv[])
                     SDL_Rect rect = {0,0,800,600};
                     SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
                     vox_render (tree, ctx);
+                    time = gettime() - time;
+                    printf ("Rendering took %f\n", time);
+                    printf ("Camera position: %f %f %f\n", pos[0], pos[1], pos[2]);
+                    printf ("Rotations: around Ox = %f, around Oz = %f\n\n",
+                            GETTER_NAME(rotx) (cam), GETTER_NAME(rotz) (cam));
                 break;
             case SDL_QUIT:
                 SDL_Quit();
