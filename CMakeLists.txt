@@ -11,9 +11,6 @@ set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
-#find_package (GC REQUIRED)
-#include_directories (${BOEHM_GC_INCLUDE_DIR})
-
 find_package (SDL REQUIRED)
 
 option (SSE_INTRIN "Enable SSE intrinsic")

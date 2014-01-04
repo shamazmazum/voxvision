@@ -1,10 +1,6 @@
 #include <math.h>
 #include <stddef.h>
-#if 0
-#include <gc.h>
-#else
 #include <stdlib.h>
-#endif
 
 #include "tree.h"
 #include "geom.h"
@@ -129,11 +125,7 @@ static void* node_alloc (int leaf)
 struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
 {
     int leaf = n <= VOX_MAX_DOTS;
-#if 0
-    struct vox_node *res  = GC_MALLOC(sizeof(struct vox_node));
-#else
     struct vox_node *res  = node_alloc (leaf);
-#endif
     res->flags = 0;
 
     if (leaf)
@@ -194,11 +186,7 @@ void vox_destroy_tree (struct vox_node *tree)
         vox_uint i;
         for (i=0; i<VOX_NS; i++) vox_destroy_tree (tree->data.inner.children[i]);
     }
-#if 0
-    GC_FREE (tree);
-#else
     free (tree);
-#endif
 }
 
 /* Taken from my voxel-octrees library for common lisp:

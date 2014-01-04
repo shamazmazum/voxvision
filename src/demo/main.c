@@ -1,11 +1,5 @@
 #include <SDL/SDL.h>
 #include <sys/time.h>
-/*#include <string.h>
-#if 0
-#include <gc.h>
-#else
-#include <stdlib.h>
-#endif*/
 
 #include "data.h"
 #include "../voxtrees/voxtrees.h"
@@ -27,11 +21,6 @@ static void origin_inc_test (struct vox_node *tree, class_t *camera, int idx, fl
 
 int main (int argc, char *argv[])
 {
-/*#if 0
-    GC_INIT();
-#endif
-*/
-
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
     if (argc != 2)
     {
