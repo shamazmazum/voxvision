@@ -15,7 +15,7 @@ static void color_coeff (struct vox_node *tree, float mul[], float add[])
 
 // Use vox_local_loop here. Render 1x4 line by iteration
 // Increments sx and p, changes dir on each step
-static int line_inc (vox_rnd_context *ctx, int i)
+static void line_inc (vox_rnd_context *ctx, int i)
 {
     vox_rnd_aux_ctx *aux_ctx = ctx->user_data;
     aux_ctx->p++;
@@ -23,9 +23,6 @@ static int line_inc (vox_rnd_context *ctx, int i)
 
     vox_camera_screen2world (aux_ctx->camera, ctx->dir, aux_ctx->surface->w,
                              aux_ctx->surface->h, aux_ctx->sx, aux_ctx->sy); // Slow part
-
-    if (i==3) return 0;
-    else return 1;
 }
 
 static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], float add[])
@@ -63,7 +60,12 @@ void vox_render (struct vox_node *tree, vox_rnd_context *ctx)
     int i,j;
     for (i=0; i<h; i++)
     {
-        for (j=0; j<w; j+=4) vox_local_loop (tree, line_action, line_inc, ctx);
+        j = 0;
+        while (j<w)
+        {
+            j += vox_local_loop (tree, line_action, line_inc, ctx, VOX_LL_ADAPTIVE|VOX_LL_MAXITER(w-j));
+//            j += vox_local_loop (tree, line_action, line_inc, ctx, VOX_LL_FIXED|VOX_LL_MAXITER(4));
+        }
         aux_ctx->sx = 0;
         aux_ctx->sy++;
     }
