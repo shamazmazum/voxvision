@@ -3,6 +3,8 @@
 #include "camera.h"
 #include "local-loop.h"
 
+#define min(a,b) ((a)<(b)) ? (a) : (b)
+
 static void color_coeff (struct vox_node *tree, float mul[], float add[])
 {
     int i;
@@ -20,6 +22,7 @@ static void line_inc (vox_rnd_context *ctx, int i)
     vox_rnd_aux_ctx *aux_ctx = ctx->user_data;
     aux_ctx->p++;
     aux_ctx->sx++;
+    if (aux_ctx->sx == aux_ctx->surface->w) aux_ctx->sx = 0;
 
     vox_camera_screen2world (aux_ctx->camera, ctx->dir, aux_ctx->surface->w,
                              aux_ctx->surface->h, aux_ctx->sx, aux_ctx->sy); // Slow part
@@ -57,17 +60,17 @@ void vox_render (struct vox_node *tree, vox_rnd_context *ctx)
     vox_dot_copy (ctx->origin, vox_camera_position_ptr (aux_ctx->camera));
     vox_camera_screen2world (aux_ctx->camera, ctx->dir, w, h, 0, 0);
     
-    int i,j;
-    for (i=0; i<h; i++)
+    for (aux_ctx->sy=0; aux_ctx->sy<h; aux_ctx->sy++)
     {
-        j = 0;
-        while (j<w)
+        do
         {
-            j += vox_local_loop (tree, line_action, line_inc, ctx, VOX_LL_ADAPTIVE|VOX_LL_MAXITER(w-j));
-//            j += vox_local_loop (tree, line_action, line_inc, ctx, VOX_LL_FIXED|VOX_LL_MAXITER(4));
+#if 1
+            vox_local_loop (tree, line_action, line_inc, ctx, VOX_LL_ADAPTIVE|VOX_LL_MAXITER(min (4, w-aux_ctx->sx)));
+#else
+            vox_local_loop (tree, line_action, line_inc, ctx, VOX_LL_FIXED|VOX_LL_MAXITER(4));
+#endif
         }
-        aux_ctx->sx = 0;
-        aux_ctx->sy++;
+        while (aux_ctx->sx != 0);
     }
     SDL_Flip (aux_ctx->surface);
 }
