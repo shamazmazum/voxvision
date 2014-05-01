@@ -281,31 +281,17 @@ void test_tree_cons () {check_tree (working_tree);}
 
 void test_simp_camera ()
 {
-    vox_simple_camera cam;
+    vox_camera cam;
+    vox_camera *obj = &cam;
     vox_dot pos = {0,0,0};
-    float fov = 1.2;
-    class_t *obj = (class_t*)&cam;
-    vox_make_simple_camera (&cam, fov, pos);
+    vox_make_simple_camera (obj, 1.2, pos);
 
-    CU_ASSERT (memcmp (pos, vox_camera_position_ptr (&cam), sizeof(vox_dot)) == 0);
-    CU_ASSERT (fov == GETTER_NAME(fov) (obj));
-
-    fov = 1.3;
-    SETTER_NAME(fov) (obj, fov);
-    CU_ASSERT (GETTER_NAME(fov) (obj) == fov);
-
-    float phi = 0.2;
-    float psi = 0.1;
-    SETTER_NAME(rotx) (obj, phi);
-    SETTER_NAME(rotz) (obj, psi);
-    CU_ASSERT (GETTER_NAME(rotx) (obj) == phi);
-    CU_ASSERT (GETTER_NAME(rotz) (obj) == psi);
-
-    SETTER_NAME(rotx) (obj, M_PI/4);
-    SETTER_NAME(rotz) (obj, M_PI/4);
+    obj->rotx = M_PI/4;
+    obj->rotz = M_PI/4;
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
-    vox_camera_screen2world (obj, world_coord, 100, 100, 50, 50);
+    obj->update_rotation (obj);
+    obj->screen2world (obj, world_coord, 100, 100, 50, 50);
     CU_ASSERT (vect_eq (world_coord, world_coord_expected));
 }
 

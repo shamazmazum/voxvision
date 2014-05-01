@@ -6,9 +6,10 @@
 #define RENDERER_CTX_H
 
 #include <SDL/SDL.h>
-#include "methods.h"
+#include "camera.h"
 #include "../params_var.h"
 
+#ifdef VOXRND_SOURCE
 /**
    \brief Renderer context shared by renderer loop and user
 **/
@@ -26,7 +27,7 @@ typedef struct
 typedef struct
 {
     SDL_Surface *surface; /**< \brief SDL surface for output */
-    class_t *camera;      /**< \brief camera object */
+    vox_camera *camera;      /**< \brief camera object */
     int p;
     int sx, sy;
 
@@ -34,6 +35,9 @@ typedef struct
     float col_mul[3];
     float col_add[3];
 } vox_rnd_aux_ctx;
+#else // VOXRND_SOURCE
+typedef struct _vox_rnd_context_ vox_rnd_context;
+#endif
 
 /**
    \brief Create renderer context
@@ -42,7 +46,7 @@ typedef struct
    \param camera a camera
    \return the context
 **/
-vox_rnd_context* vox_init_renderer_context (SDL_Surface*, class_t*);
+vox_rnd_context* vox_init_renderer_context (SDL_Surface*, void*);
 
 /**
    \brief Free renderer context

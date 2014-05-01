@@ -67,9 +67,9 @@ int main (int argc, char *argv[])
     }
 
     vox_dot origin = {0,0,0};
-    vox_simple_camera camera;
-    vox_make_simple_camera (&camera, 1.0, origin);
-    class_t *cam = (class_t*)&camera;
+    vox_camera camera;
+    vox_camera *cam = &camera;
+    vox_make_simple_camera (cam, 1.0, origin);
     vox_rnd_context *ctx = vox_init_renderer_context (screen, cam);
     
     time = gettime();
@@ -85,26 +85,26 @@ int main (int argc, char *argv[])
             switch (event.type) {
                 case SDL_KEYDOWN:
                     time = gettime();
-                    float *pos = vox_camera_position_ptr (cam);
+                    float *pos = cam->position;
                     if (event.key.keysym.unicode == 'a') origin_inc_test (tree, pos, 0, -5.0);
                     else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, pos, 0, 5.0);
                     else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, pos, 2, -5.0);
                     else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, pos, 2, 5.0);
                     else if (event.key.keysym.unicode == 's') origin_inc_test (tree, pos, 1, -5.0);
                     else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, pos, 1, 5.0);
-                    else if (event.key.keysym.unicode == 'x') SETTER_NAME(rotx) (cam, GETTER_NAME(rotx) (cam) + 0.01);
-                    else if (event.key.keysym.unicode == 'X') SETTER_NAME(rotx) (cam, GETTER_NAME(rotx) (cam) - 0.01);
-                    else if (event.key.keysym.unicode == 'z') SETTER_NAME(rotz) (cam, GETTER_NAME(rotz) (cam) + 0.01);
-                    else if (event.key.keysym.unicode == 'Z') SETTER_NAME(rotz) (cam, GETTER_NAME(rotz) (cam) - 0.01);
+                    else if (event.key.keysym.unicode == 'x') cam->rotx += 0.01;
+                    else if (event.key.keysym.unicode == 'X') cam->rotx -= 0.01;
+                    else if (event.key.keysym.unicode == 'z') cam->rotz += 0.01;
+                    else if (event.key.keysym.unicode == 'Z') cam->rotz -= 0.01;
 
+                    cam->update_rotation (cam);
                     SDL_Rect rect = {0,0,800,600};
                     SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
                     vox_render (tree, ctx);
                     time = gettime() - time;
                     printf ("Rendering took %f\n", time);
                     printf ("Camera position: %f %f %f\n", pos[0], pos[1], pos[2]);
-                    printf ("Rotations: around Ox = %f, around Oz = %f\n\n",
-                            GETTER_NAME(rotx) (cam), GETTER_NAME(rotz) (cam));
+                    printf ("Rotations: around Ox = %f, around Oz = %f\n\n", cam->rotx, cam->rotz);
                 break;
             case SDL_QUIT:
                 SDL_Quit();

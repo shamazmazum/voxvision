@@ -7,7 +7,6 @@
 
 #include "../params_var.h"
 #include "camera.h"
-#include "methods.h"
 #include "renderer.h"
 #include "renderer-ctx.h"
 

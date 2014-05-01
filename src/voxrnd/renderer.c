@@ -28,8 +28,8 @@ static void line_inc (vox_rnd_context *ctx, int i)
     aux_ctx->sx++;
     if (aux_ctx->sx == aux_ctx->surface->w) aux_ctx->sx = 0;
 
-    vox_camera_screen2world (aux_ctx->camera, ctx->dir, aux_ctx->surface->w,
-                             aux_ctx->surface->h, aux_ctx->sx, aux_ctx->sy); // Slow part
+    aux_ctx->camera->screen2world (aux_ctx->camera, ctx->dir, aux_ctx->surface->w,
+                                   aux_ctx->surface->h, aux_ctx->sx, aux_ctx->sy); // Slow part
 }
 
 static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], float add[])
@@ -61,8 +61,8 @@ void vox_render (struct vox_node *tree, vox_rnd_context *ctx)
     color_coeff (tree, aux_ctx->col_mul, aux_ctx->col_add);
 
     aux_ctx->sx = 0; aux_ctx->sy = 0; aux_ctx->p = 0;
-    vox_dot_copy (ctx->origin, vox_camera_position_ptr (aux_ctx->camera));
-    vox_camera_screen2world (aux_ctx->camera, ctx->dir, w, h, 0, 0);
+    vox_dot_copy (ctx->origin, aux_ctx->camera->position);
+    aux_ctx->camera->screen2world (aux_ctx->camera, ctx->dir, w, h, 0, 0);
     
     for (aux_ctx->sy=0; aux_ctx->sy<h; aux_ctx->sy++)
     {

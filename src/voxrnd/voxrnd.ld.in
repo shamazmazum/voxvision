@@ -1,22 +1,12 @@
 VOXRND_@voxvision_VERSION@ {
-    global: vox_camera_position_ptr;
-            vox_camera_screen2world;
-            vox_dot_product;
+    global: vox_dot_product;
             vox_free_renderer_context;
-            vox_get_fov;
-            vox_get_rotx;
-            vox_get_roty;
-            vox_get_rotz;
             vox_init_renderer_context;
             vox_make_simple_camera;
             vox_quat_conj;
             vox_quat_mul;
             vox_render;
             vox_rotate_vector;
-            vox_set_fov;
-            vox_set_rotx;
-            vox_set_roty;
-            vox_set_rotz;
             vox_vector_inv;
     local: *;
 };

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "renderer-ctx.h"
 
-vox_rnd_context* vox_init_renderer_context (SDL_Surface *surf, class_t *camera)
+vox_rnd_context* vox_init_renderer_context (SDL_Surface *surf, void *camera)
 {
     vox_rnd_context *ctx = malloc (sizeof (vox_rnd_context));
     vox_rnd_aux_ctx *aux_ctx = malloc (sizeof (vox_rnd_aux_ctx));
