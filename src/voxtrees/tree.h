@@ -13,6 +13,7 @@
 #define VOX_LEAF 0
 #define VOX_FULL 1
 
+#ifdef VOXTREES_SOURCE
 /**
    Is the node a leaf?
 **/
@@ -69,6 +70,9 @@ struct vox_node
    \param dot dot to be aligned
 **/
 void vox_align (vox_dot);
+#else /* VOXTREES_SOURCE */
+struct vox_node;
+#endif
 
 /**
    \brief Turn a set of voxels into a tree.
@@ -107,5 +111,10 @@ vox_uint vox_voxels_in_tree (struct vox_node*);
 **/
 vox_uint vox_inacc_depth (struct vox_node*, vox_uint);
 float vox_inacc_balanceness (struct vox_node*);
+
+/**
+   \brief Get the bounding box for voxels in tree
+**/
+void vox_bounding_box (const struct vox_node*, vox_dot, vox_dot);
 
 #endif

@@ -1,6 +1,5 @@
 VOXTREES_@voxvision_VERSION@ {
-    global: vox_align;
-            vox_destroy_tree;
+    global: vox_destroy_tree;
             vox_inacc_balanceness;
             vox_inacc_depth;
             vox_local_rays_tree_intersection;
@@ -10,6 +9,7 @@ VOXTREES_@voxvision_VERSION@ {
             vox_tree_ball_collidep;
             vox_voxel;
             vox_voxels_in_tree;
+            vox_bounding_box;
 # FIXME: Used only for tests:
             sum_vector;
             dot_betweenp;

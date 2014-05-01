@@ -223,3 +223,9 @@ float vox_inacc_balanceness (struct vox_node *tree)
     float expected_depth = ceilf (log (2.0 * vox_voxels_in_tree (tree) / (1 + VOX_MAX_DOTS)) / log (VOX_NS));
     return vox_inacc_depth (tree, 0) / expected_depth;
 }
+
+void vox_bounding_box (const struct vox_node* tree, vox_dot min, vox_dot max)
+{
+    vox_dot_copy (min, tree->bb_min);
+    vox_dot_copy (max, tree->bb_max);
+}

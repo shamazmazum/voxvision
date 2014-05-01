@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxtrees.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld)
+add_definitions (-DVOXTREES_SOURCE)
 add_library (voxtrees SHARED geom.c search.c tree.c)
 
 set_target_properties (voxtrees PROPERTIES VERSION ${voxvision_VERSION}
