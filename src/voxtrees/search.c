@@ -55,7 +55,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     struct tagged_coord plane_inter[VOX_N+1];
 
     assert (depth < VOX_MAX_DEPTH);
-    path[depth-1] = tree;
+    if (path) path[depth-1] = tree;
 
     if (!(VOX_FULLP (tree))) return 0;
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, plane_inter[0].coord))) return 0;
@@ -129,8 +129,7 @@ vox_uint vox_local_rays_tree_intersection (const vox_tree_path path, const vox_d
 {
     if ((depth <= n) && (depth <= VOX_MAX_DEPTH_LOCAL))
     {
-        vox_tree_path ignored_path;
-        vox_uint interp = vox_ray_tree_intersection (path[n-depth], origin, dir, res, 1, ignored_path);
+        vox_uint interp = vox_ray_tree_intersection (path[n-depth], origin, dir, res, 1, NULL);
         if (interp) return depth;
         else return vox_local_rays_tree_intersection (path, origin, dir, res, depth+1, n);
     }

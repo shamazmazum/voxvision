@@ -22,7 +22,7 @@ int vox_local_loop (struct vox_node *tree, void (*action) (vox_rnd_context*), \
             depth = vox_local_rays_tree_intersection (path, ctx->origin, ctx->dir, ctx->inter, depth, pn);
             state = depth;
         }
-        if (!(state)) depth = vox_ray_tree_intersection (tree, ctx->origin, ctx->dir, ctx->inter, 1, path);
+        if (!(state)) depth = vox_ray_tree_intersection (tree, ctx->origin, ctx->dir, ctx->inter, 1, NULL);
         
         if (depth) action (ctx);
         inc (ctx, i);
