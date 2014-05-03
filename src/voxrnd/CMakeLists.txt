@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxrnd.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld)
 include_directories (${SDL_INCLUDE_DIR})
-set (VOXRND_SOURCES local-loop.c renderer-ctx.c camera.c renderer.c)
+set (VOXRND_SOURCES local-loop.c camera.c renderer.c)
 add_definitions (-DVOXRND_SOURCE)
 
 if (SSE_INTRIN)

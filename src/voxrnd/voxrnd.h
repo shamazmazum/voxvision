@@ -8,6 +8,5 @@
 #include "../params_var.h"
 #include "camera.h"
 #include "renderer.h"
-#include "renderer-ctx.h"
 
 #endif

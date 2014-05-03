@@ -7,6 +7,7 @@
 
 #include "../params_var.h"
 
+#ifdef VOXRND_SOURCE
 /**
    \brief Rotate one vector around another
 
@@ -56,4 +57,5 @@ float* vox_quat_mul (const vox_quat, const vox_quat, vox_quat);
 **/
 float vox_dot_product (const vox_dot, const vox_dot);
 
+#endif
 #endif

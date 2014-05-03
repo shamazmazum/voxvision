@@ -1,7 +1,5 @@
 VOXRND_@voxvision_VERSION@ {
     global: vox_dot_product;
-            vox_free_renderer_context;
-            vox_init_renderer_context;
             vox_make_simple_camera;
             vox_quat_conj;
             vox_quat_mul;
