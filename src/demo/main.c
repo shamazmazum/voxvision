@@ -25,9 +25,9 @@ static void origin_inc_test (struct vox_node *tree, float *pos, int idx, float v
 int main (int argc, char *argv[])
 {
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
-    if (argc != 3)
+    if (argc != 4)
     {
-        fprintf (stderr, "Usage: test_renderer dataset geometry\n");
+        fprintf (stderr, "Usage: test_renderer dataset geometry multiplier_geometry\n");
         exit (1);
     }
 
@@ -39,14 +39,26 @@ int main (int argc, char *argv[])
         fprintf (stderr, "Specify correct geometry\n");
         exit(1);
     }
+
+    float x,y,z;
+    res = sscanf (argv[3], "%fx%fx%f", &x, &y, &z);
+    if (res != 3)
+    {
+        fprintf (stderr, "Specify correct geometry\n");
+        exit(1);
+    }
+    mul[0] = x; mul[1] = y; mul[2] = z;
+    vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
+
     int fd = open (argv[1], O_RDONLY);
     if (fd == -1)
     {
         fprintf (stderr, "Cannot open dataset\n");
         exit(1);
     }
+
     printf ("Reading raw data\n");
-    int length = read_data (fd, &set, &d, 1, 100);
+    int length = read_data (fd, &set, &d, 1, 27);
     close (fd);
     if (length == -1)
     {
