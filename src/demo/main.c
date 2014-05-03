@@ -1,9 +1,13 @@
 #include <SDL/SDL.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <fcntl.h>
 
-#include "data.h"
 #include "../voxtrees/voxtrees.h"
 #include "../voxrnd/voxrnd.h"
+#include "reader.h"
 
 double gettime ()
 {
@@ -21,30 +25,35 @@ static void origin_inc_test (struct vox_node *tree, float *pos, int idx, float v
 int main (int argc, char *argv[])
 {
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
-    if (argc != 2)
+    if (argc != 3)
     {
-        printf ("Usage: test_renderer tree|skull\n");
+        fprintf (stderr, "Usage: test_renderer dataset geometry\n");
         exit (1);
     }
-    
+
+    dimension d;
     vox_dot *set;
-    int length;
-    if (strcmp (argv[1], "tree") == 0)
+    int res = sscanf (argv[2], "%ix%ix%i", &(d.x), &(d.y), &(d.z));
+    if (res != 3)
     {
-        set = xmas_tree;
-        length = 935859;
-    }
-    else if (strcmp (argv[1], "skull") == 0)
-    {
-        set = skull;
-        length = 1194419;
-    }
-    else
-    {
-        printf ("Invalid data set\n");
+        fprintf (stderr, "Specify correct geometry\n");
         exit(1);
     }
-    
+    int fd = open (argv[1], O_RDONLY);
+    if (fd == -1)
+    {
+        fprintf (stderr, "Cannot open dataset\n");
+        exit(1);
+    }
+    printf ("Reading raw data\n");
+    int length = read_data (fd, &set, &d, 1, 100);
+    close (fd);
+    if (length == -1)
+    {
+        fprintf (stderr, "Cannot read dataset\n");
+        exit(1);
+    }
+
     double time = gettime ();
     struct vox_node *tree = vox_make_tree (set, length);
     time = gettime() - time;
@@ -53,7 +62,7 @@ int main (int argc, char *argv[])
 
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
     {
-        printf("Cannot init SDL\n");
+        fprintf(stderr, "Cannot init SDL\n");
         exit (1);
     }
 
@@ -62,11 +71,11 @@ int main (int argc, char *argv[])
     SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
     if (screen == NULL)
     {
-        printf("Cannot init screen\n");
+        fprintf(stderr, "Cannot init screen\n");
         exit (1);
     }
 
-    vox_dot origin = {0,0,0};
+    vox_dot origin = {50,-100,50};
     vox_camera camera;
     vox_make_simple_camera (&camera, 1.2, origin);
     
@@ -107,6 +116,7 @@ int main (int argc, char *argv[])
             case SDL_QUIT:
                 SDL_Quit();
                 vox_destroy_tree (tree);
+                free (set);
                 exit(0);
             }
         }
