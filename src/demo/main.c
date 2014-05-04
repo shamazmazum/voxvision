@@ -4,10 +4,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <iniparser.h>
 
 #include "../voxtrees/voxtrees.h"
 #include "../voxrnd/voxrnd.h"
 #include "reader.h"
+
+#define read_vector_or_quit(str, ctrl, x, y, z, errormsg) do {   \
+    res = sscanf (str, ctrl, x, y, z); \
+    if (res != 3) { \
+    fprintf (stderr, errormsg); \
+    exit (1); }} while (0);
 
 double gettime ()
 {
@@ -25,37 +32,48 @@ static void origin_inc_test (struct vox_node *tree, float *pos, int idx, float v
 int main (int argc, char *argv[])
 {
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
-    if (argc != 4)
+    if (argc != 2)
     {
-        fprintf (stderr, "Usage: test_renderer dataset geometry multiplier_geometry\n");
+        fprintf (stderr, "Usage: demo config\n");
         exit (1);
     }
 
     dimension d;
     vox_dot *set;
-    int res = sscanf (argv[2], "%ix%ix%i", &(d.x), &(d.y), &(d.z));
-    if (res != 3)
+    dictionary *cfg = iniparser_load (argv[1]);
+    if (cfg == NULL)
     {
-        fprintf (stderr, "Specify correct geometry\n");
+        fprintf (stderr, "Cannot load cfg file\n");
         exit(1);
     }
 
+    int res;
+    read_vector_or_quit (iniparser_getstring (cfg, "Scene:Geometry", ""),
+                         "<%i,%i,%i>", &(d.x), &(d.y), &(d.z),
+                         "Specify correct geometry\n");
+
     float x,y,z;
-    res = sscanf (argv[3], "%fx%fx%f", &x, &y, &z);
-    if (res != 3)
-    {
-        fprintf (stderr, "Specify correct geometry\n");
-        exit(1);
-    }
+    read_vector_or_quit (iniparser_getstring (cfg, "Scene:Voxsize", "<1,1,1>"),
+                         "<%f,%f,%f>", &x, &y, &z,
+                         "Specify correct voxsize\n");
     mul[0] = x; mul[1] = y; mul[2] = z;
     vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
 
-    int fd = open (argv[1], O_RDONLY);
+    vox_dot origin;
+    vox_camera camera;
+    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Position", "<0,-100,0>"),
+                         "<%f,%f,%f>", &origin[0], &origin[1], &origin[2],
+                         "Specify correct camera position\n");
+    float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
+    vox_make_simple_camera (&camera, fov, origin);
+    
+    int fd = open (iniparser_getstring (cfg, "Scene:DataSet", ""), O_RDONLY);
     if (fd == -1)
     {
         fprintf (stderr, "Cannot open dataset\n");
         exit(1);
     }
+    iniparser_freedict (cfg);
 
     printf ("Reading raw data\n");
     int length = read_data (fd, &set, &d, 1, 27);
@@ -65,7 +83,7 @@ int main (int argc, char *argv[])
         fprintf (stderr, "Cannot read dataset\n");
         exit(1);
     }
-
+    
     double time = gettime ();
     struct vox_node *tree = vox_make_tree (set, length);
     time = gettime() - time;
@@ -87,10 +105,6 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    vox_dot origin = {50,-100,50};
-    vox_camera camera;
-    vox_make_simple_camera (&camera, 1.2, origin);
-    
     time = gettime();
     vox_render (tree, &camera, screen);
     time = gettime() - time;

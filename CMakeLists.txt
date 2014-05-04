@@ -12,6 +12,7 @@ set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
 find_package (SDL REQUIRED)
+find_package (IniParser REQUIRED)
 
 option (SSE_INTRIN "Enable SSE intrinsic")
 
