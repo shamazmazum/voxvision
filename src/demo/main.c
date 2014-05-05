@@ -66,6 +66,12 @@ int main (int argc, char *argv[])
                          "Specify correct camera position\n");
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
     vox_make_simple_camera (&camera, fov, origin);
+
+    float rotx,roty,rotz;
+    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
+                         "<%f,%f,%f>", &rotx, &roty, &rotz,
+                         "Specify correct rotation angles\n");
+    camera.set_rot_angles (&camera, rotx, roty, rotz);
     
     int fd = open (iniparser_getstring (cfg, "Scene:DataSet", ""), O_RDONLY);
     if (fd == -1)
@@ -73,21 +79,23 @@ int main (int argc, char *argv[])
         fprintf (stderr, "Cannot open dataset\n");
         exit(1);
     }
-    iniparser_freedict (cfg);
 
+    int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
     printf ("Reading raw data\n");
-    int length = read_data (fd, &set, &d, 1, 27);
+    int length = read_data (fd, &set, &d, 1, threshold);
     close (fd);
     if (length == -1)
     {
         fprintf (stderr, "Cannot read dataset\n");
         exit(1);
     }
-    
+    iniparser_freedict (cfg);
+
     double time = gettime ();
     struct vox_node *tree = vox_make_tree (set, length);
     time = gettime() - time;
-    printf ("Building tree (%i voxels, %i depth) took %f\n", vox_voxels_in_tree (tree), vox_inacc_depth (tree, 0), time);
+    printf ("Building tree (%i voxels, %i depth) took %f\n", vox_voxels_in_tree (tree),
+            vox_inacc_depth (tree, 0), time);
     printf ("Tree balanceness %f\n", vox_inacc_balanceness (tree));
 
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
@@ -105,42 +113,47 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    time = gettime();
-    vox_render (tree, &camera, screen);
-    time = gettime() - time;
-    printf ("Rendering took %f\n", time);
-
-    while (1)
+    int redraw = 1;
+    do
     {
         SDL_Event event;
+        if (redraw)
+        {
+            time = gettime();
+            vox_render (tree, (vox_camera*)&camera, screen);
+            time = gettime() - time;
+            printf ("Rendering took %f\n\n", time);
+            redraw = 0;
+        }
         if (SDL_WaitEvent(&event))
         {
             switch (event.type) {
-                case SDL_KEYDOWN:
-                    time = gettime();
-                    float *pos = camera.get_position(&camera);
-                    float rotx, roty, rotz;
-                    camera.get_rot_angles (&camera, &rotx, &roty, &rotz);
-                    if (event.key.keysym.unicode == 'a') origin_inc_test (tree, pos, 0, -5.0);
-                    else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, pos, 0, 5.0);
-                    else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, pos, 2, -5.0);
-                    else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, pos, 2, 5.0);
-                    else if (event.key.keysym.unicode == 's') origin_inc_test (tree, pos, 1, -5.0);
-                    else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, pos, 1, 5.0);
-                    else if (event.key.keysym.unicode == 'x') rotx += 0.01;
-                    else if (event.key.keysym.unicode == 'X') rotx -= 0.01;
-                    else if (event.key.keysym.unicode == 'z') rotz += 0.01;
-                    else if (event.key.keysym.unicode == 'Z') rotz -= 0.01;
-                    camera.set_rot_angles (&camera, rotx, roty, rotz);
+            case SDL_KEYDOWN:
+            {
+                float *pos = camera.get_position(&camera);
+                float rotx, roty, rotz;
+                camera.get_rot_angles (&camera, &rotx, &roty, &rotz);
+                if (event.key.keysym.unicode == 'a') origin_inc_test (tree, pos, 0, -5.0);
+                else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, pos, 0, 5.0);
+                else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, pos, 2, -5.0);
+                else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, pos, 2, 5.0);
+                else if (event.key.keysym.unicode == 's') origin_inc_test (tree, pos, 1, -5.0);
+                else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, pos, 1, 5.0);
+                else if (event.key.keysym.unicode == 'x') rotx += 0.01;
+                else if (event.key.keysym.unicode == 'X') rotx -= 0.01;
+                else if (event.key.keysym.unicode == 'z') rotz += 0.01;
+                else if (event.key.keysym.unicode == 'Z') rotz -= 0.01;
+                camera.set_rot_angles (&camera, rotx, roty, rotz);
 
-                    SDL_Rect rect = {0,0,800,600};
-                    SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
-                    vox_render (tree, &camera, screen);
-                    time = gettime() - time;
-                    printf ("Rendering took %f\n", time);
-                    printf ("Camera position: %f %f %f\n", pos[0], pos[1], pos[2]);
-                    printf ("Rotations: around Ox = %f, around Oz = %f\n\n", rotx, rotz);
+                SDL_Rect rect;
+                rect.w = screen->w;
+                rect.h = screen->h;
+                SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
+                printf ("Camera position: %f %f %f\n", pos[0], pos[1], pos[2]);
+                printf ("Rotations: around Ox = %f, around Oz = %f\n", rotx, rotz);
+                redraw = 1;
                 break;
+            }
             case SDL_QUIT:
                 SDL_Quit();
                 vox_destroy_tree (tree);
@@ -148,6 +161,6 @@ int main (int argc, char *argv[])
                 exit(0);
             }
         }
-    }
+    } while (1);
     return 0;
 }
