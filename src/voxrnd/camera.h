@@ -12,18 +12,16 @@
 **/
 typedef struct
 {
+    void *camera;
     void (*screen2world) (void*, vox_dot, int, int, int, int);
     float* (*get_position) (void*);
     void (*get_rot_angles) (void*, float*, float*, float*);
     void (*set_rot_angles) (void*, float, float, float);
-} vox_camera;
+} vox_camera_interface;
 
 typedef struct
 {
-    void (*screen2world) (void*, vox_dot, int, int, int, int);
-    float* (*get_position) (void*);
-    void (*get_rot_angles) (void*, float*, float*, float*);
-    void (*set_rot_angles) (void*, float, float, float);
+    vox_camera_interface iface;
 
     vox_dot position; /**< \brief Position of the camera */
     float fov;        /**< \brief Field of view */

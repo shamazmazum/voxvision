@@ -24,8 +24,9 @@ static void simple_update_rotation (vox_simple_camera *camera)
 #endif
 }
 
-static void simple_screen2world (vox_simple_camera *camera, vox_dot ray, int w, int h, int sx, int sy)
+static void simple_screen2world (void *obj, vox_dot ray, int w, int h, int sx, int sy)
 {
+    vox_simple_camera *camera = obj;
     ray[0] = camera->fov*(2.0*sx/w - 1.0);
     ray[1] = 1.0;
     ray[2] = camera->fov*(2.0*sy/h - 1.0);
@@ -33,15 +34,17 @@ static void simple_screen2world (vox_simple_camera *camera, vox_dot ray, int w, 
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
-static float* simple_get_position (vox_simple_camera *camera) {return camera->position;}
-static void simple_get_rot_angles (vox_simple_camera *camera, float *rotx, float *roty, float *rotz)
+static float* simple_get_position (void *camera) {return ((vox_simple_camera*)camera)->position;}
+static void simple_get_rot_angles (void *obj, float *rotx, float *roty, float *rotz)
 {
+    vox_simple_camera *camera = obj;
     *rotx = camera->rotx;
     *roty = camera->rotz;
     *roty = camera->rotz;
 }
-static void simple_set_rot_angles (vox_simple_camera *camera, float rotx, float roty, float rotz)
+static void simple_set_rot_angles (void *obj, float rotx, float roty, float rotz)
 {
+    vox_simple_camera *camera = obj;
     camera->rotx = rotx;
     camera->roty = roty;
     camera->rotz = rotz;
@@ -54,8 +57,9 @@ void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot posit
     camera->fov = fov;
     simple_set_rot_angles (camera, 0, 0, 0);
 
-    camera->screen2world = simple_screen2world;
-    camera->get_position = simple_get_position;
-    camera->get_rot_angles = simple_get_rot_angles;
-    camera->set_rot_angles = simple_set_rot_angles;
+    camera->iface.screen2world = simple_screen2world;
+    camera->iface.get_position = simple_get_position;
+    camera->iface.get_rot_angles = simple_get_rot_angles;
+    camera->iface.set_rot_angles = simple_set_rot_angles;
+    camera->iface.camera = camera;
 }

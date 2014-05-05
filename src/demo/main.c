@@ -71,7 +71,7 @@ int main (int argc, char *argv[])
     read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
                          "<%f,%f,%f>", &rotx, &roty, &rotz,
                          "Specify correct rotation angles\n");
-    camera.set_rot_angles (&camera, rotx, roty, rotz);
+    camera.iface.set_rot_angles (&camera, rotx, roty, rotz);
     
     int fd = open (iniparser_getstring (cfg, "Scene:DataSet", ""), O_RDONLY);
     if (fd == -1)
@@ -120,7 +120,7 @@ int main (int argc, char *argv[])
         if (redraw)
         {
             time = gettime();
-            vox_render (tree, (vox_camera*)&camera, screen);
+            vox_render (tree, &(camera.iface), screen);
             time = gettime() - time;
             printf ("Rendering took %f\n\n", time);
             redraw = 0;
@@ -130,9 +130,9 @@ int main (int argc, char *argv[])
             switch (event.type) {
             case SDL_KEYDOWN:
             {
-                float *pos = camera.get_position(&camera);
+                float *pos = camera.iface.get_position(&camera);
                 float rotx, roty, rotz;
-                camera.get_rot_angles (&camera, &rotx, &roty, &rotz);
+                camera.iface.get_rot_angles (&camera, &rotx, &roty, &rotz);
                 if (event.key.keysym.unicode == 'a') origin_inc_test (tree, pos, 0, -5.0);
                 else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, pos, 0, 5.0);
                 else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, pos, 2, -5.0);
@@ -143,7 +143,7 @@ int main (int argc, char *argv[])
                 else if (event.key.keysym.unicode == 'X') rotx -= 0.01;
                 else if (event.key.keysym.unicode == 'z') rotz += 0.01;
                 else if (event.key.keysym.unicode == 'Z') rotz -= 0.01;
-                camera.set_rot_angles (&camera, rotx, roty, rotz);
+                camera.iface.set_rot_angles (&camera, rotx, roty, rotz);
 
                 SDL_Rect rect;
                 rect.w = screen->w;

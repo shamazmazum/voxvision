@@ -6,7 +6,7 @@
 struct renderer_ctx
 {
     SDL_Surface *surface;
-    vox_camera *camera;
+    vox_camera_interface *cam_iface;
     int p;
     int sx, sy;
 
@@ -38,8 +38,8 @@ static void line_inc (vox_ll_context *ctx)
     rctx.sx++;
     if (rctx.sx == rctx.surface->w) rctx.sx = 0;
 
-    rctx.camera->screen2world (rctx.camera, ctx->dir, rctx.surface->w,
-                               rctx.surface->h, rctx.sx, rctx.sy);
+    rctx.cam_iface->screen2world (rctx.cam_iface->camera, ctx->dir, rctx.surface->w,
+                                  rctx.surface->h, rctx.sx, rctx.sy);
 }
 
 static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], float add[])
@@ -58,13 +58,13 @@ static void line_action (vox_ll_context *ctx)
     
 }
 
-void vox_render (struct vox_node *tree, vox_camera *camera, SDL_Surface *surface)
+void vox_render (struct vox_node *tree, vox_camera_interface *cam_iface, SDL_Surface *surface)
 {
     // Init context before we start
     int w = surface->w;
     int h = surface->h;
     rctx.surface = surface;
-    rctx.camera = camera;
+    rctx.cam_iface = cam_iface;
     rctx.p = 0;
     rctx.sx = 0;
     rctx.sy = 0;
@@ -74,8 +74,8 @@ void vox_render (struct vox_node *tree, vox_camera *camera, SDL_Surface *surface
     color_coeff (tree, rctx.col_mul, rctx.col_add);
 
     vox_ll_context llctx;
-    vox_dot_copy (llctx.origin, camera->get_position(camera));
-    camera->screen2world (camera, llctx.dir, w, h, 0, 0);
+    vox_dot_copy (llctx.origin, cam_iface->get_position(cam_iface->camera));
+    cam_iface->screen2world (cam_iface->camera, llctx.dir, w, h, 0, 0);
     
     for (rctx.sy=0; rctx.sy<h; rctx.sy++)
     {
