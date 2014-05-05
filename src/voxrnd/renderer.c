@@ -74,7 +74,7 @@ void vox_render (struct vox_node *tree, vox_camera *camera, SDL_Surface *surface
     color_coeff (tree, rctx.col_mul, rctx.col_add);
 
     vox_ll_context llctx;
-    vox_dot_copy (llctx.origin, camera->position);
+    vox_dot_copy (llctx.origin, camera->get_position(camera));
     camera->screen2world (camera, llctx.dir, w, h, 0, 0);
     
     for (rctx.sy=0; rctx.sy<h; rctx.sy++)

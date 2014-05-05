@@ -12,19 +12,27 @@
 **/
 typedef struct
 {
+    void (*screen2world) (void*, vox_dot, int, int, int, int);
+    float* (*get_position) (void*);
+    void (*get_rot_angles) (void*, float*, float*, float*);
+    void (*set_rot_angles) (void*, float, float, float);
+} vox_camera;
+
+typedef struct
+{
+    void (*screen2world) (void*, vox_dot, int, int, int, int);
+    float* (*get_position) (void*);
+    void (*get_rot_angles) (void*, float*, float*, float*);
+    void (*set_rot_angles) (void*, float, float, float);
+
     vox_dot position; /**< \brief Position of the camera */
     float fov;        /**< \brief Field of view */
     float rotx;       /**< \brief Rotation angle around axis Ox (left-right) */
     float roty;       /**< \brief Currently unused */
     float rotz;       /**< \brief Rotation angle around axis Oz (up-down) */
 
-    // Methods (so there is a limited possibility to redefine the camera with
-    //          compatible ABI, OMG):
-    void (*update_rotation) (void*); /**< \brief Call this after camera rotation */
-    void (*screen2world) (void*, vox_dot, int, int, int, int);
-
     vox_quat rotation;
-} vox_camera;
+} vox_simple_camera;
 
 /**
    \brief Initialize simple camera
@@ -33,6 +41,6 @@ typedef struct
    \param fov field of view
    \param position position of the camera
 **/
-void vox_make_simple_camera (vox_camera*, float, vox_dot);
+void vox_make_simple_camera (vox_simple_camera*, float, vox_dot);
 
 #endif

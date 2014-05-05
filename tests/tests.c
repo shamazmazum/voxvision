@@ -281,17 +281,16 @@ void test_tree_cons () {check_tree (working_tree);}
 
 void test_simp_camera ()
 {
-    vox_camera cam;
-    vox_camera *obj = &cam;
+    vox_simple_camera camera;
     vox_dot pos = {0,0,0};
-    vox_make_simple_camera (obj, 1.2, pos);
+    vox_make_simple_camera (&camera, 1.2, pos);
 
-    obj->rotx = M_PI/4;
-    obj->rotz = M_PI/4;
+    CU_ASSERT (vect_eq (pos, camera.get_position (&camera)));
+
+    camera.set_rot_angles (&camera, M_PI/4, 0, M_PI/4);
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
-    obj->update_rotation (obj);
-    obj->screen2world (obj, world_coord, 100, 100, 50, 50);
+    camera.screen2world (&camera, world_coord, 100, 100, 50, 50);
     CU_ASSERT (vect_eq (world_coord, world_coord_expected));
 }
 

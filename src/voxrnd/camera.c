@@ -3,7 +3,7 @@
 #include "vect-ops.h"
 #include "camera.h"
 
-static void simple_update_rotation (vox_camera *camera)
+static void simple_update_rotation (vox_simple_camera *camera)
 {
     // Update rotation quaternion
     float sinphi = sinf(camera->rotx);
@@ -24,7 +24,7 @@ static void simple_update_rotation (vox_camera *camera)
 #endif
 }
 
-static void simple_screen2world (vox_camera *camera, vox_dot ray, int w, int h, int sx, int sy)
+static void simple_screen2world (vox_simple_camera *camera, vox_dot ray, int w, int h, int sx, int sy)
 {
     ray[0] = camera->fov*(2.0*sx/w - 1.0);
     ray[1] = 1.0;
@@ -33,15 +33,29 @@ static void simple_screen2world (vox_camera *camera, vox_dot ray, int w, int h, 
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
-void vox_make_simple_camera (vox_camera *camera, float fov, vox_dot position)
+static float* simple_get_position (vox_simple_camera *camera) {return camera->position;}
+static void simple_get_rot_angles (vox_simple_camera *camera, float *rotx, float *roty, float *rotz)
+{
+    *rotx = camera->rotx;
+    *roty = camera->rotz;
+    *roty = camera->rotz;
+}
+static void simple_set_rot_angles (vox_simple_camera *camera, float rotx, float roty, float rotz)
+{
+    camera->rotx = rotx;
+    camera->roty = roty;
+    camera->rotz = rotz;
+    simple_update_rotation (camera);
+}
+
+void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot position)
 {
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
+    simple_set_rot_angles (camera, 0, 0, 0);
 
-    camera->rotx = 0.0;
-    camera->rotz = 0.0;
-    simple_update_rotation (camera);
-
-    camera->update_rotation = simple_update_rotation;
     camera->screen2world = simple_screen2world;
+    camera->get_position = simple_get_position;
+    camera->get_rot_angles = simple_get_rot_angles;
+    camera->set_rot_angles = simple_set_rot_angles;
 }

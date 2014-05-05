@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
     vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
 
     vox_dot origin;
-    vox_camera camera;
+    vox_simple_camera camera;
     read_vector_or_quit (iniparser_getstring (cfg, "Camera:Position", "<0,-100,0>"),
                          "<%f,%f,%f>", &origin[0], &origin[1], &origin[2],
                          "Specify correct camera position\n");
@@ -118,26 +118,28 @@ int main (int argc, char *argv[])
             switch (event.type) {
                 case SDL_KEYDOWN:
                     time = gettime();
-                    float *pos = camera.position;
+                    float *pos = camera.get_position(&camera);
+                    float rotx, roty, rotz;
+                    camera.get_rot_angles (&camera, &rotx, &roty, &rotz);
                     if (event.key.keysym.unicode == 'a') origin_inc_test (tree, pos, 0, -5.0);
                     else if (event.key.keysym.unicode == 'A') origin_inc_test (tree, pos, 0, 5.0);
                     else if (event.key.keysym.unicode == 'w') origin_inc_test (tree, pos, 2, -5.0);
                     else if (event.key.keysym.unicode == 'W') origin_inc_test (tree, pos, 2, 5.0);
                     else if (event.key.keysym.unicode == 's') origin_inc_test (tree, pos, 1, -5.0);
                     else if (event.key.keysym.unicode == 'S') origin_inc_test (tree, pos, 1, 5.0);
-                    else if (event.key.keysym.unicode == 'x') camera.rotx += 0.01;
-                    else if (event.key.keysym.unicode == 'X') camera.rotx -= 0.01;
-                    else if (event.key.keysym.unicode == 'z') camera.rotz += 0.01;
-                    else if (event.key.keysym.unicode == 'Z') camera.rotz -= 0.01;
+                    else if (event.key.keysym.unicode == 'x') rotx += 0.01;
+                    else if (event.key.keysym.unicode == 'X') rotx -= 0.01;
+                    else if (event.key.keysym.unicode == 'z') rotz += 0.01;
+                    else if (event.key.keysym.unicode == 'Z') rotz -= 0.01;
+                    camera.set_rot_angles (&camera, rotx, roty, rotz);
 
-                    camera.update_rotation (&camera);
                     SDL_Rect rect = {0,0,800,600};
                     SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
                     vox_render (tree, &camera, screen);
                     time = gettime() - time;
                     printf ("Rendering took %f\n", time);
                     printf ("Camera position: %f %f %f\n", pos[0], pos[1], pos[2]);
-                    printf ("Rotations: around Ox = %f, around Oz = %f\n\n", camera.rotx, camera.rotz);
+                    printf ("Rotations: around Ox = %f, around Oz = %f\n\n", rotx, rotz);
                 break;
             case SDL_QUIT:
                 SDL_Quit();
