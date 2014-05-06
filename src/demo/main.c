@@ -146,8 +146,8 @@ int main (int argc, char *argv[])
                 camera.iface.set_rot_angles (&camera, rotx, roty, rotz);
 
                 SDL_Rect rect;
-                rect.w = screen->w;
-                rect.h = screen->h;
+                rect.w = screen->w; rect.h = screen->h;
+                rect.x = 0; rect.y = 0;
                 SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
                 printf ("Camera position: %f %f %f\n", pos[0], pos[1], pos[2]);
                 printf ("Rotations: around Ox = %f, around Oz = %f\n", rotx, rotz);
