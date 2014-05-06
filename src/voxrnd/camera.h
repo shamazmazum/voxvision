@@ -17,6 +17,7 @@ typedef struct
     float* (*get_position) (void*);
     void (*get_rot_angles) (void*, float*, float*, float*);
     void (*set_rot_angles) (void*, float, float, float);
+    void (*move_camera) (void*, vox_dot, int (*) (vox_dot, void*), void*);
 } vox_camera_interface;
 
 typedef struct

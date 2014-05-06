@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include "../voxtrees/geom.h"
 #include "vect-ops.h"
 #include "camera.h"
 
@@ -39,8 +40,8 @@ static void simple_get_rot_angles (void *obj, float *rotx, float *roty, float *r
 {
     vox_simple_camera *camera = obj;
     *rotx = camera->rotx;
-    *roty = camera->rotz;
-    *roty = camera->rotz;
+    *roty = camera->roty;
+    *rotz = camera->rotz;
 }
 static void simple_set_rot_angles (void *obj, float rotx, float roty, float rotz)
 {
@@ -49,6 +50,20 @@ static void simple_set_rot_angles (void *obj, float rotx, float roty, float rotz
     camera->roty = roty;
     camera->rotz = rotz;
     simple_update_rotation (camera);
+}
+
+static void simple_move_camera (void *obj, vox_dot step, int (*test) (vox_dot, void*), void *param)
+{
+    vox_simple_camera *camera = obj;
+    vox_rotate_vector (camera->rotation, step, step);
+
+    if (test != NULL)
+    {
+        vox_dot new_pos;
+        sum_vector (camera->position, step, new_pos);
+        if (test (new_pos, param)) vox_dot_copy (camera->position, new_pos);
+    }
+    else sum_vector (camera->position, step, camera->position);
 }
 
 void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot position)
@@ -61,5 +76,6 @@ void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot posit
     camera->iface.get_position = simple_get_position;
     camera->iface.get_rot_angles = simple_get_rot_angles;
     camera->iface.set_rot_angles = simple_set_rot_angles;
+    camera->iface.move_camera = simple_move_camera;
     camera->iface.camera = camera;
 }
