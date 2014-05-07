@@ -44,7 +44,6 @@ float calc_abs_metric (const vox_dot, const vox_dot);
 **/
 float calc_sqr_metric (const vox_dot, const vox_dot);
 
-int fit_into_box (const vox_dot, const vox_dot, const vox_dot, vox_dot);
 int dot_betweenp (const vox_dot, const vox_dot, const vox_dot);
 
 /**
@@ -61,16 +60,21 @@ int hit_box (const vox_dot, const vox_dot, const vox_dot, const vox_dot, vox_dot
 
 /**
    \brief Find intersection of a ray and a plane.
+
+   An intersection must be within a box.
+   Plane must be axis-aligned.
    
-   Plane must be axis-aligned
    \param origin a starting point of the ray
    \param dir the direction
    \param planedot a dot on the plane
    \param planenum an axis number the plane is aligned with
    \param res where intersection is stored
+   \param min minimal coordinates of the box
+   \param max maximal coordinates of the box
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_plane (const vox_dot, const vox_dot, const vox_dot, int, vox_dot);
+int hit_plane_within_box (const vox_dot, const vox_dot, const vox_dot, int,
+                          vox_dot, const vox_dot, const vox_dot);
 
 /**
    \brief Find intersection of a box and a ball.

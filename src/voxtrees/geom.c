@@ -34,7 +34,7 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
     return res;
 }
 
-int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
+static int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
 {
     vox_uint i;
     int the_same = 1;
@@ -55,6 +55,7 @@ int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_d
     return the_same;
 }
 
+// Used nowhere but only in tests
 int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
 {
     vox_uint i;
@@ -108,7 +109,8 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
     return 1;
 }
 
-int hit_plane (const vox_dot origin, const vox_dot dir, const vox_dot planedot, int planenum, vox_dot res)
+int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
+                          int planenum, vox_dot res, const vox_dot min, const vox_dot max)
 {
     int i;
     if (dir[planenum] == 0.0) return 0;
@@ -120,6 +122,7 @@ int hit_plane (const vox_dot origin, const vox_dot dir, const vox_dot planedot, 
     {
         if (i == planenum) res[i] = planedot[i];
         else res[i] = origin[i] + k*dir[i];
+        if ((res[i] < min[i]) || (res[i] > max[i])) return 0;
     }
     return 1;
 }
@@ -131,6 +134,8 @@ int box_ball_interp (const vox_dot min, const vox_dot max, const vox_dot center,
     return (calc_sqr_metric (fitted, center) < (radius*radius)) ? 1 : 0;
 }
 
+// Not used anymore
+#if 0
 float* closest_in_set (vox_dot set[], int n, const vox_dot dot, float (*metric) (const vox_dot, const vox_dot))
 {
     float *res = set[0];
@@ -147,3 +152,4 @@ float* closest_in_set (vox_dot set[], int n, const vox_dot dot, float (*metric) 
     }
     return res;
 }
+#endif

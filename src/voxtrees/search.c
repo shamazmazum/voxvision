@@ -29,13 +29,17 @@ struct tagged_coord
 
 vox_uint vox_lod = 0;
 
-static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n)
+static void gen_subspaces (struct tagged_coord subspaces[], unsigned int n, vox_uint start)
 {
     // Turn plane numbers into subspace indices by simply XORing
     // old subspace index with plane number
     vox_uint i;
 
-    for (i=1; i<n; i++)  subspaces[i].tag = (1 << subspaces[i].tag) ^ subspaces[i-1].tag;
+    for (i=0; i<n; i++)
+    {
+        subspaces[i].tag = (1 << subspaces[i].tag) ^ start;
+        start = subspaces[i].tag;
+    }
 }
 
 static int compare_tagged (vox_dot origin, struct tagged_coord *c1, struct tagged_coord *c2)
@@ -51,64 +55,92 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
                                     vox_dot res, vox_uint depth, vox_tree_path path)
 {
     vox_dot tmp;
+    vox_dot inter_entry;
     vox_uint interp, i;
-    struct tagged_coord plane_inter[VOX_N+1];
+    struct tagged_coord plane_inter[VOX_N];
 
     assert (depth < VOX_MAX_DEPTH);
     if (path) path[depth-1] = tree;
 
     if (!(VOX_FULLP (tree))) return 0;
-    if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, plane_inter[0].coord))) return 0;
+    if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter_entry))) return 0;
     if (depth == vox_lod) // Desired level of details reached -> intersection found
     {
-        vox_dot_copy (res, plane_inter[0].coord);
+        vox_dot_copy (res, inter_entry);
         return depth;
     }
     
     if (VOX_LEAFP(tree))
     {
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
-        // with voxels stored in the leaf and return closest one (also O(tree->dots_num))
-        int count = 0;
-        vox_dot intersect[VOX_MAX_DOTS];
+        // with voxels stored in the leaf and return closest one
+        int found = 0;
+        int swap;
+        vox_dot inter1, inter2;
+        vox_dot *inter_closest = &inter1;
+        vox_dot *inter_far = &inter2;
+        vox_dot *inter_tmp;
         vox_leaf_data leaf = tree->data.leaf;
 
         for (i=0; i<leaf.dots_num; i++)
         {
             sum_vector (leaf.dots[i], vox_voxel, tmp);
-            interp = hit_box (leaf.dots[i], tmp, origin, dir, intersect[count]);
-            if (interp) count++;
+            interp = hit_box (leaf.dots[i], tmp, origin, dir, *inter_far);
+            if (interp)
+            {
+                swap = 1;
+                if (found)
+                {
+                    float dist_closest = calc_abs_metric (origin, *inter_closest);
+                    float dist_far = calc_abs_metric (origin, *inter_far);
+                    if (dist_far > dist_closest) swap = 0;
+                }
+                if (swap)
+                {
+                    inter_tmp = inter_far;
+                    inter_far = inter_closest;
+                    inter_closest = inter_tmp;
+                }
+                swap = 0;
+            }
+            found |= interp;
         }
-        if (count)
+
+        if (found)
         {
-            vox_dot_copy (res, closest_in_set (intersect, count, origin, calc_abs_metric));
+            vox_dot_copy (res, *inter_closest);
             return depth;
         }
         else return 0;
     }
+
     // ELSE
-
     vox_inner_data inner = tree->data.inner;
-    int plane_counter = 1;
-    // Init tagged_coord structure with "entry point" in the node, so to say
-    // The tag is a subspace index of entry point
-    plane_inter[0].tag = get_subspace_idx (inner.center, plane_inter[0].coord);
-
-    // Now, search for intersections of the ray and all N axis-aligned planes
+    // Find subspace index of entry point
+    vox_uint subspace_entry = get_subspace_idx (inner.center, inter_entry);
+    // Look if we are lucky and the ray hits any box before it traverses the dividing planes
+    // (in other workd it hits a box close enough to entry_point)
+    interp = vox_ray_tree_intersection (inner.children[subspace_entry], inter_entry, dir,
+                                        res, depth+1, path);
+    if (interp) return interp;
+    
+    // No luck, search for intersections of the ray and all N axis-aligned dividing planes
     // for our N-dimentional space.
     // If such an intersection is inside the node (it means, inside its bounding box),
     // and it to plane_inter and mark with number of plane where intersection is occured.
+    int plane_counter = 0;
     for (i=0; i<VOX_N; i++)
     {
-        interp = hit_plane (origin, dir, inner.center, i, plane_inter[plane_counter].coord);
+        interp = hit_plane_within_box (origin, dir, inner.center, i, plane_inter[plane_counter].coord,
+                                       tree->bb_min, tree->bb_max);
         plane_inter[plane_counter].tag = i;
-        if (interp && (dot_betweenp (tree->bb_min, tree->bb_max, plane_inter[plane_counter].coord))) plane_counter++;
+        if (interp) plane_counter++;
     }
 
     // We want closest intersection to be found, so sort intersections with planes by proximity to origin
-    qsort_with_arg (plane_inter+1, plane_counter-1, sizeof(struct tagged_coord), origin, compare_tagged);
+    qsort_with_arg (plane_inter, plane_counter, sizeof(struct tagged_coord), origin, compare_tagged);
     // Convert plane numbers to subspace indices
-    gen_subspaces (plane_inter, plane_counter);
+    gen_subspaces (plane_inter, plane_counter, subspace_entry);
 
     // For each intersection call vox_ray_tree_intersection recursively, using child node specified by subspace index
     // in tagged structure. If intersection is found, return.
@@ -119,7 +151,7 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
                                             res, depth+1, path);
         if (interp) return interp;
     }
-    
+
     return 0;
 }
 
