@@ -54,7 +54,6 @@ static int compare_tagged (vox_dot origin, struct tagged_coord *c1, struct tagge
 vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin, const vox_dot dir,
                                     vox_dot res, vox_uint depth, vox_tree_path path)
 {
-    vox_dot tmp;
     vox_dot inter_entry;
     vox_uint interp, i;
     struct tagged_coord plane_inter[VOX_N];
@@ -75,40 +74,30 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
         // with voxels stored in the leaf and return closest one
         int found = 0;
-        int swap;
-        vox_dot inter1, inter2;
-        vox_dot *inter_closest = &inter1;
-        vox_dot *inter_far = &inter2;
-        vox_dot *inter_tmp;
+        vox_dot tmp1, tmp2;
         vox_leaf_data leaf = tree->data.leaf;
 
+        // inter_entry is a "far" intersection, while tmp2 is the closest one.
         for (i=0; i<leaf.dots_num; i++)
         {
-            sum_vector (leaf.dots[i], vox_voxel, tmp);
-            interp = hit_box (leaf.dots[i], tmp, origin, dir, *inter_far);
+            sum_vector (leaf.dots[i], vox_voxel, tmp1);
+            interp = hit_box (leaf.dots[i], tmp1, origin, dir, inter_entry);
             if (interp)
             {
-                swap = 1;
                 if (found)
                 {
-                    float dist_closest = calc_abs_metric (origin, *inter_closest);
-                    float dist_far = calc_abs_metric (origin, *inter_far);
-                    if (dist_far > dist_closest) swap = 0;
+                    float dist_closest = calc_abs_metric (origin, tmp2);
+                    float dist_far = calc_abs_metric (origin, inter_entry);
+                    if (dist_far < dist_closest) vox_dot_copy (tmp2, inter_entry);
                 }
-                if (swap)
-                {
-                    inter_tmp = inter_far;
-                    inter_far = inter_closest;
-                    inter_closest = inter_tmp;
-                }
-                swap = 0;
+                else vox_dot_copy (tmp2, inter_entry);
+                found = 1;
             }
-            found |= interp;
         }
 
         if (found)
         {
-            vox_dot_copy (res, *inter_closest);
+            vox_dot_copy (res, tmp2);
             return depth;
         }
         else return 0;
