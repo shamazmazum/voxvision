@@ -43,15 +43,6 @@ typedef struct
 } vox_inner_data;
 
 /**
-   \brief Data specific to inner and leaf nodes
-**/
-union vox_node_data
-{
-    vox_leaf_data leaf;
-    vox_inner_data inner;
-};
-
-/**
    \brief Node of a voxel octree
 **/
 struct vox_node
@@ -59,7 +50,11 @@ struct vox_node
     vox_uint flags; /**< \brief FILL and LEAF flags */
     vox_dot bb_min; /**< \brief Minimal coordinate of the bounding box */
     vox_dot bb_max; /**< \brief Maximal coordinate of the bounding box */
-    union vox_node_data data; /**< \brief Data specific to inner and leaf nodes */
+    union
+    {
+        vox_leaf_data leaf;
+        vox_inner_data inner;
+    } data; /**< \brief Data specific to inner and leaf nodes */
 };
 
 /**
