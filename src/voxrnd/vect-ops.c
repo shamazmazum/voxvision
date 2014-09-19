@@ -1,5 +1,7 @@
 #include "vect-ops.h"
 
+#define VOX_N 3
+
 float* vox_vector_inv (const vox_dot vect, vox_dot res)
 {
     int i;

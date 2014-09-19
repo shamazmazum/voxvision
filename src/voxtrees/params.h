@@ -9,6 +9,12 @@
 #include "../params_var.h"
 
 // Macros
+#ifdef VOXTREES_SOURCE
+
+/**
+   \brief Number of dimentions
+**/
+#define VOX_N 3
 
 /**
    \brief Must be 2 in power of VOX_N.
@@ -23,18 +29,19 @@
 #define VOX_MAX_DOTS 7
 
 /**
-   \brief Maximal depth of tree.
-   
-   Used only for path saver.
-**/
-#define VOX_MAX_DEPTH 15
-
-/**
    \brief Maximal depth between 2 nodes which still considered local.
    
    Must be < VOX_MAX_DEPTH
 **/
 #define VOX_MAX_DEPTH_LOCAL 3
+#endif /* VOXTREES_SOURCE */
+
+/**
+   \brief Maximal depth of tree.
+   
+   Used only for path saver.
+**/
+#define VOX_MAX_DEPTH 15
 
 // Types
 

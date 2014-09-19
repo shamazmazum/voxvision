@@ -10,10 +10,10 @@
 
 #include "params.h"
 
+#ifdef VOXTREES_SOURCE
 #define VOX_LEAF 0
 #define VOX_FULL 1
 
-#ifdef VOXTREES_SOURCE
 /**
    Is the node a leaf?
 **/
@@ -67,7 +67,7 @@ struct vox_node
 void vox_align (vox_dot);
 #else /* VOXTREES_SOURCE */
 struct vox_node;
-#endif
+#endif /* VOXTREES_SOURCE */
 
 /**
    \brief Turn a set of voxels into a tree.

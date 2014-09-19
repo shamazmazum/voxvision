@@ -18,3 +18,8 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld")
 
 target_link_libraries (voxrnd ${SDL_LIBRARY} m)
+
+install (FILES camera.h renderer.h
+         DESTINATION include/voxvision/voxrnd)
+install (TARGETS voxrnd LIBRARY
+         DESTINATION lib)

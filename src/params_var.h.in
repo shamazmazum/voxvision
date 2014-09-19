@@ -20,13 +20,6 @@
 #define VOX_VERSION_MINOR @voxvision_VERSION_MINOR@
 #define VOX_VERSION "@voxvision_VERSION@"
 
-/**
-   \brief Number of dimensions.
-
-   With SSE support must be 0<VOX_N<=4.
-**/
-#define VOX_N 3
-
 // Types
 
 #if defined(SSE_INTRIN)
@@ -35,7 +28,7 @@ typedef float vox_dot[4] __attribute__ ((aligned (16)));
 typedef float vox_quat[4] __attribute__ ((aligned (16)));
 #define vox_dot_copy(d1, d2) _mm_store_ps ((d1), _mm_load_ps ((d2)))
 #else
-typedef float vox_dot[VOX_N];
+typedef float vox_dot[3];
 typedef float vox_quat[4];
 #include <string.h>
 #define vox_dot_copy(d1, d2) memcpy ((d1), (d2), sizeof (vox_dot))

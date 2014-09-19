@@ -2,7 +2,7 @@
 #define __READER_H_
 
 #include <sys/types.h>
-#include "../voxtrees/voxtrees.h"
+#include <voxtrees.h>
 
 typedef struct
 {

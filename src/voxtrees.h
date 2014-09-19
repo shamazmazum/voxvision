@@ -5,7 +5,7 @@
 #ifndef _VOXTREES_H_
 #define _VOXTREES_H_
 
-#include "tree.h"
-#include "search.h"
+#include "voxtrees/tree.h"
+#include "voxtrees/search.h"
 
 #endif

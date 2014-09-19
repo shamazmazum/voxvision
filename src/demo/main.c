@@ -1,13 +1,14 @@
 #include <SDL/SDL.h>
 #include <sys/time.h>
+#include <sys/param.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <iniparser.h>
 
-#include "../voxtrees/voxtrees.h"
-#include "../voxrnd/voxrnd.h"
+#include <voxtrees.h>
+#include <voxrnd.h>
 #include "reader.h"
 
 #define read_vector_or_quit(str, ctrl, x, y, z, errormsg) do {   \
@@ -45,6 +46,14 @@ int main (int argc, char *argv[])
         fprintf (stderr, "Cannot load cfg file\n");
         exit(1);
     }
+
+    char path[MAXPATHLEN];
+    strcpy (path, argv[1]);
+    int path_len = strlen (path);
+    char *slash = path+path_len;
+    while ((slash!=path) && (*slash != '/')) slash--;
+    *slash = '\0';
+    if (path[0] != '\0') chdir (path);
 
     int res;
     read_vector_or_quit (iniparser_getstring (cfg, "Scene:Geometry", ""),
