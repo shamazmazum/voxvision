@@ -89,8 +89,9 @@ int main (int argc, char *argv[])
     }
 
     int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
+    int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
     printf ("Reading raw data\n");
-    int length = read_data (fd, &set, &d, 1, threshold);
+    int length = read_data (fd, &set, &d, samplesize, threshold);
     close (fd);
     if (length == -1)
     {
