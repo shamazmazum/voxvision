@@ -8,10 +8,10 @@
 #include <string.h>
 #include <math.h>
 
-#include "../src/voxrnd/voxrnd.h"
-#include "../src/voxrnd/vect-ops.h"
-#include "../src/voxtrees/voxtrees.h"
-#include "../src/voxtrees/geom.h"
+#include <voxrnd.h>
+#include <voxrnd/vect-ops.h>
+#include <voxtrees.h>
+#include <voxtrees/geom.h>
 
 #define PROC_SUIT_ERROR do {res = CU_get_error (); \
         printf ("Failed to add a suite\n");        \

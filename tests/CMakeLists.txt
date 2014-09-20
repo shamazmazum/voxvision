@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-include_directories (${CUNIT_INCLUDE_DIR})
+include_directories (${CUNIT_INCLUDE_DIR} ../src)
 # Allow tests to see internals
 add_definitions (-DVOXTREES_SOURCE -DVOXRND_SOURCE)
 add_executable (run-tests EXCLUDE_FROM_ALL tests.c)
