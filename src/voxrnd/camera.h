@@ -5,7 +5,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "../params_var.h"
+#include "../voxvision.h"
 
 /**
    \brief Camera class

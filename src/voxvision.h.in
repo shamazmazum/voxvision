@@ -1,14 +1,10 @@
 /**
-   @file params_var.h
-   @brief Variable parameters configured with cmake.
-
-   Do not modify manually! Look at params_var.h.in
-   
-   But it would be better if you do not touch it too.
+   @file voxvision.h
+   @brief Types and declarations for voxvision libraries
 **/
 
-#ifndef PARAMS_VAR_H
-#define PARAMS_VAR_H
+#ifndef VOXVISION_H
+#define VOXVISION_H
 
 
 /**

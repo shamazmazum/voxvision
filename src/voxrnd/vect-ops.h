@@ -5,7 +5,7 @@
 #ifndef __VECT_OPS__
 #define __VECT_OPS__
 
-#include "../params_var.h"
+#include "../voxvision.h"
 
 #ifdef VOXRND_SOURCE
 /**
