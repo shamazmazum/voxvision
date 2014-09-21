@@ -45,7 +45,7 @@
 
 // Types
 
-typedef struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
+typedef const struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
 typedef unsigned int vox_uint;
 
 // Global vars

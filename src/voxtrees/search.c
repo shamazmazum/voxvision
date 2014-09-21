@@ -51,7 +51,7 @@ static int compare_tagged (vox_dot origin, struct tagged_coord *c1, struct tagge
 }
 
 // Maybe flollowing deserves a bit more explanation
-vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin, const vox_dot dir,
+vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
                                     vox_dot res, vox_uint depth, vox_tree_path path)
 {
     vox_dot inter_entry;
@@ -144,19 +144,6 @@ vox_uint vox_ray_tree_intersection (struct vox_node *tree, const vox_dot origin,
     return 0;
 }
 
-// Top call must be with depth = 1
-vox_uint vox_local_rays_tree_intersection (const vox_tree_path path, const vox_dot origin, const vox_dot dir,
-                                           vox_dot res, vox_uint depth, vox_uint n)
-{
-    if ((depth <= n) && (depth <= VOX_MAX_DEPTH_LOCAL))
-    {
-        vox_uint interp = vox_ray_tree_intersection (path[n-depth], origin, dir, res, 1, NULL);
-        if (interp) return depth;
-        else return vox_local_rays_tree_intersection (path, origin, dir, res, depth+1, n);
-    }
-    return 0;
-}
-
 int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float radius)
 {
     vox_uint i;
@@ -183,4 +170,33 @@ int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float r
         }
     }
     return 0;
+}
+
+struct vox_search_state* vox_make_search_state (const struct vox_node *tree)
+{
+    struct vox_search_state *state = malloc (sizeof *state);
+    state->depth = 0;
+    state->tree = tree;
+    return state;
+}
+
+vox_uint vox_ray_tree_intersection_wstate (struct vox_search_state *state, const vox_dot origin,
+                                           const vox_dot dir, vox_dot res)
+{
+    vox_uint interp;
+try_again:
+    if ((state->depth) && (state->depth <= state->maxdepth) && (state->depth <= VOX_MAX_DEPTH_LOCAL))
+    {
+        interp = vox_ray_tree_intersection (state->path[state->maxdepth-state->depth], origin, dir, res, 1, NULL);
+        if (interp) return 1;
+        else
+        {
+            state->depth++;
+            goto try_again;
+        }
+    }
+    state->maxdepth = vox_ray_tree_intersection (state->tree, origin, dir, res, 1, state->path);
+    if (state->maxdepth) state->depth = 1;
+    else state->depth = 0;
+    return state->depth;
 }

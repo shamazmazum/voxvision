@@ -1,22 +1,7 @@
 #include "renderer.h"
-#include "local-loop.h"
+#include "../voxtrees/search.h"
 
-#define min(a,b) ((a)<(b)) ? (a) : (b)
-
-struct renderer_ctx
-{
-    SDL_Surface *surface;
-    vox_camera_interface *cam_iface;
-    int p;
-    int sx, sy;
-
-    // FIXME: this must not be here
-    float col_mul[3];
-    float col_add[3];
-};
-static struct renderer_ctx rctx;
-
-static void color_coeff (struct vox_node *tree, float mul[], float add[])
+static void color_coeff (const struct vox_node *tree, float mul[], float add[])
 {
     int i;
     vox_dot min;
@@ -30,18 +15,6 @@ static void color_coeff (struct vox_node *tree, float mul[], float add[])
     }
 }
 
-// Use vox_local_loop here. Render 1x4 line by iteration
-// Increments sx and p, changes dir on each step
-static void line_inc (vox_ll_context *ctx)
-{
-    rctx.p++;
-    rctx.sx++;
-    if (rctx.sx == rctx.surface->w) rctx.sx = 0;
-
-    rctx.cam_iface->screen2world (rctx.cam_iface->camera, ctx->dir, rctx.surface->w,
-                                  rctx.surface->h, rctx.sx, rctx.sy);
-}
-
 static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], float add[])
 {
     Uint8 r = mul[0]*inter[0]+add[0];
@@ -51,43 +24,42 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], fl
     return color;
 }
 
-static void line_action (vox_ll_context *ctx)
+void vox_render (const struct vox_node *tree, vox_camera_interface *cam_iface, SDL_Surface *surface)
 {
-    Uint32 color = get_color (rctx.surface->format, ctx->inter, rctx.col_mul, rctx.col_add);
-    *((Uint32*)rctx.surface->pixels + rctx.p) = color;
-    
-}
-
-void vox_render (struct vox_node *tree, vox_camera_interface *cam_iface, SDL_Surface *surface)
-{
-    // Init context before we start
     int w = surface->w;
     int h = surface->h;
-    rctx.surface = surface;
-    rctx.cam_iface = cam_iface;
-    rctx.p = 0;
-    rctx.sx = 0;
-    rctx.sy = 0;
+    int i,j,p;
+    p=0;
+    int interp;
 
     // FIXME: calculate colors in runtime
     // Only a temporary solution to get a colorful output
-    color_coeff (tree, rctx.col_mul, rctx.col_add);
+    float col_mul[3];
+    float col_add[3];
+    color_coeff (tree, col_mul, col_add);
 
-    vox_ll_context llctx;
-    vox_dot_copy (llctx.origin, cam_iface->get_position(cam_iface->camera));
-    cam_iface->screen2world (cam_iface->camera, llctx.dir, w, h, 0, 0);
-    
-    for (rctx.sy=0; rctx.sy<h; rctx.sy++)
+    float *origin;
+    vox_dot dir;
+    vox_dot inter;
+    origin = cam_iface->get_position(cam_iface->camera);
+
+    struct vox_search_state *state = vox_make_search_state (tree);
+
+    for (i=0; i<h; i++)
     {
-        do
+        for (j=0; j<w; j++)
         {
-#if 1
-            vox_local_loop (tree, line_action, line_inc, &llctx, VOX_LL_ADAPTIVE|VOX_LL_MAXITER(min (4, w-rctx.sx)));
-#else
-            vox_local_loop (tree, line_action, line_inc, &llctx, VOX_LL_FIXED|VOX_LL_MAXITER(4));
-#endif
+            cam_iface->screen2world (cam_iface->camera, dir, w, h, j, i);
+            interp = vox_ray_tree_intersection_wstate (state, origin, dir, inter);
+            if (interp)
+            {
+                Uint32 color = get_color (surface->format, inter, col_mul, col_add);
+                *((Uint32*)surface->pixels+p) = color;
+    
+            }
+            p++;
         }
-        while (rctx.sx != 0);
     }
+    
     SDL_Flip (surface);
 }

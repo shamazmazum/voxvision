@@ -14,6 +14,6 @@
    \param tree the scene
    \param ctx renderer's context
 **/
-void vox_render (struct vox_node*, vox_camera_interface*, SDL_Surface*);
+void vox_render (const struct vox_node*, vox_camera_interface*, SDL_Surface*);
 
 #endif
