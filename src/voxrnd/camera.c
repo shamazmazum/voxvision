@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
 #include "camera.h"
@@ -66,8 +67,9 @@ static void simple_move_camera (void *obj, vox_dot step, int (*test) (vox_dot, v
     else sum_vector (camera->position, step, camera->position);
 }
 
-void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot position)
+vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
 {
+    vox_simple_camera *camera = malloc (sizeof (vox_simple_camera));
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
     simple_set_rot_angles (camera, 0, 0, 0);
@@ -78,4 +80,5 @@ void vox_make_simple_camera (vox_simple_camera *camera, float fov, vox_dot posit
     camera->iface.set_rot_angles = simple_set_rot_angles;
     camera->iface.move_camera = simple_move_camera;
     camera->iface.camera = camera;
+    return camera;
 }

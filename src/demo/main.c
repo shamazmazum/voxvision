@@ -68,18 +68,17 @@ int main (int argc, char *argv[])
     vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
 
     vox_dot origin;
-    vox_simple_camera camera;
     read_vector_or_quit (iniparser_getstring (cfg, "Camera:Position", "<0,-100,0>"),
                          "<%f,%f,%f>", &origin[0], &origin[1], &origin[2],
                          "Specify correct camera position\n");
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
-    vox_make_simple_camera (&camera, fov, origin);
+    vox_simple_camera *camera = vox_make_simple_camera (fov, origin);
 
     float rotx,roty,rotz;
     read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
                          "<%f,%f,%f>", &rotx, &roty, &rotz,
                          "Specify correct rotation angles\n");
-    camera.iface.set_rot_angles (&camera, rotx, roty, rotz);
+    camera->iface.set_rot_angles (camera, rotx, roty, rotz);
     
     int fd = open (iniparser_getstring (cfg, "Scene:DataSet", ""), O_RDONLY);
     if (fd == -1)
@@ -132,7 +131,7 @@ int main (int argc, char *argv[])
         if (redraw)
         {
             time = gettime();
-            vox_render (tree, &(camera.iface), screen);
+            vox_render (tree, &(camera->iface), screen);
             time = gettime() - time;
             printf ("Rendering took %f\n", time);
             redraw = 0;
@@ -156,7 +155,7 @@ int main (int argc, char *argv[])
                     else if (event.key.keysym.unicode == 'W') step[2] = 5;
                     else if (event.key.keysym.unicode == 's') step[1] = -5;
                     else if (event.key.keysym.unicode == 'S') step[1] = 5;
-                    camera.iface.move_camera (&camera, step, collidep, tree);
+                    camera->iface.move_camera (camera, step, collidep, tree);
                     redraw = 1;
                 }
                 else if ((event.key.keysym.unicode == 'x') ||
@@ -165,12 +164,12 @@ int main (int argc, char *argv[])
                          (event.key.keysym.unicode == 'Z'))
                 {
                     float rotx, roty, rotz;
-                    camera.iface.get_rot_angles (&camera, &rotx, &roty, &rotz);
+                    camera->iface.get_rot_angles (camera, &rotx, &roty, &rotz);
                          if (event.key.keysym.unicode == 'x') rotx += 0.01;
                     else if (event.key.keysym.unicode == 'X') rotx -= 0.01;
                     else if (event.key.keysym.unicode == 'z') rotz += 0.01;
                     else if (event.key.keysym.unicode == 'Z') rotz -= 0.01;
-                    camera.iface.set_rot_angles (&camera, rotx, roty, rotz);
+                    camera->iface.set_rot_angles (camera, rotx, roty, rotz);
                     redraw = 1;
                 }
                 SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));

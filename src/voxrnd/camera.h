@@ -20,6 +20,7 @@ typedef struct
     void (*move_camera) (void*, vox_dot, int (*) (vox_dot, void*), void*);
 } vox_camera_interface;
 
+#ifdef VOXRND_SOURCE
 typedef struct
 {
     vox_camera_interface iface;
@@ -32,14 +33,21 @@ typedef struct
 
     vox_quat rotation;
 } vox_simple_camera;
+#else
+typedef struct
+{
+    vox_camera_interface iface;
+} vox_simple_camera;
+#endif
 
 /**
-   \brief Initialize simple camera
+   \brief Create and initialize simple camera
 
-   \param camera a simple camera
+   Camera must be freed with free() after use.
+
    \param fov field of view
    \param position position of the camera
 **/
-void vox_make_simple_camera (vox_simple_camera*, float, vox_dot);
+vox_simple_camera* vox_make_simple_camera (float, vox_dot);
 
 #endif
