@@ -6,5 +6,5 @@ add_subdirectory (voxtrees)
 add_subdirectory (voxrnd)
 add_subdirectory (demo)
 
-install (FILES params_var.h voxtrees.h voxrnd.h
+install (FILES voxvision.h voxtrees.h voxrnd.h
          DESTINATION include/voxvision)
