@@ -13,7 +13,7 @@
 #ifdef VOXTREES_SOURCE
 struct vox_search_state
 {
-    vox_uint depth, maxdepth;
+    vox_uint depth, maxdepth,local_hits;
     const struct vox_node *tree;
     vox_tree_path path;
 };

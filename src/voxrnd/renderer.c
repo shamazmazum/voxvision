@@ -50,7 +50,11 @@ void vox_render (const struct vox_node *tree, vox_camera_interface *cam_iface, S
         for (j=0; j<w; j++)
         {
             cam_iface->screen2world (cam_iface->camera, dir, w, h, j, i);
+#if 1
             interp = vox_ray_tree_intersection_wstate (state, origin, dir, inter);
+#else
+            interp = vox_ray_tree_intersection (tree, origin, dir, inter,1,NULL);
+#endif
             if (interp)
             {
                 Uint32 color = get_color (surface->format, inter, col_mul, col_add);

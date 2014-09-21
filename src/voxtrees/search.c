@@ -176,6 +176,7 @@ struct vox_search_state* vox_make_search_state (const struct vox_node *tree)
 {
     struct vox_search_state *state = malloc (sizeof *state);
     state->depth = 0;
+    state->local_hits = 0;
     state->tree = tree;
     return state;
 }
@@ -185,16 +186,23 @@ vox_uint vox_ray_tree_intersection_wstate (struct vox_search_state *state, const
 {
     vox_uint interp;
 try_again:
-    if ((state->depth) && (state->depth <= state->maxdepth) && (state->depth <= VOX_MAX_DEPTH_LOCAL))
+    // KLUDGE: Bound the number of local hits in a row
+    if ((state->local_hits < 4) && (state->depth) &&
+        (state->depth <= state->maxdepth) && (state->depth <= VOX_MAX_DEPTH_LOCAL))
     {
         interp = vox_ray_tree_intersection (state->path[state->maxdepth-state->depth], origin, dir, res, 1, NULL);
-        if (interp) return 1;
+        if (interp)
+        {
+            state->local_hits++;
+            return 1;
+        }
         else
         {
             state->depth++;
             goto try_again;
         }
     }
+    state->local_hits=0;
     state->maxdepth = vox_ray_tree_intersection (state->tree, origin, dir, res, 1, state->path);
     if (state->maxdepth) state->depth = 1;
     else state->depth = 0;
