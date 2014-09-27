@@ -74,33 +74,28 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
         // with voxels stored in the leaf and return closest one
         int found = 0;
-        vox_dot tmp1, tmp2;
+        vox_dot tmp;
         vox_leaf_data leaf = tree->data.leaf;
+        float dist_closest, dist_far;
 
-        // inter_entry is a "far" intersection, while tmp2 is the closest one.
+        // inter_entry is a "far" intersection, while res is the closest one.
         for (i=0; i<leaf.dots_num; i++)
         {
-            sum_vector (leaf.dots[i], vox_voxel, tmp1);
-            interp = hit_box (leaf.dots[i], tmp1, origin, dir, inter_entry);
+            sum_vector (leaf.dots[i], vox_voxel, tmp);
+            interp = hit_box (leaf.dots[i], tmp, origin, dir, inter_entry);
             if (interp)
             {
-                if (found)
+                dist_far = calc_abs_metric (origin, inter_entry);
+                if (((found) && (dist_far < dist_closest)) || (!found))
                 {
-                    float dist_closest = calc_abs_metric (origin, tmp2);
-                    float dist_far = calc_abs_metric (origin, inter_entry);
-                    if (dist_far < dist_closest) vox_dot_copy (tmp2, inter_entry);
+                    dist_closest = dist_far;
+                    vox_dot_copy (res, inter_entry);
+                    found = depth;
                 }
-                else vox_dot_copy (tmp2, inter_entry);
-                found = 1;
             }
         }
 
-        if (found)
-        {
-            vox_dot_copy (res, tmp2);
-            return depth;
-        }
-        else return 0;
+        return found;
     }
 
     // ELSE
