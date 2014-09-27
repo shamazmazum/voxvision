@@ -1,6 +1,7 @@
 VOXRND_@voxvision_VERSION@ {
     global: vox_dot_product;
             vox_make_simple_camera;
+            vox_destroy_simple_camera;
             vox_quat_conj;
             vox_quat_mul;
             vox_render;

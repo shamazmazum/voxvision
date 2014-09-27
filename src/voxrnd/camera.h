@@ -32,6 +32,7 @@ typedef struct
     float rotz;       /**< \brief Rotation angle around axis Oz (up-down) */
 
     vox_quat rotation;
+    void *space;
 } vox_simple_camera;
 #else
 typedef struct
@@ -43,11 +44,18 @@ typedef struct
 /**
    \brief Create and initialize simple camera
 
-   Camera must be freed with free() after use.
+   Camera must be freed with vox_destroy_simple_camera() after use.
 
    \param fov field of view
    \param position position of the camera
 **/
 vox_simple_camera* vox_make_simple_camera (float, vox_dot);
+
+/**
+   \brief Destroy a simple camera and free memory
+
+   \param camera a camera to be destroyed
+**/
+void vox_destroy_simple_camera (vox_simple_camera*);
 
 #endif
