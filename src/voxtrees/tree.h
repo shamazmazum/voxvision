@@ -12,17 +12,16 @@
 
 #ifdef VOXTREES_SOURCE
 #define VOX_LEAF 0
-#define VOX_FULL 1
 
 /**
    Is the node a leaf?
 **/
-#define VOX_LEAFP(node) ((node)->flags & (1<<VOX_LEAF))
+#define VOX_LEAFP(node) (!(node) || ((node)->flags & (1<<VOX_LEAF)))
 
 /**
    Is the node full?
 **/
-#define VOX_FULLP(node) ((node)->flags & (1<<VOX_FULL))
+#define VOX_FULLP(node) ((node))
 
 /**
    \brief Data specific to leaf nodes

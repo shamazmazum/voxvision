@@ -182,39 +182,39 @@ void check_tree (struct vox_node *tree)
 {
     vox_dot snd_corner;
     vox_uint i;
-    
-    if (VOX_LEAFP (tree))
-    {
-        vox_leaf_data leaf = tree->data.leaf;
-        
-        // Check if empty leaf is really empty
-        if (leaf.dots_num == 0) CU_ASSERT (!(VOX_FULLP (tree)));
-        // Check that all voxels are covered by bounding box
-        for (i=0; i<leaf.dots_num; i++)
-        {
-            sum_vector (leaf.dots[i], vox_voxel, snd_corner);
-            CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, leaf.dots[i]));
-            CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, snd_corner));
-        }
-    }
-    else
-    {
-        vox_inner_data inner = tree->data.inner;
-        for (i=0; i<VOX_NS; i++)
-        {
-            struct vox_node *child = inner.children[i];
-            if (VOX_FULLP (child))
-            {
-                // Check if child's bounding box is inside parent's
-                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_min));
-                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_max));
 
-                // Check subspace
-                CU_ASSERT (get_subspace_idx (inner.center, child->bb_min) == i);
-                CU_ASSERT (get_subspace_idx (inner.center, child->bb_max) == i);
+    if (VOX_FULLP (tree))
+    {
+        if (VOX_LEAFP (tree))
+        {
+            vox_leaf_data leaf = tree->data.leaf;
+            // Check that all voxels are covered by bounding box
+            for (i=0; i<leaf.dots_num; i++)
+            {
+                sum_vector (leaf.dots[i], vox_voxel, snd_corner);
+                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, leaf.dots[i]));
+                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, snd_corner));
             }
-            // Test a child recursively
-            check_tree (child);
+        }
+        else
+        {
+            vox_inner_data inner = tree->data.inner;
+            for (i=0; i<VOX_NS; i++)
+            {
+                struct vox_node *child = inner.children[i];
+                if (VOX_FULLP (child))
+                {
+                    // Check if child's bounding box is inside parent's
+                    CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_min));
+                    CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_max));
+
+                    // Check subspace
+                    CU_ASSERT (get_subspace_idx (inner.center, child->bb_min) == i);
+                    CU_ASSERT (get_subspace_idx (inner.center, child->bb_max) == i);
+                }
+                // Test a child recursively
+                check_tree (child);
+            }
         }
     }
 }

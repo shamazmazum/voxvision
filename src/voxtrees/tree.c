@@ -125,46 +125,48 @@ static void* node_alloc (int leaf)
 struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
 {
     int leaf = n <= VOX_MAX_DOTS;
-    struct vox_node *res  = node_alloc (leaf);
-    res->flags = 0;
-
-    if (leaf)
-    {
-        res->flags |= 1<<VOX_LEAF;
-        vox_leaf_data *leaf = &(res->data.leaf);
-        leaf->dots_num = n;
-        leaf->dots = set;
-    }
-    else
-    {
-        vox_uint idx;
-        vox_inner_data *inner = &(res->data.inner);
-        vox_uint new_offset, offset;
-        offset = 0;
-        
-        calc_avg (set, n, inner->center);
-        vox_align (inner->center);
-
-        for (idx=0; idx<VOX_NS; idx++)
-        {
-            new_offset = filter_set (set, n, offset, idx, inner->center);
-            inner->children[idx] = vox_make_tree (set+offset, new_offset-offset);
-            offset = new_offset;
-        }
-    }
+    struct vox_node *res  = NULL;
 
     if (n > 0)
     {
-        res->flags |= 1<<VOX_FULL;
+        res = node_alloc (leaf);
+        res->flags = 0;
         calc_bounding_box (set, n, res->bb_min, res->bb_max);
+
+        if (leaf)
+        {
+            res->flags |= 1<<VOX_LEAF;
+            vox_leaf_data *leaf = &(res->data.leaf);
+            leaf->dots_num = n;
+            leaf->dots = set;
+        }
+        else
+        {
+            vox_uint idx;
+            vox_inner_data *inner = &(res->data.inner);
+            vox_uint new_offset, offset;
+            offset = 0;
+
+            calc_avg (set, n, inner->center);
+            vox_align (inner->center);
+
+            for (idx=0; idx<VOX_NS; idx++)
+            {
+                new_offset = filter_set (set, n, offset, idx, inner->center);
+                inner->children[idx] = vox_make_tree (set+offset, new_offset-offset);
+                offset = new_offset;
+            }
+        }
     }
+
     return res;
 }
 
 vox_uint vox_voxels_in_tree (struct vox_node *tree)
 {
     vox_uint res, i;
-    if (VOX_LEAFP (tree)) res = tree->data.leaf.dots_num;
+    if (!(VOX_FULLP (tree))) res = 0;
+    else if (VOX_LEAFP (tree)) res = tree->data.leaf.dots_num;
     else
     {
         res = 0;
