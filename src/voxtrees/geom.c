@@ -78,22 +78,21 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
         return 1;
     }
 
+    plane_num = 0;
+    max_dist = -1;
     for (i=0; i<VOX_N; i++)
     {
         if ((candidate_plane[i] == origin[i]) || dir[i] == 0.0) tdist[i] = -1.0;
-        else tdist[i] = (candidate_plane[i] - origin[i])/dir[i];
-    }
-
-    plane_num = 0; max_dist = tdist[0];
-    for (i=1; i<VOX_N; i++)
-    {
-        if (max_dist < tdist[i])
+        else
         {
-            plane_num = i;
-            max_dist = tdist[i];
+            tdist[i] = (candidate_plane[i] - origin[i])/dir[i];
+            if (tdist[i] > max_dist)
+            {
+                plane_num = i;
+                max_dist = tdist[i];
+            }
         }
     }
-
     if (max_dist < 0) return 0;
 
     for (i=0; i<VOX_N; i++)
