@@ -113,7 +113,7 @@ static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint
 static void* node_alloc (int leaf)
 {
     size_t alloc_base = offsetof (struct vox_node, data);
-    size_t size = alloc_base + ((leaf) ? sizeof (vox_leaf_data) : sizeof (vox_inner_data));
+    size_t size = alloc_base + ((leaf) ? sizeof (vox_dot*) : sizeof (vox_inner_data));
     return malloc (size);
 }
 
@@ -130,16 +130,10 @@ struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
     if (n > 0)
     {
         res = node_alloc (leaf);
-        res->flags = 0;
+        res->dots_num = n;
         calc_bounding_box (set, n, res->bb_min, res->bb_max);
 
-        if (leaf)
-        {
-            res->flags |= 1<<VOX_LEAF;
-            vox_leaf_data *leaf = &(res->data.leaf);
-            leaf->dots_num = n;
-            leaf->dots = set;
-        }
+        if (leaf) res->data.dots = set;
         else
         {
             vox_uint idx;
@@ -164,15 +158,7 @@ struct vox_node* vox_make_tree (vox_dot set[], vox_uint n)
 
 vox_uint vox_voxels_in_tree (struct vox_node *tree)
 {
-    vox_uint res, i;
-    if (!(VOX_FULLP (tree))) res = 0;
-    else if (VOX_LEAFP (tree)) res = tree->data.leaf.dots_num;
-    else
-    {
-        res = 0;
-        for (i=0; i<VOX_NS; i++) res += vox_voxels_in_tree (tree->data.inner.children[i]);
-    }
-    return res;
+    return tree->dots_num;
 }
 
 vox_uint vox_inacc_depth (struct vox_node *tree, vox_uint res)

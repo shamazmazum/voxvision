@@ -75,14 +75,14 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
         // with voxels stored in the leaf and return closest one
         int found = 0;
         vox_dot tmp;
-        vox_leaf_data leaf = tree->data.leaf;
         float dist_closest, dist_far;
+        vox_dot *dots = tree->data.dots;
 
         // inter_entry is a "far" intersection, while res is the closest one.
-        for (i=0; i<leaf.dots_num; i++)
+        for (i=0; i<tree->dots_num; i++)
         {
-            sum_vector (leaf.dots[i], vox_voxel, tmp);
-            interp = hit_box (leaf.dots[i], tmp, origin, dir, inter_entry);
+            sum_vector (dots[i], vox_voxel, tmp);
+            interp = hit_box (dots[i], tmp, origin, dir, inter_entry);
             if (interp)
             {
                 dist_far = calc_abs_metric (origin, inter_entry);
@@ -148,11 +148,11 @@ int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float r
         if (VOX_LEAFP (tree))
         {
             vox_dot tmp;
-            vox_leaf_data leaf = tree->data.leaf;
-            for (i=0; i<leaf.dots_num; i++)
+            vox_dot *dots = tree->data.dots;
+            for (i=0; i<tree->dots_num; i++)
             {
-                sum_vector (leaf.dots[i], vox_voxel, tmp);
-                if (box_ball_interp (leaf.dots[i], tmp, center, radius)) return 1;
+                sum_vector (dots[i], vox_voxel, tmp);
+                if (box_ball_interp (dots[i], tmp, center, radius)) return 1;
             }
         }
         else

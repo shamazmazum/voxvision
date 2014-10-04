@@ -11,26 +11,16 @@
 #include "params.h"
 
 #ifdef VOXTREES_SOURCE
-#define VOX_LEAF 0
 
 /**
    Is the node a leaf?
 **/
-#define VOX_LEAFP(node) (!(node) || ((node)->flags & (1<<VOX_LEAF)))
+#define VOX_LEAFP(node) (!(node) || ((node)->dots_num <= VOX_MAX_DOTS))
 
 /**
    Is the node full?
 **/
 #define VOX_FULLP(node) ((node))
-
-/**
-   \brief Data specific to leaf nodes
-**/
-typedef struct
-{
-    vox_uint dots_num; /**< \brief Number of voxels in this node */
-    vox_dot *dots; /**< \brief Pointer to minimal coordinates of voxels in this node */
-} vox_leaf_data;
 
 /**
    \brief Data specific to inner nodes
@@ -46,12 +36,12 @@ typedef struct
 **/
 struct vox_node
 {
-    vox_uint flags; /**< \brief FILL and LEAF flags */
     vox_dot bb_min; /**< \brief Minimal coordinate of the bounding box */
     vox_dot bb_max; /**< \brief Maximal coordinate of the bounding box */
+    vox_uint dots_num;
     union
     {
-        vox_leaf_data leaf;
+        vox_dot *dots;
         vox_inner_data inner;
     } data; /**< \brief Data specific to inner and leaf nodes */
 };
