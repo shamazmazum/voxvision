@@ -3,13 +3,14 @@ My voxel octrees library implemented in C + the simplest renderer with 2 sets of
 How to build:
 1) Install SDL
 2) cd into directory with this file.
-3) mkdir mybuild && cd mybuild && cmake .. && make
+3) mkdir mybuild && cd mybuild && cmake -DCMAKE_BUILD_TYPE=RELEASE .. && make && make install
 
-Now try either execute './src/simple-renderer/test_renderer skull' or './src/simple-renderer/test_renderer tree'.
+Now try either execute installed 'voxvision-demo' program with any .cfg file in
+/usr/local/share/examples/voxvision directory.
 
-I hope that someday it will be possible to use this library in games or same applications, so any reductions
-to this use case are possible. Use of any x86-only features is also possible in future with or without
-provision of portable code.
+I hope that someday it will be possible to use this library in games or similar applications, so any
+reductions to this use case are possible. Use of any x86-only features is also possible in future with or
+without provision of portable code.
 
 Version 0.5:
 
