@@ -31,11 +31,11 @@ endif(DOXYGEN_FOUND)
 find_package (CUnit)
 if(CUNIT_FOUND)
 add_subdirectory (tests)
-add_custom_target (test
+add_custom_target (check
 run-tests
 COMMENT "Run tests"
 )
 endif(CUNIT_FOUND)
 
-install (DIRECTORY examples/ DESTINATION share/voxvision/examples
+install (DIRECTORY examples/ DESTINATION share/examples/voxvision
          FILES_MATCHING PATTERN "*.cfg" PATTERN "*.dat")
