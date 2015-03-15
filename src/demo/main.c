@@ -97,6 +97,10 @@ int main (int argc, char *argv[])
         fprintf (stderr, "Cannot read dataset\n");
         exit(1);
     }
+
+    int w = iniparser_getint (cfg, "Window:Width", 800);
+    int h = iniparser_getint (cfg, "Window:Height", 600);
+
     iniparser_freedict (cfg);
 
     double time = gettime ();
@@ -114,7 +118,7 @@ int main (int argc, char *argv[])
 
     SDL_EnableUNICODE(SDL_ENABLE);
 
-    SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
+    SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE);
     if (screen == NULL)
     {
         fprintf(stderr, "Cannot init screen\n");
