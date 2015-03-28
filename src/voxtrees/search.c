@@ -6,21 +6,6 @@
 #include "geom.h"
 #include "search.h"
 
-#if (defined __APPLE__ || defined __MACH__ || defined __DARWIN__ || \
-     defined __FreeBSD__ || defined __DragonFly__ ||  \
-     defined __OpenBSD__ || defined __NetBSD__)
-#define qsort_with_arg(base,nel,width,thunk,compar) qsort_r(base,nel,width,thunk,compar)
-
-#elif (defined _GNU_SOURCE || defined __GNU__ || defined __linux__)
-#define qsort_with_arg(base,nel,width,thunk,compar) qsort_r(base, nel, width, compar, thunk)
-
-#elif (defined _WIN32 || defined _WIN64 || defined __WINDOWS__)
-#define qsort_with_arg(base,nel,width,thunk,compar) qsort_s(base,nel,width,compar,thunk)
-
-#else
-#error Cannot detect operating system
-#endif
-
 struct tagged_coord
 {
     vox_uint tag;
