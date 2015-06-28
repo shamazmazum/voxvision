@@ -161,10 +161,15 @@ vox_uint vox_voxels_in_tree (struct vox_node *tree)
     return tree->dots_num;
 }
 
-vox_uint vox_inacc_depth (struct vox_node *tree, vox_uint res)
+static vox_uint vox_inacc_depth_ (struct vox_node *tree, vox_uint res)
 {
     if (VOX_LEAFP (tree)) return res;
-    else return vox_inacc_depth (tree->data.inner.children[res&(VOX_NS-1)], res+1);
+    else return vox_inacc_depth_ (tree->data.inner.children[res&(VOX_NS-1)], res+1);
+}
+
+vox_uint vox_inacc_depth (struct vox_node *tree)
+{
+    return vox_inacc_depth_ (tree, 0);
 }
 
 void vox_destroy_tree (struct vox_node *tree)
@@ -209,7 +214,7 @@ void vox_destroy_tree (struct vox_node *tree)
 float vox_inacc_balanceness (struct vox_node *tree)
 {
     float expected_depth = ceilf (log (2.0 * vox_voxels_in_tree (tree) / (1 + VOX_MAX_DOTS)) / log (VOX_NS));
-    return vox_inacc_depth (tree, 0) / expected_depth;
+    return vox_inacc_depth (tree) / expected_depth;
 }
 
 void vox_bounding_box (const struct vox_node* tree, vox_dot min, vox_dot max)

@@ -90,10 +90,9 @@ vox_uint vox_voxels_in_tree (struct vox_node*);
    the same length
 
    \param tree the tree
-   \param res an initial value of depth
-   \return res + actual depth
+   \return depth of the tree
 **/
-vox_uint vox_inacc_depth (struct vox_node*, vox_uint);
+vox_uint vox_inacc_depth (struct vox_node* tree);
 float vox_inacc_balanceness (struct vox_node*);
 
 /**
