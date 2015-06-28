@@ -112,15 +112,16 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
                           int planenum, vox_dot res, const vox_dot min, const vox_dot max)
 {
     int i;
+    float k;
     if (dir[planenum] == 0.0) return 0;
+    k = planedot[planenum] - origin[planenum];
+    if ((dir[planenum] < 0) != (k < 0)) return 0;
 
-    float k = (planedot[planenum] - origin[planenum]) / dir[planenum];
-    if (k < 0.0) return 0;
+    k = k / dir[planenum];
 
     for (i=0; i<VOX_N; i++)
     {
-        if (i == planenum) res[i] = planedot[i];
-        else res[i] = origin[i] + k*dir[i];
+        res[i] = origin[i] + k*dir[i];
         if ((res[i] < min[i]) || (res[i] > max[i])) return 0;
     }
     return 1;
