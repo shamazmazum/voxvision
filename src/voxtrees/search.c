@@ -14,17 +14,16 @@ struct tagged_coord
 
 vox_uint vox_lod = 0;
 
-// Maybe flollowing deserves a bit more explanation
-vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
-                                    vox_dot res, vox_uint depth, vox_tree_path path)
+// Maybe following deserves a bit more explanation
+static vox_uint vox_ray_tree_intersection_ (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
+                                            vox_dot res, vox_uint depth, const struct vox_node **leaf)
 {
     vox_dot inter_entry;
     vox_uint interp, i;
     struct tagged_coord plane_inter[VOX_N];
     struct tagged_coord holder;
 
-    assert (depth < VOX_MAX_DEPTH);
-    if (path) path[depth-1] = tree;
+    if (leaf) *leaf = tree;
 
     if (!(VOX_FULLP (tree))) return 0;
     if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, inter_entry))) return 0;
@@ -69,8 +68,8 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
     vox_uint subspace = get_subspace_idx (inner->center, inter_entry);
     // Look if we are lucky and the ray hits any box before it traverses the dividing planes
     // (in other workd it hits a box close enough to entry_point)
-    interp = vox_ray_tree_intersection (inner->children[subspace], inter_entry, dir,
-                                        res, depth+1, path);
+    interp = vox_ray_tree_intersection_ (inner->children[subspace], inter_entry, dir,
+                                         res, depth+1, leaf);
     if (interp) return interp;
     
     // No luck, search for intersections of the ray and all N axis-aligned dividing planes
@@ -107,12 +106,18 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
         // For each intersection with dividing plane call vox_ray_tree_intersection recursively,
         // using child node specified by subspace index. If an intersection is found, return.
         // Note, what we specify an entry point to that child as a new ray origin
-        interp = vox_ray_tree_intersection (inner->children[subspace], plane_inter[i].coord, dir,
-                                            res, depth+1, path);
+        interp = vox_ray_tree_intersection_ (inner->children[subspace], plane_inter[i].coord, dir,
+                                             res, depth+1, leaf);
         if (interp) return interp;
     }
 
     return 0;
+}
+
+vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
+                                    vox_dot res, const struct vox_node **leaf)
+{
+    return vox_ray_tree_intersection_ (tree, origin, dir, res, 1, leaf);
 }
 
 int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float radius)
@@ -141,41 +146,4 @@ int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float r
         }
     }
     return 0;
-}
-
-struct vox_search_state* vox_make_search_state (const struct vox_node *tree)
-{
-    struct vox_search_state *state = malloc (sizeof *state);
-    state->depth = 0;
-    state->local_hits = 0;
-    state->tree = tree;
-    return state;
-}
-
-vox_uint vox_ray_tree_intersection_wstate (struct vox_search_state *state, const vox_dot origin,
-                                           const vox_dot dir, vox_dot res)
-{
-    vox_uint interp;
-try_again:
-    // KLUDGE: Bound the number of local hits in a row
-    if ((state->local_hits < 4) && (state->depth) &&
-        (state->depth <= state->maxdepth) && (state->depth <= VOX_MAX_DEPTH_LOCAL))
-    {
-        interp = vox_ray_tree_intersection (state->path[state->maxdepth-state->depth], origin, dir, res, 1, NULL);
-        if (interp)
-        {
-            state->local_hits++;
-            return 1;
-        }
-        else
-        {
-            state->depth++;
-            goto try_again;
-        }
-    }
-    state->local_hits=0;
-    state->maxdepth = vox_ray_tree_intersection (state->tree, origin, dir, res, 1, state->path);
-    if (state->maxdepth) state->depth = 1;
-    else state->depth = 0;
-    return state->depth;
 }

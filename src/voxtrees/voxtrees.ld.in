@@ -9,8 +9,6 @@ VOXTREES_@voxvision_VERSION@ {
             vox_voxel;
             vox_voxels_in_tree;
             vox_bounding_box;
-            vox_make_search_state;
-            vox_ray_tree_intersection_wstate;
 # FIXME: Used only for tests:
             sum_vector;
             dot_betweenp;

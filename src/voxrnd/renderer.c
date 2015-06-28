@@ -43,15 +43,18 @@ void vox_render (const struct vox_node *tree, vox_camera_interface *cam_iface, S
     vox_dot inter;
     origin = cam_iface->get_position(cam_iface->camera);
 
-    struct vox_search_state *state = vox_make_search_state (tree);
-
+    const struct vox_node *leaf = NULL;
     for (i=0; i<h; i++)
     {
         for (j=0; j<w; j++)
         {
             cam_iface->screen2world (cam_iface->camera, dir, w, h, j, i);
 #if 1
-            interp = vox_ray_tree_intersection_wstate (state, origin, dir, inter);
+            interp = 0;
+            if (leaf != NULL)
+                interp = vox_ray_tree_intersection (leaf,  origin, dir, inter, NULL);
+            if (interp == 0)
+                interp = vox_ray_tree_intersection (tree, origin, dir, inter,  &leaf);
 #else
             interp = vox_ray_tree_intersection (tree, origin, dir, inter,1,NULL);
 #endif

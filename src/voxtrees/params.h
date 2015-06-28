@@ -27,25 +27,10 @@
    \brief Maximum number of dots in tree leaf.
 **/
 #define VOX_MAX_DOTS 7
-
-/**
-   \brief Maximal depth between 2 nodes which still considered local.
-   
-   Must be < VOX_MAX_DEPTH
-**/
-#define VOX_MAX_DEPTH_LOCAL 3
 #endif /* VOXTREES_SOURCE */
-
-/**
-   \brief Maximal depth of tree.
-   
-   Used only for path saver.
-**/
-#define VOX_MAX_DEPTH 15
 
 // Types
 
-typedef const struct vox_node* vox_tree_path[VOX_MAX_DEPTH];
 typedef unsigned int vox_uint;
 
 // Global vars
