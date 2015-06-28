@@ -8,7 +8,7 @@
 #include "../voxvision.h"
 
 /**
-   \brief Camera class
+   \brief A camera interface
 **/
 typedef struct
 {
@@ -37,25 +37,25 @@ typedef struct
 #else
 typedef struct
 {
-    vox_camera_interface iface;
+    vox_camera_interface iface; /**< \brief camera interface */
 } vox_simple_camera;
 #endif
 
 /**
-   \brief Create and initialize simple camera
+   \brief Create and initialize a simple camera
 
    Camera must be freed with vox_destroy_simple_camera() after use.
 
    \param fov field of view
    \param position position of the camera
 **/
-vox_simple_camera* vox_make_simple_camera (float, vox_dot);
+vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
 
 /**
-   \brief Destroy a simple camera and free memory
+   \brief Destroy a simple camera and free its memory
 
    \param camera a camera to be destroyed
 **/
-void vox_destroy_simple_camera (vox_simple_camera*);
+void vox_destroy_simple_camera (vox_simple_camera* camera);
 
 #endif

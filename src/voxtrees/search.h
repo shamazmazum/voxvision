@@ -17,19 +17,20 @@
    \param origin starting point of the ray
    \param dir direction of the ray
    \param res where result is stored
-   \param leaf where the leaf node is stored, if not leaf is not NULL
+   \param leaf where the leaf node is stored, if leaf is not NULL
    \return number of elements in path if intersection was found, 0 otherwise
 **/
-vox_uint vox_ray_tree_intersection (const struct vox_node*, const vox_dot, const vox_dot, vox_dot,
-                                    const struct vox_node**);
+vox_uint vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin, const vox_dot dir,
+                                    vox_dot res, const struct vox_node** leaf);
 
 /**
-   \brief Returns non-zero value if a ball collides with voxels in a tree
+   \brief Find out if a ball collides with voxels in a tree
+
    \param tree the tree
    \param center center of the ball
    \param radius radius of the ball
    \return 1 if collision was found, 0 otherwise
 **/
-int vox_tree_ball_collidep (struct vox_node*, const vox_dot, float);
+int vox_tree_ball_collidep (struct vox_node* tree, const vox_dot center, float radius);
 
 #endif

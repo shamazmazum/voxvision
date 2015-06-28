@@ -15,8 +15,9 @@
    \param b
    \param res an array where the result is stored
 **/
-void sum_vector (const vox_dot, const vox_dot, vox_dot);
+void sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
 
+#ifdef VOXTREES_SOURCE
 /**
    \brief Calculate a subspace index for the dot.
    
@@ -83,5 +84,6 @@ int hit_plane_within_box (const vox_dot, const vox_dot, const vox_dot, int,
 **/
 int box_ball_interp (const vox_dot, const vox_dot, const vox_dot, float);
 float* closest_in_set (vox_dot[], int, const vox_dot, float (*) (const vox_dot, const vox_dot));
+#endif
 
 #endif
