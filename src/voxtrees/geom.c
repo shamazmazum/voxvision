@@ -68,8 +68,8 @@ int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
 // See C Graphics Gems code for explanation
 int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const vox_dot dir, vox_dot res)
 {
-    vox_dot candidate_plane, tdist;
-    float max_dist;
+    vox_dot candidate_plane;
+    float max_dist, tdist;
     int i, plane_num;
     int insidep = fit_into_box (min, max, origin, candidate_plane);
     if (insidep)
@@ -82,14 +82,14 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
     max_dist = -1;
     for (i=0; i<VOX_N; i++)
     {
-        if ((candidate_plane[i] == origin[i]) || dir[i] == 0.0) tdist[i] = -1.0;
+        if ((candidate_plane[i] == origin[i]) || dir[i] == 0.0) tdist = -1.0;
         else
         {
-            tdist[i] = (candidate_plane[i] - origin[i])/dir[i];
-            if (tdist[i] > max_dist)
+            tdist = (candidate_plane[i] - origin[i])/dir[i];
+            if (tdist > max_dist)
             {
                 plane_num = i;
-                max_dist = tdist[i];
+                max_dist = tdist;
             }
         }
     }
