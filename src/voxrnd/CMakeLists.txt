@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxrnd.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld)
-include_directories (${SDL_INCLUDE_DIR})
+include_directories (${SDL_INCLUDE_DIR} ${GCD_INCLUDE_DIR})
 set (VOXRND_SOURCES camera.c renderer.c)
 add_definitions (-DVOXRND_SOURCE)
 
@@ -17,7 +17,7 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld
                                          LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld")
 
-target_link_libraries (voxrnd ${SDL_LIBRARY} m)
+target_link_libraries (voxrnd ${SDL_LIBRARY} ${GCD_LIBRARY} m)
 
 install (FILES camera.h renderer.h
          DESTINATION include/voxvision/voxrnd)

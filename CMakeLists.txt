@@ -10,9 +10,11 @@ set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
+set (CMAKE_C_FLAGS "-fblocks")
 
 find_package (SDL REQUIRED)
 find_package (IniParser REQUIRED)
+find_package (GCD REQUIRED)
 
 option (SSE_INTRIN "Enable SSE intrinsic")
 
