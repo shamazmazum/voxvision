@@ -2,9 +2,11 @@ VOXRND_@voxvision_VERSION@ {
     global: vox_dot_product;
             vox_make_simple_camera;
             vox_destroy_simple_camera;
+            vox_make_renderer_context;
+            vox_render;
+# For the tests
             vox_quat_conj;
             vox_quat_mul;
-            vox_render;
             vox_rotate_vector;
             vox_vector_inv;
     local: *;

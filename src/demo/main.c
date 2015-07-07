@@ -125,6 +125,8 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
+    struct vox_rnd_ctx *ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+
     SDL_Rect rect;
     rect.w = screen->w; rect.h = screen->h;
     rect.x = 0; rect.y = 0;
@@ -135,7 +137,7 @@ int main (int argc, char *argv[])
         if (redraw)
         {
             time = gettime();
-            vox_render (tree, &(camera->iface), screen);
+            vox_render (ctx);
             time = gettime() - time;
             printf ("Rendering took %f\n", time);
             redraw = 0;
@@ -183,6 +185,7 @@ int main (int argc, char *argv[])
                 SDL_Quit();
                 vox_destroy_tree (tree);
                 free (set);
+                free (ctx);
                 exit(0);
             }
         }

@@ -1,5 +1,17 @@
+#include <dispatch/dispatch.h>
+#include <stdlib.h>
 #include "renderer.h"
 #include "../voxtrees/search.h"
+
+struct vox_rnd_ctx
+{
+    SDL_Surface *surface;
+    struct vox_node *scene;
+    vox_camera_interface *camera;
+
+    float mul[3];
+    float add[3];
+};
 
 static void color_coeff (const struct vox_node *tree, float mul[], float add[])
 {
@@ -24,49 +36,52 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], fl
     return color;
 }
 
-void vox_render (const struct vox_node *tree, vox_camera_interface *cam_iface, SDL_Surface *surface)
+struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_node *scene,
+                                               vox_camera_interface *camera)
 {
-    int w = surface->w;
-    int h = surface->h;
-    int i,j,p;
-    p=0;
-    int interp;
+    struct vox_rnd_ctx *ctx = malloc (sizeof(struct vox_rnd_ctx));
+    ctx->surface = surface;
+    ctx->scene = scene;
+    ctx->camera = camera;
 
     // FIXME: calculate colors in runtime
     // Only a temporary solution to get a colorful output
-    float col_mul[3];
-    float col_add[3];
-    color_coeff (tree, col_mul, col_add);
+    color_coeff (scene, ctx->mul, ctx->add);
+    return ctx;
+}
 
-    float *origin;
-    vox_dot dir;
-    vox_dot inter;
-    origin = cam_iface->get_position(cam_iface->camera);
+void vox_render (struct vox_rnd_ctx *ctx)
+{
+    SDL_Surface *surface = ctx->surface;
+    Uint32 *pixels = surface->pixels;
+    int w = surface->w;
+    int h = surface->h;
+    vox_camera_interface *camera = ctx->camera;
 
-    const struct vox_node *leaf = NULL;
-    for (i=0; i<h; i++)
-    {
-        for (j=0; j<w; j++)
-        {
-            cam_iface->screen2world (cam_iface->camera, dir, w, h, j, i);
-#if 1
-            interp = 0;
-            if (leaf != NULL)
-                interp = vox_ray_tree_intersection (leaf,  origin, dir, inter, NULL);
-            if (interp == 0)
-                interp = vox_ray_tree_intersection (tree, origin, dir, inter,  &leaf);
+    float *origin = camera->get_position (camera->camera);
+
+    /* const struct vox_node *leaf = NULL; */
+    dispatch_apply (w*h, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_HIGH, 0),
+                    ^(size_t p){
+                        vox_dot dir, inter;
+                        int interp;
+                        int i = p/w;
+                        int j = p - i*w;
+                        camera->screen2world (camera->camera, dir, w, h, j, i);
+#if 0
+                        interp = 0;
+                        if (leaf != NULL)
+                            interp = vox_ray_tree_intersection (leaf,  origin, dir, inter, NULL);
+                        if (interp == 0)
+                            interp = vox_ray_tree_intersection (tree, origin, dir, inter,  &leaf);
 #else
-            interp = vox_ray_tree_intersection (tree, origin, dir, inter,1,NULL);
+                        interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
 #endif
-            if (interp)
-            {
-                Uint32 color = get_color (surface->format, inter, col_mul, col_add);
-                *((Uint32*)surface->pixels+p) = color;
-    
-            }
-            p++;
-        }
-    }
-    
+                        if (interp)
+                        {
+                            Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
+                            pixels[p] = color;
+                        }
+                    });
     SDL_Flip (surface);
 }
