@@ -55,15 +55,6 @@ static int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot
     return the_same;
 }
 
-// Used nowhere but only in tests
-int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
-{
-    vox_uint i;
-
-    for (i=0; i<VOX_N; i++) {if ((dot[i] < min[i]) || (dot[i] > max[i])) return 0;}
-    return 1;
-}
-
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation
 int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const vox_dot dir, vox_dot res)

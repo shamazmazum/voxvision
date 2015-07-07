@@ -45,8 +45,6 @@ float calc_abs_metric (const vox_dot, const vox_dot);
 **/
 float calc_sqr_metric (const vox_dot, const vox_dot);
 
-int dot_betweenp (const vox_dot, const vox_dot, const vox_dot);
-
 /**
    \brief Find intersection of a ray and an axis-aligned box.
    

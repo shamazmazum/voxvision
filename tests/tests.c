@@ -29,7 +29,15 @@
 vox_dot *working_set;
 struct vox_node *working_tree;
 
-int vect_eq (vox_dot v1, vox_dot v2)
+static int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
+{
+    vox_uint i;
+
+    for (i=0; i<VOX_N; i++) {if ((dot[i] < min[i]) || (dot[i] > max[i])) return 0;}
+    return 1;
+}
+
+static int vect_eq (vox_dot v1, vox_dot v2)
 {
     int i;
     float mdiff = PREC;
@@ -43,7 +51,7 @@ int vect_eq (vox_dot v1, vox_dot v2)
     else return 0;
 }
 
-int quat_eq (vox_quat v1, vox_quat v2)
+static int quat_eq (vox_quat v1, vox_quat v2)
 {
     int i;
     float mdiff = PREC;
