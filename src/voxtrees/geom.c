@@ -104,8 +104,7 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
 {
     int i;
     float k;
-    /* FIXME: The following special case is unimportant */
-    /* if (dir[planenum] == 0.0) return 0; */
+    if (dir[planenum] == 0.0) return 0;
     k = planedot[planenum] - origin[planenum];
     if ((dir[planenum] < 0) != (k < 0)) return 0;
 
