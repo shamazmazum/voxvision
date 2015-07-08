@@ -11,7 +11,7 @@ MARK_AS_ADVANCED(GCD_LIBRARY)
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(GCD
    "Could not find GCD. voxrnd will still be working, but slow.
-   If you are using FreeBSD, consider installing devel/dispatch
+   If you are using FreeBSD, consider installing devel/libdispatch
    and devel/compiler-rt ports."
 GCD_LIBRARY GCD_INCLUDE_DIR)
  
