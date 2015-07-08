@@ -1,4 +1,6 @@
+#ifdef USE_GCD
 #include <dispatch/dispatch.h>
+#endif
 #include <stdlib.h>
 #include "renderer.h"
 #include "../voxtrees/search.h"
@@ -60,15 +62,20 @@ void vox_render (struct vox_rnd_ctx *ctx)
       Inside each task we try to render the next pixel using previous leaf node,
       not root scene node, if possible
     */
+#ifdef USE_GCD
     dispatch_apply (n>>2, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_HIGH, 0),
-                    ^(size_t p1){
+                    ^(size_t p1)
+#else
+    int p1;
+    for (p1 = 0; p1 < n>>2; p1++)
+#endif
+                    {
                         const struct vox_node *leaf = NULL;
                         vox_dot dir, inter;
-                        int interp, p2;
-                        p1 <<= 2;
+                        int interp, p2, p;
+                        p = p1 << 2;
                         for (p2=0; p2<4; p2++)
                         {
-                            int p = p1 + p2;
                             if (p >= n) break;
                             int i = p/w;
                             int j = p - i*w;
@@ -87,7 +94,11 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                 Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
                                 pixels[p] = color;
                             }
+                            p++;
                         }
-                    });
+                    }
+#if USE_GCD
+        );
+#endif
     SDL_Flip (surface);
 }
