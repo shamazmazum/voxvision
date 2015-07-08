@@ -24,11 +24,6 @@ double gettime ()
     return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
 }
 
-static int collidep (vox_dot newpos, struct vox_node *tree)
-{
-    return (!(vox_tree_ball_collidep (tree, newpos, 50)));
-}
-
 int main (int argc, char *argv[])
 {
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
@@ -136,21 +131,20 @@ int main (int argc, char *argv[])
         SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0, 0, 0));
         vox_render (ctx);
         vox_dot step = {0,0,0};
-        float rotx, roty, rotz;
+        vox_dot rot_delta = {0,0,0};
         Uint8 *keystate = SDL_GetKeyState (NULL);
-        camera->iface.get_rot_angles (camera, &rotx, &roty, &rotz);
         if (keystate[SDLK_w]) step[1] += 5;
         else if (keystate[SDLK_s]) step[1] -= 5;
         if (keystate[SDLK_d]) step[0] += 5;
         else if (keystate[SDLK_a]) step[0] -= 5;
         if (keystate[SDLK_1]) step[2] += 5;
         else if (keystate[SDLK_2]) step[2] -= 5;
-        if (keystate[SDLK_UP]) rotx -= 0.01;
-        else if (keystate[SDLK_DOWN]) rotx += 0.01;
-        if (keystate[SDLK_LEFT]) rotz -= 0.01;
-        else if (keystate[SDLK_RIGHT]) rotz += 0.01;
-        camera->iface.set_rot_angles (camera, rotx, roty, rotz);
-        camera->iface.move_camera (camera, step, collidep, tree);
+        if (keystate[SDLK_UP]) rot_delta[0] -= 0.01;
+        else if (keystate[SDLK_DOWN]) rot_delta[0] += 0.01;
+        if (keystate[SDLK_LEFT]) rot_delta[1] -= 0.01;
+        else if (keystate[SDLK_RIGHT]) rot_delta[1] += 0.01;
+        camera->iface.rotate_camera (camera, rot_delta);
+        camera->iface.move_camera (camera, step);
 
         if (SDL_PollEvent(&event))
         {

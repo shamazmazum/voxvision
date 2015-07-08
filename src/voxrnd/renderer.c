@@ -3,16 +3,6 @@
 #include "renderer.h"
 #include "../voxtrees/search.h"
 
-struct vox_rnd_ctx
-{
-    SDL_Surface *surface;
-    struct vox_node *scene;
-    vox_camera_interface *camera;
-
-    float mul[3];
-    float add[3];
-};
-
 static void color_coeff (const struct vox_node *tree, float mul[], float add[])
 {
     int i;
@@ -43,6 +33,7 @@ struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_
     ctx->surface = surface;
     ctx->scene = scene;
     ctx->camera = camera;
+    camera->ctx = ctx;
 
     // FIXME: calculate colors in runtime
     // Only a temporary solution to get a colorful output
@@ -78,7 +69,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             if (p >= n) break;
                             int i = p/w;
                             int j = p - i*w;
-                            camera->screen2world (camera->camera, dir, w, h, j, i);
+                            camera->screen2world (camera->camera, dir, j, i);
 #if 1
                             interp = 0;
                             if ((leaf != NULL) && (leaf != ctx->scene))

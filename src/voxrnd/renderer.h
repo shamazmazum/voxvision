@@ -9,7 +9,19 @@
 #include "../voxtrees/tree.h"
 #include "camera.h"
 
+#ifdef VOXRND_SOURCE
+struct vox_rnd_ctx
+{
+    SDL_Surface *surface;
+    struct vox_node *scene;
+    vox_camera_interface *camera;
+
+    float mul[3];
+    float add[3];
+};
+#else
 struct vox_rnd_ctx;
+#endif
 
 /**
    \brief Make a renderer context.
