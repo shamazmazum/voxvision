@@ -1,7 +1,5 @@
 #include <math.h>
-
 #include "geom.h"
-#include "params.h"
 
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {

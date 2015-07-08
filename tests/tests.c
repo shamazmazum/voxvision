@@ -3,6 +3,7 @@
 #include <CUnit/TestRun.h>
 #include <CUnit/Basic.h>
 
+#include <SDL/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -287,18 +288,37 @@ void quat_mul ()
 
 void test_tree_cons () {check_tree (working_tree);}
 
+static struct vox_rnd_ctx* make_fake_context (vox_camera_interface *iface)
+{
+    SDL_Surface *surf = malloc (sizeof(SDL_Surface));
+    surf->w = 100;
+    surf->h = 100;
+    struct vox_rnd_ctx* res = vox_make_renderer_context (surf, NULL, iface);
+    return res;
+}
+
+static void free_fake_context (struct vox_rnd_ctx *ctx)
+{
+    free (ctx->surface);
+    free (ctx);
+}
+
 void test_simp_camera ()
 {
     vox_dot pos = {0,0,0};
     vox_simple_camera *camera = vox_make_simple_camera (1.2, pos);
+    struct vox_rnd_ctx *ctx = make_fake_context (&(camera->iface));
 
     CU_ASSERT (vect_eq (pos, camera->iface.get_position (camera)));
 
     camera->iface.set_rot_angles (camera, M_PI/4, 0, M_PI/4);
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
-    camera->iface.screen2world (camera, world_coord, 100, 100, 50, 50);
+    camera->iface.screen2world (camera, world_coord, 50, 50);
     CU_ASSERT (vect_eq (world_coord, world_coord_expected));
+
+    free_fake_context (ctx);
+    vox_destroy_simple_camera (camera);
 }
 
 int main ()

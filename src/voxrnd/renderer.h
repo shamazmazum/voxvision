@@ -9,13 +9,38 @@
 #include "../voxtrees/tree.h"
 #include "camera.h"
 
-/**
-   \brief Render a scene on SDL surface
+#ifdef VOXRND_SOURCE
+struct vox_rnd_ctx
+{
+    SDL_Surface *surface;
+    struct vox_node *scene;
+    vox_camera_interface *camera;
 
-   \param tree the root node for the scene
+    float mul[3];
+    float add[3];
+};
+#else
+struct vox_rnd_ctx;
+#endif
+
+/**
+   \brief Make a renderer context.
+
+   User must free() it after use.
+
+   \param surface an SDL surface to render to
+   \param scene the root node for the scene
    \param camera the camera
-   \param surface an SDL surface
+   \return a pointer to allocated context
+ **/
+struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_node *scene,
+                                               vox_camera_interface *camera);
+
+/**
+   \brief Render a scene on SDL surface.
+
+   \param ctx a renderer context
 **/
-void vox_render (const struct vox_node* tree, vox_camera_interface* camera, SDL_Surface* surface);
+void vox_render (struct vox_rnd_ctx *ctx);
 
 #endif
