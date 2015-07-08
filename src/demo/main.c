@@ -116,8 +116,6 @@ int main (int argc, char *argv[])
         exit (1);
     }
 
-    SDL_EnableUNICODE(SDL_ENABLE);
-
     SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE);
     if (screen == NULL)
     {
@@ -130,65 +128,63 @@ int main (int argc, char *argv[])
     SDL_Rect rect;
     rect.w = screen->w; rect.h = screen->h;
     rect.x = 0; rect.y = 0;
-    int redraw = 1;
-    SDL_Event event;
-    do
+
+    int loop = 1;
+    while (loop)
     {
-        if (redraw)
+        SDL_Event event;
+        SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0, 0, 0));
+        vox_render (ctx);
+        vox_dot step = {0,0,0};
+        float rotx, roty, rotz;
+        Uint8 *keystate = SDL_GetKeyState (NULL);
+        camera->iface.get_rot_angles (camera, &rotx, &roty, &rotz);
+        if (keystate[SDLK_w]) step[1] += 5;
+        else if (keystate[SDLK_s]) step[1] -= 5;
+        if (keystate[SDLK_d]) step[0] += 5;
+        else if (keystate[SDLK_a]) step[0] -= 5;
+        if (keystate[SDLK_1]) step[2] += 5;
+        else if (keystate[SDLK_2]) step[2] -= 5;
+        if (keystate[SDLK_UP]) rotx -= 0.01;
+        else if (keystate[SDLK_DOWN]) rotx += 0.01;
+        if (keystate[SDLK_LEFT]) rotz -= 0.01;
+        else if (keystate[SDLK_RIGHT]) rotz += 0.01;
+        camera->iface.set_rot_angles (camera, rotx, roty, rotz);
+        camera->iface.move_camera (camera, step, collidep, tree);
+
+        if (SDL_PollEvent(&event))
         {
-            time = gettime();
-            vox_render (ctx);
-            time = gettime() - time;
-            printf ("Rendering took %f\n", time);
-            redraw = 0;
-        }
-        if (SDL_WaitEvent(&event))
-        {
-            switch (event.type) {
-            case SDL_KEYDOWN:
+            switch (event.type)
             {
-                if ((event.key.keysym.unicode == 'a') ||
-                    (event.key.keysym.unicode == 'A') ||
-                    (event.key.keysym.unicode == 'w') ||
-                    (event.key.keysym.unicode == 'W') ||
-                    (event.key.keysym.unicode == 's') ||
-                    (event.key.keysym.unicode == 'S'))
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym)
                 {
-                    vox_dot step = {0,0,0};
-                         if (event.key.keysym.unicode == 'a') step[0] = -5;
-                    else if (event.key.keysym.unicode == 'A') step[0] = 5;
-                    else if (event.key.keysym.unicode == 'w') step[2] = -5;
-                    else if (event.key.keysym.unicode == 'W') step[2] = 5;
-                    else if (event.key.keysym.unicode == 's') step[1] = -5;
-                    else if (event.key.keysym.unicode == 'S') step[1] = 5;
-                    camera->iface.move_camera (camera, step, collidep, tree);
-                    redraw = 1;
+                case 'q':
+                    loop = 0;
+                    break;
+                case 'r':
+                    time = gettime ();
+                    vox_render(ctx);
+                    time = gettime() - time;
+                    printf ("Refreshed in %f\n", time);
+                    break;
+                case 's':
+                    break;
+                    /* Just to silence clang warning */
+                default: ;
                 }
-                else if ((event.key.keysym.unicode == 'x') ||
-                         (event.key.keysym.unicode == 'X') ||
-                         (event.key.keysym.unicode == 'z') ||
-                         (event.key.keysym.unicode == 'Z'))
-                {
-                    float rotx, roty, rotz;
-                    camera->iface.get_rot_angles (camera, &rotx, &roty, &rotz);
-                         if (event.key.keysym.unicode == 'x') rotx += 0.01;
-                    else if (event.key.keysym.unicode == 'X') rotx -= 0.01;
-                    else if (event.key.keysym.unicode == 'z') rotz += 0.01;
-                    else if (event.key.keysym.unicode == 'Z') rotz -= 0.01;
-                    camera->iface.set_rot_angles (camera, rotx, roty, rotz);
-                    redraw = 1;
-                }
-                SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0,0,0));
+                break;
+            case SDL_QUIT:
+                loop = 0;
                 break;
             }
-            case SDL_QUIT:
-                SDL_Quit();
-                vox_destroy_tree (tree);
-                free (set);
-                free (ctx);
-                exit(0);
-            }
         }
-    } while (1);
+    }
+
+    SDL_Quit();
+    vox_destroy_tree (tree);
+    free (set);
+    free (ctx);
+
     return 0;
 }
