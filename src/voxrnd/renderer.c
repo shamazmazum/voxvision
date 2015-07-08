@@ -8,12 +8,15 @@ static void color_coeff (const struct vox_node *tree, float mul[], float add[])
     int i;
     vox_dot min;
     vox_dot max;
-    vox_bounding_box (tree, min, max);
-    
-    for (i=0; i<3; i++)
+
+    if (tree != NULL)
     {
-        mul[i] = 255 / (max[i] - min[i]);
-        add[i] = -255 * min[i] / (max[i] - min[i]);
+        vox_bounding_box (tree, min, max);
+        for (i=0; i<3; i++)
+        {
+            mul[i] = 255 / (max[i] - min[i]);
+            add[i] = -255 * min[i] / (max[i] - min[i]);
+        }
     }
 }
 
