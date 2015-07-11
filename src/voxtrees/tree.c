@@ -80,6 +80,21 @@ void vox_align (vox_dot dot)
     }
 }
 
+/*
+  We cannot use this version in the entire library, as
+   data can be accessed almost randomly when raycasting
+   is performed. But for sorting purposed it is great for
+   performance. Note, that clang inlines this function
+*/
+#ifdef SSE_INTRIN
+static vox_uint get_subspace_idx_simd (const vox_dot center, const vox_dot dot)
+{
+    __v4sf sub = _mm_load_ps (dot);
+    sub -= _mm_load_ps (center);
+    return (_mm_movemask_ps (sub) & 0x07);
+}
+#endif /* SSE_INTRIN */
+
 /**
    \brief Move dots with needed subspace close to offset
    \param in a set to be modified
@@ -97,7 +112,11 @@ static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint
 
     for (i=offset; i<n; i++)
     {
+#ifdef SSE_INTRIN
+        if (get_subspace_idx_simd (center, set[i]) == subspace)
+#else
         if (get_subspace_idx (center, set[i]) == subspace)
+#endif
         {
             vox_dot_copy (tmp, set[counter]);
             vox_dot_copy (set[counter], set[i]);
