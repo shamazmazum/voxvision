@@ -128,9 +128,12 @@ static vox_uint filter_set (vox_dot set[], vox_uint n, vox_uint offset, vox_uint
     return counter;
 }
 
-// FIXME: Is this dangerous?
 static void* node_alloc (int leaf)
 {
+    /*
+      FIXME: We may need to be sure if vox_dot fields of node
+      structure are properly aligned in future
+    */
     size_t alloc_base = offsetof (struct vox_node, data);
     size_t size = alloc_base + ((leaf) ? sizeof (vox_dot*) : sizeof (vox_inner_data));
     return malloc (size);

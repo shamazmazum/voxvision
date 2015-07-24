@@ -318,7 +318,7 @@ void test_simp_camera ()
     CU_ASSERT (vect_eq (world_coord, world_coord_expected));
 
     free_fake_context (ctx);
-    vox_destroy_simple_camera (camera);
+    free (camera);
 }
 
 int main ()

@@ -78,15 +78,7 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
 vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
 {
     vox_simple_camera *camera;
-    void *space;
-#ifdef SSE_INTRIN
-    space = malloc (sizeof (vox_simple_camera)+16);
-    camera = (vox_simple_camera*)(((unsigned long)space+15)&~(unsigned long)15);
-#else
-    space = malloc (sizeof (vox_simple_camera));
-    camera = space;
-#endif
-    camera->space = space;
+    camera = aligned_alloc (16, sizeof (vox_simple_camera));
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
     simple_set_rot_angles (camera, 0, 0, 0);
@@ -99,9 +91,4 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     camera->iface.rotate_camera = simple_rotate_camera;
     camera->iface.camera = camera;
     return camera;
-}
-
-void vox_destroy_simple_camera (vox_simple_camera *camera)
-{
-    free (camera->space);
 }

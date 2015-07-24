@@ -215,7 +215,7 @@ end:
     if (cwd >= 0) close (cwd);
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
-    if (camera != NULL) vox_destroy_simple_camera (camera);
+    if (camera != NULL) free (camera);
     if (tree != NULL)
     {
         vox_destroy_tree (tree);

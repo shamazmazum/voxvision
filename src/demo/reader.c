@@ -15,7 +15,8 @@ int read_data (int fd, vox_dot **dots, dimension *d, int bytes, int threshold)
 
     int val;
     int counter = 0;
-    vox_dot *array = malloc (d->x*d->y*d->z*sizeof(vox_dot));
+    vox_dot *array = aligned_alloc (16, d->x*d->y*d->z*sizeof(vox_dot));
+    if (array == NULL) return -1;
     
     for (i=0; i<d->x; i++)
     {
