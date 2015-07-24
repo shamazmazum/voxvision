@@ -38,15 +38,14 @@ static vox_uint vox_ray_tree_intersection_ (const struct vox_node *tree, const v
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
         // with voxels stored in the leaf and return closest one
         int found = 0;
-        vox_dot tmp;
         float dist_closest, dist_far;
         vox_dot *dots = tree->data.dots;
 
         // inter_entry is a "far" intersection, while res is the closest one.
         for (i=0; i<tree->dots_num; i++)
         {
-            sum_vector (dots[i], vox_voxel, tmp);
-            interp = hit_box (dots[i], tmp, origin, dir, inter_entry);
+            sum_vector (dots[i], vox_voxel, inter_entry);
+            interp = hit_box (dots[i], inter_entry, origin, dir, inter_entry);
             if (interp)
             {
                 dist_far = calc_abs_metric (origin, inter_entry);

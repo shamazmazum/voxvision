@@ -58,7 +58,7 @@ static int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot
 int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const vox_dot dir, vox_dot res)
 {
     vox_dot candidate_plane;
-    float max_dist, tdist;
+    float max_dist, tmp;
     int i, plane_num;
     int insidep = fit_into_box (min, max, origin, candidate_plane);
     if (insidep)
@@ -71,14 +71,14 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
     max_dist = -1;
     for (i=0; i<VOX_N; i++)
     {
-        if ((candidate_plane[i] == origin[i]) || dir[i] == 0.0) tdist = -1.0;
+        if ((candidate_plane[i] == origin[i]) || dir[i] == 0.0) tmp = -1.0;
         else
         {
-            tdist = (candidate_plane[i] - origin[i])/dir[i];
-            if (tdist > max_dist)
+            tmp = (candidate_plane[i] - origin[i])/dir[i];
+            if (tmp > max_dist)
             {
                 plane_num = i;
-                max_dist = tdist;
+                max_dist = tmp;
             }
         }
     }
@@ -89,8 +89,9 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
         if (i==plane_num) res[i] = candidate_plane[i];
         else
         {
-            res[i] = origin[i] + max_dist*dir[i];
-            if ((res[i] < min[i]) || (res[i] > max[i])) return 0;
+            tmp = origin[i] + max_dist*dir[i];
+            if ((tmp < min[i]) || (tmp > max[i])) return 0;
+            res[i] = tmp;
         }
     }
     
