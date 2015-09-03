@@ -69,11 +69,12 @@ typedef struct
 {
     vox_camera_interface iface;
 
-    vox_dot position; /**< \brief Position of the camera */
-    float fov;        /**< \brief Field of view */
-    float rotx;       /**< \brief Rotation angle around axis Ox (up-down) */
-    float roty;       /**< \brief Rotation angle around axis Oy (left-right) */
-    float rotz;       /**< \brief Currently unused */
+    vox_dot position;  /**< \brief Position of the camera */
+    float fov;         /**< \brief Field of view */
+    float rotx;        /**< \brief Rotation angle around axis Ox (up-down) */
+    float roty;        /**< \brief Rotation angle around axis Oy (left-right) */
+    float rotz;        /**< \brief Currently unused */
+    float body_radius; /**< \brief Camera body radius for collision detection */
 
     vox_quat rotation;
 } vox_simple_camera;
@@ -95,6 +96,16 @@ typedef struct
    \param position position of the camera
 **/
 vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
+
+/**
+   \brief Set body radius of a simple camera.
+
+   A simple camera has a spherical body in the space.
+   This body cannot intersect any other object,
+   so this way collision detection is implemented.
+   This function sets a radius of this sphere.
+**/
+void vox_simple_camera_set_radius (vox_simple_camera *camera, float radius);
 
 #if 0
 /**

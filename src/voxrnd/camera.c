@@ -62,7 +62,7 @@ static void simple_move_camera (void *obj, vox_dot delta)
     vox_dot new_pos;
     sum_vector (camera->position, delta, new_pos);
 
-    if (!(vox_tree_ball_collidep (camera->iface.ctx->scene, new_pos, 50)))
+    if (!(vox_tree_ball_collidep (camera->iface.ctx->scene, new_pos, camera->body_radius)))
         vox_dot_copy (camera->position, new_pos);
 }
 
@@ -81,6 +81,7 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     camera = aligned_alloc (16, sizeof (vox_simple_camera));
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
+    camera->body_radius = 50;
     simple_set_rot_angles (camera, 0, 0, 0);
 
     camera->iface.screen2world = simple_screen2world;
@@ -91,4 +92,9 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     camera->iface.rotate_camera = simple_rotate_camera;
     camera->iface.camera = camera;
     return camera;
+}
+
+void vox_simple_camera_set_radius (vox_simple_camera *camera, float radius)
+{
+    camera->body_radius = radius;
 }
