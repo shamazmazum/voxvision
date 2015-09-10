@@ -18,7 +18,7 @@
    \param dir direction of the ray
    \param res where result is stored
    \param leaf where the leaf node is stored, if leaf is not NULL
-   \return number of elements in path if intersection was found, 0 otherwise
+   \return 1 if intersection is found, 0 otherwise
 **/
 vox_uint vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin, const vox_dot dir,
                                     vox_dot res, const struct vox_node** leaf);
