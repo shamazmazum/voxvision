@@ -46,11 +46,18 @@ typedef struct
     */
 
     void (*set_rot_angles) (void* obj, vox_dot angles);
-    /**< \brief set camera rotation angles */
+    /**< \brief set camera rotation angles
+
+         Rotation angles are in the world coordinate system
+     */
 
     void (*rotate_camera) (void* obj, vox_dot delta);
     /**<
        \brief Rotate the camera.
+
+       Deltas of rotation angles are in the camera coordinate system.
+       Positive direction of axis Ox is to the camera's right, of axis
+       Oy is to the front, of axis Oz is up.
 
        \param obj a camera object
        \param delta a vector with deltas of rotation angles. Must contain 3 elements

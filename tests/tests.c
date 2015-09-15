@@ -306,16 +306,27 @@ static void free_fake_context (struct vox_rnd_ctx *ctx)
 void test_simp_camera ()
 {
     vox_dot pos = {0,0,0};
+    vox_dot angles;
     vox_simple_camera *camera = vox_make_simple_camera (1.2, pos);
     struct vox_rnd_ctx *ctx = make_fake_context (&(camera->iface));
 
     CU_ASSERT (vect_eq (pos, camera->iface.get_position (camera)));
 
-    camera->iface.set_rot_angles (camera, M_PI/4, 0, M_PI/4);
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
+
+    angles[0] = M_PI/4; angles[1] = 0; angles[2] = 0;
+    camera->iface.set_rot_angles (camera, angles);
     camera->iface.screen2world (camera, world_coord, 50, 50);
     CU_ASSERT (vect_eq (world_coord, world_coord_expected));
+
+    angles[0] = 0; angles[1] = M_PI/4; angles[2] = 0;
+    camera->iface.rotate_camera (camera, angles);
+    camera->iface.screen2world (camera, world_coord, 50, 50);
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected)); // fixed point
+
+    camera->iface.move_camera (camera, world_coord);
+    CU_ASSERT (vect_eq (world_coord, camera->iface.get_position (camera)));
 
     free_fake_context (ctx);
     free (camera);
