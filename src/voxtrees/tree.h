@@ -71,8 +71,6 @@ struct vox_node* vox_make_tree (vox_dot[], vox_uint);
 
 /**
    \brief Free resources used by a tree.
-
-   Optional with GC.
 **/
 void vox_destroy_tree (struct vox_node*);
 

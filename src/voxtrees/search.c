@@ -6,8 +6,6 @@
 #include "geom.h"
 #include "search.h"
 
-vox_uint vox_lod = 0;
-
 // Maybe following deserves a bit more explanation
 vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
                                     vox_dot res, const struct vox_node **leaf)

@@ -40,9 +40,4 @@ typedef unsigned int vox_uint;
 **/
 extern vox_dot vox_voxel;
 
-/**
-   \brief Level of details (LOD)
-**/
-extern vox_uint vox_lod;
-
 #endif
