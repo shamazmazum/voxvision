@@ -16,14 +16,14 @@ typedef struct
     struct vox_rnd_ctx *ctx;
 
     void (*screen2world) (void* obj, vox_dot ray, int sx, int sy);
-/**<
-   \brief Translate screen coordinated to a direction vector.
+    /**<
+       \brief Translate screen coordinated to a direction vector.
 
-   \param obj a camera object
-   \param ray the result is stored in this vector
-   \param sx screen x coordinate
-   \param sy screen y coordinate
- */
+       \param obj a camera object
+       \param ray the result is stored in this vector
+       \param sx screen x coordinate
+       \param sy screen y coordinate
+     */
 
     float* (*get_position) (void* obj);
     /**<
@@ -33,8 +33,17 @@ typedef struct
        \return a pointer to camera position vector
     */
 
-    void (*get_rot_angles) (void* obj, float* rotx, float* roty, float* rotz);
-    /**< \brief get camera rotation angles */
+    int (*set_position) (void *obj, vox_dot pos);
+    /**<
+       \brief Set camera position.
+
+       Camera will not move if there is a collision with any object
+       on scene to which camera is attached.
+
+       \param obj a camera object
+       \param pos a new position
+       \return 0 on success (if no collisions is found)
+    */
 
     void (*set_rot_angles) (void* obj, float rotx, float roty, float rotz);
     /**< \brief set camera rotation angles */
@@ -47,7 +56,7 @@ typedef struct
        \param delta a vector with deltas of rotation angles. Must contain 3 elements
     */
 
-    void (*move_camera) (void* obj, vox_dot delta);
+    int (*move_camera) (void* obj, vox_dot delta);
     /**<
        \brief Move the camera.
 
@@ -69,12 +78,9 @@ typedef struct
 {
     vox_camera_interface iface;
 
-    vox_dot position;  /**< \brief Position of the camera */
-    float fov;         /**< \brief Field of view */
-    float rotx;        /**< \brief Rotation angle around axis Ox (up-down) */
-    float roty;        /**< \brief Rotation angle around axis Oy (left-right) */
-    float rotz;        /**< \brief Currently unused */
-    float body_radius; /**< \brief Camera body radius for collision detection */
+    vox_dot position;
+    float fov;
+    float body_radius;
 
     vox_quat rotation;
 } vox_simple_camera;

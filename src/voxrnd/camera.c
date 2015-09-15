@@ -6,27 +6,6 @@
 #include "camera.h"
 #include "renderer.h"
 
-static void simple_update_rotation (vox_simple_camera *camera)
-{
-    // Update rotation quaternion
-    float sinphi = sinf(camera->rotx);
-    float cosphi = cosf(camera->rotx);
-
-    float sinpsi = sinf(camera->roty);
-    float cospsi = cosf(camera->roty);
-
-#if 0
-    vox_quat rotx = {sinphi, 0, 0, cosphi}; // First rotation
-    vox_quat roty = {0, sinpsi, 0, cospsi}; // Second rotation
-    vox_quat_mul (roty, rotx, camera->rotation);
-#else
-    camera->rotation[0] = sinphi*cospsi;
-    camera->rotation[1] = cosphi*sinpsi;
-    camera->rotation[2] = -sinphi*sinpsi;
-    camera->rotation[3] = cosphi*cospsi;
-#endif
-}
-
 static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
 {
     vox_simple_camera *camera = obj;
@@ -39,40 +18,71 @@ static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
 }
 
 static float* simple_get_position (void *camera) {return ((vox_simple_camera*)camera)->position;}
-static void simple_get_rot_angles (void *obj, float *rotx, float *roty, float *rotz)
+
+static int simple_set_position (void *obj, vox_dot pos)
 {
     vox_simple_camera *camera = obj;
-    *rotx = camera->rotx;
-    *roty = camera->roty;
-    *rotz = camera->rotz;
+    int res = vox_tree_ball_collidep (camera->iface.ctx->scene, pos, camera->body_radius);
+    if (res == 0) vox_dot_copy (camera->position, pos);
+    return res;
 }
+
 static void simple_set_rot_angles (void *obj, float rotx, float roty, float rotz)
 {
     vox_simple_camera *camera = obj;
-    camera->rotx = rotx;
-    camera->roty = roty;
-    camera->rotz = rotz;
-    simple_update_rotation (camera);
+
+    float sinphi = sinf(rotx);
+    float cosphi = cosf(rotx);
+
+    float sinpsi = sinf(roty);
+    float cospsi = cosf(roty);
+
+    vox_quat qrotx = {sinphi, 0, 0, cosphi}; // First rotation
+    vox_quat qroty = {0, sinpsi, 0, cospsi}; // Second rotation
+    vox_quat_mul (qroty, qrotx, camera->rotation);
 }
 
-static void simple_move_camera (void *obj, vox_dot delta)
+static int simple_move_camera (void *obj, vox_dot delta)
 {
     vox_simple_camera *camera = obj;
     vox_rotate_vector (camera->rotation, delta, delta);
     vox_dot new_pos;
     sum_vector (camera->position, delta, new_pos);
 
-    if (!(vox_tree_ball_collidep (camera->iface.ctx->scene, new_pos, camera->body_radius)))
-        vox_dot_copy (camera->position, new_pos);
+    int res = vox_tree_ball_collidep (camera->iface.ctx->scene, new_pos, camera->body_radius);
+    if (res == 0) vox_dot_copy (camera->position, new_pos);
+    return res;
 }
 
 static void simple_rotate_camera (void *obj, vox_dot delta)
 {
     vox_simple_camera *camera = obj;
-    camera->rotx += delta[0];
-    camera->roty += delta[1];
-    camera->rotz += delta[2];
-    simple_update_rotation (camera);
+
+    int m;
+    vox_dot i = {1,0,0};
+    vox_dot j = {0,1,0};
+    vox_dot k = {0,0,1};
+
+    vox_rotate_vector (camera->rotation, i, i);
+    vox_rotate_vector (camera->rotation, k, k);
+
+    float sinphi = sinf(delta[0]);
+    float cosphi = cosf(delta[0]);
+
+    float sinpsi = sinf(delta[1]);
+    float cospsi = cosf(delta[1]);
+
+    vox_quat qi;
+    for (m=0; m<3; m++) qi[m] = i[m]*sinphi;
+    qi[3] = cosphi;
+
+    vox_quat qk;
+    for (m=0; m<3; m++) qk[m] = k[m]*sinpsi;
+    qk[3] = cospsi;
+
+    vox_quat tmp;
+    vox_quat_mul (qi, camera->rotation, tmp);
+    vox_quat_mul (qk, tmp, camera->rotation);
 }
 
 vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
@@ -82,11 +92,12 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
     camera->body_radius = 50;
-    simple_set_rot_angles (camera, 0, 0, 0);
+    memset (camera->rotation, 0, 3*sizeof(float));
+    camera->rotation[3] = 1;
 
     camera->iface.screen2world = simple_screen2world;
     camera->iface.get_position = simple_get_position;
-    camera->iface.get_rot_angles = simple_get_rot_angles;
+    camera->iface.set_position = simple_set_position;
     camera->iface.set_rot_angles = simple_set_rot_angles;
     camera->iface.move_camera = simple_move_camera;
     camera->iface.rotate_camera = simple_rotate_camera;

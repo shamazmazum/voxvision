@@ -174,8 +174,8 @@ int main (int argc, char *argv[])
         else if (keystate[SDLK_2]) step[2] -= 5;
         if (keystate[SDLK_UP]) rot_delta[0] -= 0.01;
         else if (keystate[SDLK_DOWN]) rot_delta[0] += 0.01;
-        if (keystate[SDLK_LEFT]) rot_delta[1] -= 0.01;
-        else if (keystate[SDLK_RIGHT]) rot_delta[1] += 0.01;
+        if (keystate[SDLK_LEFT]) rot_delta[1] += 0.01;
+        else if (keystate[SDLK_RIGHT]) rot_delta[1] -= 0.01;
         camera->iface.rotate_camera (camera, rot_delta);
         camera->iface.move_camera (camera, step);
 
