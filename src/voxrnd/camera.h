@@ -45,7 +45,7 @@ typedef struct
        \return 0 on success (if no collisions is found)
     */
 
-    void (*set_rot_angles) (void* obj, float rotx, float roty, float rotz);
+    void (*set_rot_angles) (void* obj, vox_dot angles);
     /**< \brief set camera rotation angles */
 
     void (*rotate_camera) (void* obj, vox_dot delta);

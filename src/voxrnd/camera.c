@@ -27,19 +27,22 @@ static int simple_set_position (void *obj, vox_dot pos)
     return res;
 }
 
-static void simple_set_rot_angles (void *obj, float rotx, float roty, float rotz)
+static void simple_set_rot_angles (void *obj, vox_dot angles)
 {
     vox_simple_camera *camera = obj;
 
-    float sinphi = sinf(rotx);
-    float cosphi = cosf(rotx);
+    int i;
+    vox_quat r[3], tmp;
+    memset (r, 0, sizeof(vox_quat)*3);
 
-    float sinpsi = sinf(roty);
-    float cospsi = cosf(roty);
+    for (i=0; i<3; i++)
+    {
+        r[i][i] = sinf(angles[i]);
+        r[i][3] = cosf(angles[i]);
+    }
 
-    vox_quat qrotx = {sinphi, 0, 0, cosphi}; // First rotation
-    vox_quat qroty = {0, sinpsi, 0, cospsi}; // Second rotation
-    vox_quat_mul (qroty, qrotx, camera->rotation);
+    vox_quat_mul (r[1], r[0], tmp);
+    vox_quat_mul (r[2], tmp, camera->rotation);
 }
 
 static int simple_move_camera (void *obj, vox_dot delta)
@@ -58,31 +61,26 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
 {
     vox_simple_camera *camera = obj;
 
-    int m;
-    vox_dot i = {1,0,0};
-    vox_dot j = {0,1,0};
-    vox_dot k = {0,0,1};
+    int i,j;
+    vox_dot ort[3];
+    vox_quat r[3], tmp;
+    memset (ort, 0, sizeof(vox_dot)*3);
+    for (i=0; i<3; i++)
+    {
+        ort[i][i] = 1;
+        vox_rotate_vector (camera->rotation, ort[i], ort[i]);
+        float sinang = sinf(delta[i]);
+        float cosang = cosf(delta[i]);
+        for (j=0; j<3; j++)
+        {
+            r[i][j] = sinang*ort[i][j];
+        }
+        r[i][3] = cosang;
+    }
 
-    vox_rotate_vector (camera->rotation, i, i);
-    vox_rotate_vector (camera->rotation, k, k);
-
-    float sinphi = sinf(delta[0]);
-    float cosphi = cosf(delta[0]);
-
-    float sinpsi = sinf(delta[1]);
-    float cospsi = cosf(delta[1]);
-
-    vox_quat qi;
-    for (m=0; m<3; m++) qi[m] = i[m]*sinphi;
-    qi[3] = cosphi;
-
-    vox_quat qk;
-    for (m=0; m<3; m++) qk[m] = k[m]*sinpsi;
-    qk[3] = cospsi;
-
-    vox_quat tmp;
-    vox_quat_mul (qi, camera->rotation, tmp);
-    vox_quat_mul (qk, tmp, camera->rotation);
+    vox_quat_mul (r[0], camera->rotation, tmp);
+    vox_quat_mul (r[1], tmp, r[0]);
+    vox_quat_mul (r[2], r[0], camera->rotation);
 }
 
 vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)

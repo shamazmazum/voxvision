@@ -119,11 +119,11 @@ int main (int argc, char *argv[])
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
     camera = vox_make_simple_camera (fov, origin);
 
-    float rotx,roty,rotz;
+    vox_dot angles;
     read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
-                         "<%f,%f,%f>", &rotx, &roty, &rotz,
+                         "<%f,%f,%f>", &(angles[0]), &(angles[1]), &(angles[2]),
                          "Specify correct rotation angles\n");
-    camera->iface.set_rot_angles (camera, rotx, roty, rotz);
+    camera->iface.set_rot_angles (camera, angles);
 
     int w = iniparser_getint (cfg, "Window:Width", 800);
     int h = iniparser_getint (cfg, "Window:Height", 600);
@@ -174,8 +174,8 @@ int main (int argc, char *argv[])
         else if (keystate[SDLK_2]) step[2] -= 5;
         if (keystate[SDLK_UP]) rot_delta[0] -= 0.01;
         else if (keystate[SDLK_DOWN]) rot_delta[0] += 0.01;
-        if (keystate[SDLK_LEFT]) rot_delta[1] += 0.01;
-        else if (keystate[SDLK_RIGHT]) rot_delta[1] -= 0.01;
+        if (keystate[SDLK_LEFT]) rot_delta[2] += 0.01;
+        else if (keystate[SDLK_RIGHT]) rot_delta[2] -= 0.01;
         camera->iface.rotate_camera (camera, rot_delta);
         camera->iface.move_camera (camera, step);
 
