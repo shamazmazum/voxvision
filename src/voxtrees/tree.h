@@ -39,6 +39,10 @@ struct vox_node
     vox_dot bb_min; /**< \brief Minimal coordinate of the bounding box */
     vox_dot bb_max; /**< \brief Maximal coordinate of the bounding box */
     vox_uint dots_num;
+    int unused1;
+#ifdef SSE_INTRIN
+    int unused2[2];
+#endif
     union
     {
         vox_dot *dots;
