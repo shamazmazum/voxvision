@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
@@ -9,6 +10,7 @@
 static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
 {
     vox_simple_camera *camera = obj;
+    assert (camera->iface.ctx);
     SDL_Surface *surface = camera->iface.ctx->surface;
     ray[0] = camera->fov*(2.0*sx/surface->w - 1.0);
     ray[1] = 1.0;
@@ -100,6 +102,7 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     camera->iface.move_camera = simple_move_camera;
     camera->iface.rotate_camera = simple_rotate_camera;
     camera->iface.camera = camera;
+    camera->iface.ctx = NULL;
     return camera;
 }
 

@@ -1,6 +1,8 @@
 /**
    @file camera.h
-   @brief Methods for camera class and a simple camera
+   @brief Methods for camera class and a simple camera.
+
+   See vox_camera_interface structure to get more info on camera interface.
 **/
 #ifndef CAMERA_H
 #define CAMERA_H
@@ -12,6 +14,7 @@
 **/
 typedef struct
 {
+    #ifdef VOXRND_SOURCE
     void *camera; /**< \brief A reference to camera. Supply it as the first argument to camera methods */
     struct vox_rnd_ctx *ctx;
 
@@ -24,6 +27,9 @@ typedef struct
        \param sx screen x coordinate
        \param sy screen y coordinate
      */
+    #else
+    void *padding[3];
+    #endif
 
     float* (*get_position) (void* obj);
     /**<
@@ -101,9 +107,7 @@ typedef struct
 /**
    \brief Create and initialize a simple camera
 
-   Camera must be free()'d after use. It also
-   must become a part of one renderer context
-   before any use.
+   Camera can be free()'d after use.
 
    \param fov field of view
    \param position position of the camera
