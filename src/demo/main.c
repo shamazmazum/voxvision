@@ -10,9 +10,10 @@
 #include <voxtrees.h>
 #include <voxrnd.h>
 #include "reader.h"
+#include "config.h"
 
 #define read_vector_or_quit(str, ctrl, x, y, z, errormsg) do {   \
-    res = sscanf (str, ctrl, x, y, z); \
+    int res = sscanf (str, ctrl, x, y, z); \
     if (res != 3) { \
     fprintf (stderr, errormsg); \
     exit (1); }} while (0);
@@ -41,35 +42,51 @@ int get_file_directory (const char *path, char *dir)
     return 1;
 }
 
+void usage ()
+{
+    fprintf (stderr, "Usage: voxvision-demo [-c config-file] dataset-config\n");
+    exit (1);
+}
+
 int main (int argc, char *argv[])
 {
     dimension d;
     vox_dot *set;
-    dictionary *cfg = NULL;
-    int fd = -1, cwd = -1, res = 0;
+    dictionary *cfg;
+    int fd = -1, cwd = -1, sdl_init = 0, ch;
     double time;
 
     struct vox_node *tree = NULL;
     vox_simple_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
 
-    printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);    
-    if (argc != 2)
-    {
-        fprintf (stderr, "Usage: voxvision-demo config\n");
-        goto end;
-    }
+    printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
-    cfg = iniparser_load (argv[1]);
+    // Parse command line arguments
+    while ((ch = getopt (argc, argv, "c:")) != -1)
+    {
+        switch (ch)
+        {
+        case 'c':
+            if (load_configuration (optarg)) fprintf (stderr, "Cannot load configuration file\n");
+            break;
+        default:
+            usage();
+        }
+    }
+    argc -= optind;
+    argv += optind;
+
+    if (argc != 1) usage();
+    const char *datacfgname = argv[0];
+
+    // Parse dataset configuration file
+    cfg = iniparser_load (datacfgname);
     if (cfg == NULL)
     {
-        fprintf (stderr, "Cannot load cfg file\n");
-        goto end;
+        fprintf (stderr, "Cannot load scene configuration file\n");
+        return 1;
     }
-
-    cwd = open (".", O_RDONLY);
-    char path[MAXPATHLEN];
-    if (get_file_directory (argv[1], path)) chdir (path);
 
     read_vector_or_quit (iniparser_getstring (cfg, "Scene:Geometry", ""),
                          "<%i,%i,%i>", &(d.x), &(d.y), &(d.z),
@@ -79,32 +96,54 @@ int main (int argc, char *argv[])
     read_vector_or_quit (iniparser_getstring (cfg, "Scene:Voxsize", "<1,1,1>"),
                          "<%f,%f,%f>", &x, &y, &z,
                          "Specify correct voxsize\n");
-    mul[0] = x; mul[1] = y; mul[2] = z;
-    vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
 
-    fd = open (iniparser_getstring (cfg, "Scene:DataSet", ""), O_RDONLY);
+    const char *datasetname = iniparser_getstring (cfg, "Scene:DataSet", "");
+    int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
+    int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
+
+    vox_dot origin;
+    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Position", "<0,-100,0>"),
+                         "<%f,%f,%f>", &origin[0], &origin[1], &origin[2],
+                         "Specify correct camera position\n");
+    float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
+
+
+    vox_dot angles;
+    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
+                         "<%f,%f,%f>", &(angles[0]), &(angles[1]), &(angles[2]),
+                         "Specify correct rotation angles\n");
+    iniparser_freedict (cfg);
+
+
+    // Read dataset
+    cwd = open (".", O_RDONLY);
+    char path[MAXPATHLEN];
+    if (get_file_directory (datacfgname, path)) chdir (path);
+
+    fd = open (datasetname, O_RDONLY);
     if (fd == -1)
     {
         fprintf (stderr, "Cannot open dataset\n");
         goto end;
     }
 
-    int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
-    int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
     printf ("Reading raw data\n");
+    mul[0] = x; mul[1] = y; mul[2] = z;
+    vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
     int length = read_data (fd, &set, &d, samplesize, threshold);
-
     if (length == -1)
     {
         fprintf (stderr, "Cannot read dataset\n");
         goto end;
     }
+
     close (fd);
     fd = -1;
     fchdir (cwd);
     close (cwd);
     cwd = -1;
 
+    // Build voxel tree
     time = gettime ();
     tree = vox_make_tree (set, length);
     time = gettime() - time;
@@ -112,47 +151,32 @@ int main (int argc, char *argv[])
             vox_inacc_depth (tree), time);
     printf ("Tree balanceness %f\n", vox_inacc_balanceness (tree));
 
-    vox_dot origin;
-    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Position", "<0,-100,0>"),
-                         "<%f,%f,%f>", &origin[0], &origin[1], &origin[2],
-                         "Specify correct camera position\n");
-    float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
-    camera = vox_make_simple_camera (fov, origin);
-
-    vox_dot angles;
-    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
-                         "<%f,%f,%f>", &(angles[0]), &(angles[1]), &(angles[2]),
-                         "Specify correct rotation angles\n");
-    camera->iface.set_rot_angles (camera, angles);
-
-    int w = iniparser_getint (cfg, "Window:Width", 800);
-    int h = iniparser_getint (cfg, "Window:Height", 600);
-
-    iniparser_freedict (cfg);
-    cfg = NULL;
-
-    res = 1;
+    sdl_init = 1;
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
     {
         fprintf(stderr, "Cannot init SDL\n");
-        res = 0;
+        sdl_init = 0;
         goto end;
     }
 
-    SDL_Surface *screen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE);
+    SDL_Surface *screen = SDL_SetVideoMode(global_settings.window_width,
+                                           global_settings.window_height,
+                                           32, SDL_SWSURFACE);
     if (screen == NULL)
     {
         fprintf(stderr, "Cannot init screen\n");
         goto end;
     }
 
+    camera = vox_make_simple_camera (fov, origin);
+    camera->iface.set_rot_angles (camera, angles);
     ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
 
     SDL_Rect rect;
     rect.w = screen->w; rect.h = screen->h;
     rect.x = 0; rect.y = 0;
 
-    printf ("Controls: WASD,1,2 - movement. Arrows - camera rotation\n");
+    printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
             "the current directory\n");
 
@@ -166,16 +190,18 @@ int main (int argc, char *argv[])
         vox_dot step = {0,0,0};
         vox_dot rot_delta = {0,0,0};
         Uint8 *keystate = SDL_GetKeyState (NULL);
-        if (keystate[SDLK_w]) step[1] += 5;
-        else if (keystate[SDLK_s]) step[1] -= 5;
-        if (keystate[SDLK_d]) step[0] += 5;
-        else if (keystate[SDLK_a]) step[0] -= 5;
-        if (keystate[SDLK_1]) step[2] += 5;
-        else if (keystate[SDLK_2]) step[2] -= 5;
-        if (keystate[SDLK_UP]) rot_delta[0] -= 0.01;
-        else if (keystate[SDLK_DOWN]) rot_delta[0] += 0.01;
-        if (keystate[SDLK_LEFT]) rot_delta[2] += 0.01;
-        else if (keystate[SDLK_RIGHT]) rot_delta[2] -= 0.01;
+        if (keystate[global_controls.walk_forwards]) step[1] += 5;
+        else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
+        if (keystate[global_controls.walk_right]) step[0] += 5;
+        else if (keystate[global_controls.walk_left]) step[0] -= 5;
+        if (keystate[global_controls.fly_up]) step[2] += 5;
+        else if (keystate[global_controls.fly_down]) step[2] -= 5;
+        if (keystate[global_controls.look_up]) rot_delta[0] -= 0.01;
+        else if (keystate[global_controls.look_down]) rot_delta[0] += 0.01;
+        if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
+        else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
+        if (keystate[global_controls.look_left]) rot_delta[2] += 0.01;
+        else if (keystate[global_controls.look_right]) rot_delta[2] -= 0.01;
         camera->iface.rotate_camera (camera, rot_delta);
         camera->iface.move_camera (camera, step);
 
@@ -211,7 +237,6 @@ int main (int argc, char *argv[])
     }
 
 end:
-    if (cfg != NULL) iniparser_freedict (cfg);
     if (cwd >= 0) close (cwd);
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
@@ -221,7 +246,7 @@ end:
         vox_destroy_tree (tree);
         free (set);
     }
-    if (res) SDL_Quit();
+    if (sdl_init) SDL_Quit();
 
     return 0;
 }
