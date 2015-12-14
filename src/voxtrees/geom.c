@@ -3,13 +3,13 @@
 
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
-    vox_uint i;
+    int i;
     for (i=0; i<VOX_N; i++) res[i] = a[i] + b[i];
 }
 
-vox_uint get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
+int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 {
-    vox_uint res, i;
+    int res, i;
     res = 0;
 
     for (i=0; i<VOX_N; i++) res |= ((dot1[i] > dot2[i]) ? 1 : 0) << i;
@@ -18,7 +18,7 @@ vox_uint get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 
 float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
 {
-    vox_uint i;
+    int i;
     float res = 0;
     for (i=0; i<VOX_N; i++) res += fabsf (dot1[i] - dot2[i]);
     return res;
@@ -26,7 +26,7 @@ float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
 
 float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 {
-    vox_uint i;
+    int i;
     float res = 0;
     for (i=0; i<VOX_N; i++) res += powf (dot1[i] - dot2[i], 2.0);
     return res;
@@ -34,8 +34,7 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 
 static int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
 {
-    vox_uint i;
-    int the_same = 1;
+    int i, the_same = 1;
     for (i=0; i<VOX_N; i++)
     {
         if (dot[i] < min[i])

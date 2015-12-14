@@ -20,8 +20,8 @@
    \param leaf where the leaf node is stored, if leaf is not NULL
    \return 1 if intersection is found, 0 otherwise
 **/
-vox_uint vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin, const vox_dot dir,
-                                    vox_dot res, const struct vox_node** leaf);
+int vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin, const vox_dot dir,
+                               vox_dot res, const struct vox_node** leaf);
 
 /**
    \brief Find out if a ball collides with voxels in a tree

@@ -29,10 +29,6 @@
 #define VOX_MAX_DOTS 7
 #endif /* VOXTREES_SOURCE */
 
-// Types
-
-typedef unsigned int vox_uint;
-
 // Global vars
 
 /**

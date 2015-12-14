@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
     time = gettime ();
     tree = vox_make_tree (set, length);
     time = gettime() - time;
-    printf ("Building tree (%i voxels, %i depth) took %f\n", vox_voxels_in_tree (tree),
+    printf ("Building tree (%lu voxels, %i depth) took %f\n", vox_voxels_in_tree (tree),
             vox_inacc_depth (tree), time);
     printf ("Tree balanceness %f\n", vox_inacc_balanceness (tree));
 

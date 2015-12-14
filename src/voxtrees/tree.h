@@ -28,6 +28,9 @@
 typedef struct
 {
     vox_dot center; /**< \brief Center of subdivision */
+#ifndef SSE_INTRIN
+    int unused;
+#endif
     struct vox_node *children[VOX_NS]; /**< \brief Children of this node */
 } vox_inner_data;
 
@@ -38,10 +41,9 @@ struct vox_node
 {
     vox_dot bb_min; /**< \brief Minimal coordinate of the bounding box */
     vox_dot bb_max; /**< \brief Maximal coordinate of the bounding box */
-    vox_uint dots_num;
-    int unused1;
+    size_t dots_num;
 #ifdef SSE_INTRIN
-    int unused2[2];
+    int unused[2];
 #endif
     union
     {
@@ -71,17 +73,17 @@ struct vox_node;
    \param n number of voxels in the set
    \return a root node of the newly created tree
 **/
-struct vox_node* vox_make_tree (vox_dot[], vox_uint);
+struct vox_node* vox_make_tree (vox_dot set[], size_t n);
 
 /**
    \brief Free resources used by a tree.
 **/
-void vox_destroy_tree (struct vox_node*);
+void vox_destroy_tree (struct vox_node *tree);
 
 /**
    \brief Return number of voxels in the tree.
 **/
-vox_uint vox_voxels_in_tree (struct vox_node*);
+size_t vox_voxels_in_tree (struct vox_node *tree);
 
 /**
    \brief Calculate a depth of the tree.
@@ -94,7 +96,7 @@ vox_uint vox_voxels_in_tree (struct vox_node*);
    \param tree the tree
    \return depth of the tree
 **/
-vox_uint vox_inacc_depth (struct vox_node* tree);
+int vox_inacc_depth (struct vox_node* tree);
 float vox_inacc_balanceness (struct vox_node*);
 
 /**

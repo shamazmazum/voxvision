@@ -28,7 +28,7 @@ void sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
-vox_uint get_subspace_idx (const vox_dot, const vox_dot);
+int get_subspace_idx (const vox_dot, const vox_dot);
 
 /**
    \brief Calc metric between two dots.

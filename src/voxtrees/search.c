@@ -7,13 +7,13 @@
 #include "search.h"
 
 // Maybe following deserves a bit more explanation
-vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
+int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
                                     vox_dot res, const struct vox_node **leaf)
 {
     vox_dot tmp;
-    vox_uint i;
+    int i;
     vox_dot *plane_inter;
-    vox_uint *plane_inter_idx, tmp2;
+    int *plane_inter_idx, tmp2;
 
     if (leaf) *leaf = tree;
 
@@ -24,7 +24,7 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
     {
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
         // with voxels stored in the leaf and return closest one
-        vox_uint found = 0;
+        int found = 0;
         float dist_closest, dist_far;
         vox_dot *dots = tree->data.dots;
 
@@ -43,14 +43,13 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
                 }
             }
         }
-
         return found;
     }
 
     // not a leaf. tmp holds an entry point into node's bounding box
     const vox_inner_data *inner = &(tree->data.inner);
     // Find subspace index of the entry point
-    vox_uint subspace = get_subspace_idx (inner->center, tmp);
+    int subspace = get_subspace_idx (inner->center, tmp);
     // Look if we are lucky and the ray hits any box before it traverses the dividing planes
     // (in other words it hits a box close enough to the entry_point)
     if (vox_ray_tree_intersection (inner->children[subspace], tmp, dir,
@@ -102,7 +101,7 @@ vox_uint vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot o
 
 int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float radius)
 {
-    vox_uint i;
+    int i;
     if (!(VOX_FULLP (tree))) return 0;
     if (box_ball_interp (tree->bb_min, tree->bb_max, center, radius))
     {
