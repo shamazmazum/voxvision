@@ -17,6 +17,9 @@ struct controls
     unsigned short walk_backwards;
     unsigned short fly_up;
     unsigned short fly_down;
+
+    unsigned short shrink;
+    unsigned short grow;
 };
 extern struct controls global_controls;
 

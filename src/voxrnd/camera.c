@@ -106,7 +106,14 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     return camera;
 }
 
-void vox_simple_camera_set_radius (vox_simple_camera *camera, float radius)
+float vox_simple_camera_set_radius (vox_simple_camera *camera, float radius)
 {
+    radius = (radius > 0) ? radius : 0;
     camera->body_radius = radius;
+    return radius;
+}
+
+float vox_simple_camera_get_radius (vox_simple_camera *camera)
+{
+    return camera->body_radius;
 }

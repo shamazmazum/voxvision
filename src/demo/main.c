@@ -190,6 +190,7 @@ int main (int argc, char *argv[])
         vox_dot step = {0,0,0};
         vox_dot rot_delta = {0,0,0};
         Uint8 *keystate = SDL_GetKeyState (NULL);
+        float radius;
         if (keystate[global_controls.walk_forwards]) step[1] += 5;
         else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
         if (keystate[global_controls.walk_right]) step[0] += 5;
@@ -210,16 +211,19 @@ int main (int argc, char *argv[])
             switch (event.type)
             {
             case SDL_KEYDOWN:
-                switch (event.key.keysym.sym)
+                if ((event.key.keysym.sym == global_controls.shrink) ||
+                    (event.key.keysym.sym == global_controls.grow))
                 {
-                case 'q':
-                    goto end;
-                case SDLK_F11:
-                    SDL_SaveBMP (screen, "screen.bmp");
-                    break;
-                    /* Just to silence clang warning */
-                default: ;
+                    radius = vox_simple_camera_get_radius (camera);
+                    if (event.key.keysym.sym == global_controls.shrink)
+                        radius-=5;
+                    else
+                        radius+=5;
+                    radius = vox_simple_camera_set_radius (camera, radius);
+                    printf ("Camera body radius is now %f\n", radius);
                 }
+                else if (event.key.keysym.sym == SDLK_q) goto end;
+                else if (event.key.keysym.sym == SDLK_F11) SDL_SaveBMP (screen, "screen.bmp");
                 break;
             case SDL_QUIT:
                 goto end;

@@ -121,8 +121,18 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
    This body cannot intersect any other object,
    so this way collision detection is implemented.
    This function sets a radius of this sphere.
+
+   \return A new body radius.
+   If supplied radius is lesser than zero, zero is returned
 **/
-void vox_simple_camera_set_radius (vox_simple_camera *camera, float radius);
+float vox_simple_camera_set_radius (vox_simple_camera *camera, float radius);
+
+/**
+   \brief Get body radius of a simple camera.
+
+   See vox_simple_camera_set_radius() for details.
+**/
+float vox_simple_camera_get_radius (vox_simple_camera *camera);
 
 #if 0
 /**

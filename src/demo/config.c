@@ -18,7 +18,10 @@ struct controls global_controls =
     .walk_forwards  = SDLK_w,
     .walk_backwards = SDLK_s,
     .fly_up         = SDLK_1,
-    .fly_down       = SDLK_2
+    .fly_down       = SDLK_2,
+
+    .shrink         = SDLK_h,
+    .grow           = SDLK_g
 };
 
 // And the same for the settings.
