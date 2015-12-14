@@ -67,9 +67,9 @@ struct vox_node;
 /**
    \brief Turn a set of voxels into a tree.
 
-   The Underlying set must remain valid when tree is used.
+   The underlying set must remain valid when tree is used.
 
-   \param set
+   \param set a set of dots (of type vox_dot) to form a tree
    \param n number of voxels in the set
    \return a root node of the newly created tree
 **/
@@ -77,6 +77,8 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n);
 
 /**
    \brief Free resources used by a tree.
+
+   Note, that you must free underlying set by yourself.
 **/
 void vox_destroy_tree (struct vox_node *tree);
 
@@ -96,12 +98,19 @@ size_t vox_voxels_in_tree (struct vox_node *tree);
    \param tree the tree
    \return depth of the tree
 **/
-int vox_inacc_depth (struct vox_node* tree);
-float vox_inacc_balanceness (struct vox_node*);
+int vox_inacc_depth (struct vox_node *tree);
+
+/**
+   \brief Estimate balanceness of the tree.
+
+   If value returned from this function is far from 1.0,
+   the tree is unbalanced
+**/
+float vox_inacc_balanceness (struct vox_node *tree);
 
 /**
    \brief Get the bounding box for voxels in tree
 **/
-void vox_bounding_box (const struct vox_node*, vox_dot, vox_dot);
+void vox_bounding_box (const struct vox_node *tree, vox_dot min, vox_dot max);
 
 #endif
