@@ -24,30 +24,6 @@
 float* vox_rotate_vector (const vox_quat, const vox_dot, vox_dot);
 
 /**
-   \brief Reverse the vector
-
-   Find vector \f$v^\prime\f$ defined by equation \f$v^\prime + v
-   = 0\f$
-
-   \param v a vector to invert
-   \param res to store the result
-   \return pointer to res
-**/
-float* vox_vector_inv (const vox_dot, vox_dot);
-
-/**
-   \brief Return a conjugate of quaternion
-
-   Return quaternion \f$\overline{q}\f$ defined by equation
-   \f$\overline{q}q = {\vert q \vert}^2\f$
-
-   \param q a quaternion to conjugate
-   \param res to store the result
-   \return pointer to res
-**/
-float* vox_quat_conj (const vox_quat, vox_quat);
-
-/**
    \brief Return multiplication of 2 quaternions
 **/
 float* vox_quat_mul (const vox_quat, const vox_quat, vox_quat);

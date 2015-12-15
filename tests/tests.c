@@ -32,7 +32,7 @@ struct vox_node *working_tree;
 
 static int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
 {
-    vox_uint i;
+    int i;
 
     for (i=0; i<VOX_N; i++) {if ((dot[i] < min[i]) || (dot[i] > max[i])) return 0;}
     return 1;
@@ -118,6 +118,13 @@ void test_change_axis ()
     CU_ASSERT (vect_eq (expz, vectz));
 }
 
+static float* vector_inv (const vox_dot dot, vox_dot res)
+{
+    int i;
+    for (i=0; i<VOX_N; i++) res[i] = -dot[i];
+    return res;
+}
+
 void test_anticommut ()
 {
     // Rotating x around y must result in rotaiong y around x with different sign
@@ -133,7 +140,7 @@ void test_anticommut ()
     vox_rotate_vector (basex, vecty, res1);
     vox_rotate_vector (basey, vectx, res2);
     
-    CU_ASSERT (vect_eq (res1, vox_vector_inv (res2, res2)));
+    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2)));
 }
 
 void rot_composition ()
@@ -190,7 +197,7 @@ void prepare_rnd_set_and_tree (struct vox_node **node_ptr, vox_dot **set_ptr)
 void check_tree (struct vox_node *tree)
 {
     vox_dot snd_corner;
-    vox_uint i;
+    int i;
 
     if (VOX_FULLP (tree))
     {

@@ -2,20 +2,6 @@
 
 #define VOX_N 3
 
-float* vox_vector_inv (const vox_dot vect, vox_dot res)
-{
-    int i;
-    for (i=0; i<VOX_N; i++) res[i] = -vect[i];
-    return res;
-}
-
-float* vox_quat_conj (const vox_quat quat, vox_quat res)
-{
-    int i;
-    for (i=0; i<3; i++) res[i] = -quat[i];
-    return res;
-}
-
 float vox_dot_product (const vox_dot v1, const vox_dot v2)
 {
     float res = 0;

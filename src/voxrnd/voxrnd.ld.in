@@ -7,7 +7,6 @@ VOXRND_@voxvision_VERSION@ {
             vox_make_renderer_context;
             vox_render;
 # For the tests
-            vox_quat_conj;
             vox_quat_mul;
             vox_rotate_vector;
             vox_vector_inv;

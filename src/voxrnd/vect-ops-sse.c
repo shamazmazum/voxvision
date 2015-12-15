@@ -2,11 +2,6 @@
 #include <pmmintrin.h>
 #include "vect-ops.h"
 
-static __v4sf conj_ (__v4sf q)
-{
-    return _mm_xor_ps (q, (__v4sf)_mm_set_epi32 (0, 0x80000000, 0x80000000, 0x80000000));
-}
-
 static __v4sf quat_re (__v4sf q) {return _mm_shuffle_ps (q, q, 255);}
 static __v4sf quat_im (__v4sf q)
 {
@@ -48,9 +43,6 @@ float* vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res
     _mm_store_ps (res, resv);
     return res;
 }
-
-float* vox_vector_inv (const vox_dot v, vox_dot res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
-float* vox_quat_conj (const vox_quat v, vox_quat res) {_mm_store_ps (res, conj_ (_mm_load_ps (v))); return res;}
 
 float* vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
 {
