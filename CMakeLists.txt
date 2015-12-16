@@ -16,6 +16,10 @@ find_package (IniParser REQUIRED)
 find_package (GCD)
 
 option (SSE_INTRIN "Enable SSE intrinsic")
+if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+add_definitions (-DSTATISTICS)
+unset (GCD_FOUND)
+endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 
 add_subdirectory (src)
 

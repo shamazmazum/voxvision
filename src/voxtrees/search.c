@@ -6,6 +6,10 @@
 #include "geom.h"
 #include "search.h"
 
+#ifdef STATISTICS
+static int recursion = -1;
+#endif
+
 // Maybe following deserves a bit more explanation
 int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
                                     vox_dot res, const struct vox_node **leaf)
@@ -14,17 +18,28 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     int i;
     vox_dot *plane_inter;
     int *plane_inter_idx, tmp2;
+    int found = 0;
 
+#ifdef STATISTICS
+    recursion++;
+    if (recursion == 0) gstats.rti_calls++;
+#endif
+    
     if (leaf) *leaf = tree;
 
-    if (!(VOX_FULLP (tree))) return 0;
-    if (!(hit_box (tree->bb_min, tree->bb_max, origin, dir, tmp))) return 0;
+    if (!(VOX_FULLP (tree)) ||
+        !(hit_box (tree->bb_min, tree->bb_max, origin, dir, tmp)))
+    {
+#ifdef STATISTICS
+        if (recursion == 0) gstats.rti_early_exits++;
+#endif
+        goto end;
+    }
 
     if (VOX_LEAFP(tree))
     {
         // If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
         // with voxels stored in the leaf and return closest one
-        int found = 0;
         float dist_closest, dist_far;
         vox_dot *dots = tree->data.dots;
 
@@ -43,7 +58,7 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
                 }
             }
         }
-        return found;
+        goto end;
     }
 
     // not a leaf. tmp holds an entry point into node's bounding box
@@ -53,7 +68,14 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     // Look if we are lucky and the ray hits any box before it traverses the dividing planes
     // (in other words it hits a box close enough to the entry_point)
     if (vox_ray_tree_intersection (inner->children[subspace], tmp, dir,
-                                   res, leaf)) return 1;
+                                   res, leaf))
+    {
+        found = 1;
+#ifdef STATISTICS
+        if (recursion == 0) gstats.rti_first_subspace++;
+#endif
+        goto end;
+    }
     
     // No luck, search for intersections of the ray and all N axis-aligned dividing planes
     // for our N-dimentional space.
@@ -93,10 +115,21 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
         // using child node specified by subspace index. If an intersection is found, return.
         // Note, what we specify an entry point to that child as a new ray origin
         if (vox_ray_tree_intersection (inner->children[subspace], plane_inter[i], dir,
-                                       res, leaf)) return 1;
+                                       res, leaf))
+        {
+            found = 1;
+            goto end;
+        }
     }
+#ifdef STATISTICS
+    if (recursion == 0) gstats.rti_worst_cases++;
+#endif
 
-    return 0;
+end:
+#ifdef STATISTICS
+    recursion--;
+#endif
+    return found;
 }
 
 int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float radius)

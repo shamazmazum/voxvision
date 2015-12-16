@@ -139,6 +139,10 @@ static void* node_alloc (int leaf)
     return malloc (size);
 }
 
+#ifdef STATISTICS
+static int recursion = -1;
+#endif
+
 // Self-explanatory. No, really.
 // Being short: if number of voxels in a set is less or equal
 // to maximum number allowed, create a leaf and store voxels there.
@@ -148,6 +152,9 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 {
     int leaf = n <= VOX_MAX_DOTS;
     struct vox_node *res  = NULL;
+#ifdef STATISTICS
+    recursion++;
+#endif
 
     if (n > 0)
     {
@@ -155,7 +162,14 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         res->dots_num = n;
         calc_bounding_box (set, n, res->bb_min, res->bb_max);
 
-        if (leaf) res->data.dots = set;
+        if (leaf)
+        {
+#ifdef STATISTICS
+            gstats.leaf_nodes++;
+            gstats.depth_hist[recursion]++;
+#endif
+            res->data.dots = set;
+        }
         else
         {
             int idx;
@@ -173,6 +187,10 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
         }
     }
+#ifdef STATISTICS
+    else gstats.empty_nodes++;
+    recursion--;
+#endif
 
     return res;
 }

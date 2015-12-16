@@ -27,6 +27,8 @@
    \brief Maximum number of dots in tree leaf.
 **/
 #define VOX_MAX_DOTS 7
+
+#include "statistics.h"
 #endif /* VOXTREES_SOURCE */
 
 // Global vars
