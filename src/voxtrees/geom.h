@@ -82,6 +82,7 @@ int hit_plane_within_box (const vox_dot, const vox_dot, const vox_dot, int,
 **/
 int box_ball_interp (const vox_dot, const vox_dot, const vox_dot, float);
 float* closest_in_set (vox_dot[], int, const vox_dot, float (*) (const vox_dot, const vox_dot));
+float fill_ratio (const vox_dot min, const vox_dot max, size_t n);
 #endif
 
 #endif

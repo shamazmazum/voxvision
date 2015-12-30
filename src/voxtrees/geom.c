@@ -142,3 +142,16 @@ float* closest_in_set (vox_dot set[], int n, const vox_dot dot, float (*metric) 
     return res;
 }
 #endif
+
+float fill_ratio (const vox_dot min, const vox_dot max, size_t n)
+{
+    float bb_volume, vox_volume;
+    vox_dot box;
+    int i;
+
+    for (i=0; i<VOX_N; i++) box[i] = max[i] - min[i];
+    bb_volume = box[0]*box[1]*box[2];
+    vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
+    vox_volume *= n;
+    return vox_volume/bb_volume;
+}

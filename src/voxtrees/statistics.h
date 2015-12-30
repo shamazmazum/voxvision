@@ -3,6 +3,7 @@
 #ifdef STATISTICS
 #define WITH_STAT(expr) expr
 #define DEPTH_MAX 20
+#define FILL_RATIO_LEN 10
 
 struct statistics
 {
@@ -14,9 +15,15 @@ struct statistics
     unsigned long rti_early_exits;
     unsigned long rti_first_subspace;
     unsigned long rti_worst_cases;
+
+    float empty_volume;
+    unsigned long fill_ratio_hist[FILL_RATIO_LEN];
 };
 
 extern struct statistics gstats;
+
+void update_fill_ratio_hist (float ratio);
+float get_empty_volume (float ratio, size_t n);
 
 #else
 #define WITH_STAT(expr) 
