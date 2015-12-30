@@ -6,9 +6,7 @@
 #include "geom.h"
 #include "search.h"
 
-#ifdef STATISTICS
-static int recursion = -1;
-#endif
+WITH_STAT (static int recursion = -1;)
 
 // Maybe following deserves a bit more explanation
 int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
@@ -20,19 +18,15 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     int *plane_inter_idx, tmp2;
     int found = 0;
 
-#ifdef STATISTICS
-    recursion++;
-    if (recursion == 0) gstats.rti_calls++;
-#endif
+    WITH_STAT (recursion++);
+    WITH_STAT (if (recursion == 0) gstats.rti_calls++);
     
     if (leaf) *leaf = tree;
 
     if (!(VOX_FULLP (tree)) ||
         !(hit_box (tree->bb_min, tree->bb_max, origin, dir, tmp)))
     {
-#ifdef STATISTICS
-        if (recursion == 0) gstats.rti_early_exits++;
-#endif
+        WITH_STAT (if (recursion == 0) gstats.rti_early_exits++);
         goto end;
     }
 
@@ -71,9 +65,7 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
                                    res, leaf))
     {
         found = 1;
-#ifdef STATISTICS
-        if (recursion == 0) gstats.rti_first_subspace++;
-#endif
+        WITH_STAT (if (recursion == 0) gstats.rti_first_subspace++);
         goto end;
     }
     
@@ -121,14 +113,10 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
             goto end;
         }
     }
-#ifdef STATISTICS
-    if (recursion == 0) gstats.rti_worst_cases++;
-#endif
+    WITH_STAT (if (recursion == 0) gstats.rti_worst_cases++);
 
 end:
-#ifdef STATISTICS
-    recursion--;
-#endif
+    WITH_STAT (recursion--);
     return found;
 }
 

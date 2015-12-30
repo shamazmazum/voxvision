@@ -139,9 +139,7 @@ static void* node_alloc (int leaf)
     return malloc (size);
 }
 
-#ifdef STATISTICS
-static int recursion = -1;
-#endif
+WITH_STAT (static int recursion = -1;)
 
 // Self-explanatory. No, really.
 // Being short: if number of voxels in a set is less or equal
@@ -152,9 +150,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 {
     int leaf = n <= VOX_MAX_DOTS;
     struct vox_node *res  = NULL;
-#ifdef STATISTICS
-    recursion++;
-#endif
+    WITH_STAT (recursion++);
 
     if (n > 0)
     {
@@ -164,10 +160,8 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 
         if (leaf)
         {
-#ifdef STATISTICS
-            gstats.leaf_nodes++;
-            gstats.depth_hist[recursion]++;
-#endif
+            WITH_STAT (gstats.leaf_nodes++);
+            WITH_STAT (gstats.depth_hist[recursion]++);
             res->data.dots = set;
         }
         else
@@ -187,11 +181,8 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
         }
     }
-#ifdef STATISTICS
-    else gstats.empty_nodes++;
-    recursion--;
-#endif
-
+    WITH_STAT (else gstats.empty_nodes++);
+    WITH_STAT (recursion--);
     return res;
 }
 

@@ -1,7 +1,7 @@
 #ifndef _STATISTICS_H_
 #define _STATISTICS_H_
 #ifdef STATISTICS
-
+#define WITH_STAT(expr) expr
 #define DEPTH_MAX 20
 
 struct statistics
@@ -18,5 +18,7 @@ struct statistics
 
 extern struct statistics gstats;
 
+#else
+#define WITH_STAT(expr) 
 #endif
 #endif
