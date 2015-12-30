@@ -8,7 +8,7 @@
 vox_dot vox_voxel = {1.0, 1.0, 1.0};
 
 #ifdef SSE_INTRIN
-static void calc_avg (vox_dot set[], size_t n, vox_dot res)
+static void calc_avg (const vox_dot set[], size_t n, vox_dot res)
 {
     size_t i;
     __v4sf lenmul = _mm_set_ps1 (1.0/n);
@@ -20,7 +20,7 @@ static void calc_avg (vox_dot set[], size_t n, vox_dot res)
     _mm_store_ps (res, resv);
 }
 #else /* SSE_INTRIN */
-static void calc_avg (vox_dot set[], size_t n, vox_dot res)
+static void calc_avg (const vox_dot set[], size_t n, vox_dot res)
 {
     size_t i;
     float lenmul = 1.0/n;
@@ -32,7 +32,7 @@ static void calc_avg (vox_dot set[], size_t n, vox_dot res)
 #endif /* SSE_INTRIN */
 
 #ifdef SSE_INTRIN
-static void calc_bounding_box (vox_dot set[], size_t n, vox_dot min, vox_dot max)
+static void calc_bounding_box (const vox_dot set[], size_t n, vox_dot min, vox_dot max)
 {
     size_t i;
     __v4sf minv = _mm_load_ps (set[0]);
@@ -49,7 +49,7 @@ static void calc_bounding_box (vox_dot set[], size_t n, vox_dot min, vox_dot max
     _mm_store_ps (max, maxv);
 }
 #else /* SSE_INTRIN */
-static void calc_bounding_box (vox_dot set[], size_t n, vox_dot min, vox_dot max)
+static void calc_bounding_box (const vox_dot set[], size_t n, vox_dot min, vox_dot max)
 {
     size_t i;
     int j;
@@ -69,7 +69,7 @@ static void calc_bounding_box (vox_dot set[], size_t n, vox_dot min, vox_dot max
 }
 #endif /* SSE_INTRIN */
 
-void vox_align (vox_dot dot)
+static void vox_align (vox_dot dot)
 {
     int i;
     float tmp;
@@ -105,7 +105,7 @@ static int get_subspace_idx_simd (const vox_dot center, const vox_dot dot)
    \param center the center of subdivision
    \return offset + how many dots were moved
 **/
-static size_t filter_set (vox_dot set[], size_t n, size_t offset, int subspace, const vox_dot center)
+static size_t sort_set (vox_dot set[], size_t n, size_t offset, int subspace, const vox_dot center)
 {
     size_t i, counter = offset;
     vox_dot tmp;
@@ -181,7 +181,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 
             for (idx=0; idx<VOX_NS; idx++)
             {
-                new_offset = filter_set (set, n, offset, idx, inner->center);
+                new_offset = sort_set (set, n, offset, idx, inner->center);
                 inner->children[idx] = vox_make_tree (set+offset, new_offset-offset);
                 offset = new_offset;
             }

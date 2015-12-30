@@ -51,15 +51,6 @@ struct vox_node
         vox_inner_data inner;
     } data; /**< \brief Data specific to inner and leaf nodes */
 };
-
-/**
-   \brief Align vector on voxel.
-
-   This is a destructive operation.
-   
-   \param dot dot to be aligned
-**/
-void vox_align (vox_dot);
 #else /* VOXTREES_SOURCE */
 struct vox_node;
 #endif /* VOXTREES_SOURCE */
