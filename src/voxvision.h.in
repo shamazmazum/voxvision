@@ -29,5 +29,10 @@ typedef float vox_quat[4];
 #include <string.h>
 #define vox_dot_copy(d1, d2) memcpy ((d1), (d2), sizeof (vox_dot))
 #endif
+struct vox_box
+{
+    vox_dot min;
+    vox_dot max;
+};
 
 #endif

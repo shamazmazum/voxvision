@@ -32,19 +32,19 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
     return res;
 }
 
-static int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot, vox_dot res)
+static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
 {
     int i, the_same = 1;
     for (i=0; i<VOX_N; i++)
     {
-        if (dot[i] < min[i])
+        if (dot[i] < box->min[i])
         {
-            res[i] = min[i];
+            res[i] = box->min[i];
             the_same = 0;
         }
-        else if (dot[i] > max[i])
+        else if (dot[i] > box->max[i])
         {
-            res[i] = max[i];
+            res[i] = box->max[i];
             the_same = 0;
         }
         else res[i] = dot[i];
@@ -54,12 +54,12 @@ static int fit_into_box (const vox_dot min, const vox_dot max, const vox_dot dot
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation
-int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const vox_dot dir, vox_dot res)
+int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir, vox_dot res)
 {
     vox_dot candidate_plane;
     float max_dist, tmp;
     int i, plane_num;
-    int insidep = fit_into_box (min, max, origin, candidate_plane);
+    int insidep = fit_into_box (box, origin, candidate_plane);
     if (insidep)
     {
         vox_dot_copy (res, origin);
@@ -89,7 +89,7 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
         else
         {
             tmp = origin[i] + max_dist*dir[i];
-            if ((tmp < min[i]) || (tmp > max[i])) return 0;
+            if ((tmp < box->min[i]) || (tmp > box->max[i])) return 0;
             res[i] = tmp;
         }
     }
@@ -98,7 +98,7 @@ int hit_box (const vox_dot min, const vox_dot max, const vox_dot origin, const v
 }
 
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
-                          int planenum, vox_dot res, const vox_dot min, const vox_dot max)
+                          int planenum, vox_dot res, const struct vox_box *box)
 {
     int i;
     float k;
@@ -111,15 +111,15 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     for (i=0; i<VOX_N; i++)
     {
         res[i] = origin[i] + k*dir[i];
-        if ((res[i] < min[i]) || (res[i] > max[i])) return 0;
+        if ((res[i] < box->min[i]) || (res[i] > box->max[i])) return 0;
     }
     return 1;
 }
 
-int box_ball_interp (const vox_dot min, const vox_dot max, const vox_dot center, float radius)
+int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius)
 {
     vox_dot fitted;
-    fit_into_box (min, max, center, fitted);
+    fit_into_box (box, center, fitted);
     return (calc_sqr_metric (fitted, center) < (radius*radius)) ? 1 : 0;
 }
 
@@ -143,14 +143,14 @@ float* closest_in_set (vox_dot set[], int n, const vox_dot dot, float (*metric) 
 }
 #endif
 
-float fill_ratio (const vox_dot min, const vox_dot max, size_t n)
+float fill_ratio (const struct vox_box *box, size_t n)
 {
     float bb_volume, vox_volume;
-    vox_dot box;
+    vox_dot size;
     int i;
 
-    for (i=0; i<VOX_N; i++) box[i] = max[i] - min[i];
-    bb_volume = box[0]*box[1]*box[2];
+    for (i=0; i<VOX_N; i++) size[i] = box->max[i] - box->min[i];
+    bb_volume = size[0]*size[1]*size[2];
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
     vox_volume *= n;
     return vox_volume/bb_volume;

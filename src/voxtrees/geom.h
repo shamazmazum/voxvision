@@ -48,14 +48,13 @@ float calc_sqr_metric (const vox_dot, const vox_dot);
 /**
    \brief Find intersection of a ray and an axis-aligned box.
    
-   \param min minimal coordinates of the box
-   \param max maximal coordinates of the box
+   \param box a box to be checked
    \param origin a starting point of the ray
    \param dir the direction
    \param res where intersection is stored
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_box (const vox_dot, const vox_dot, const vox_dot, const vox_dot, vox_dot);
+int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir, vox_dot res);
 
 /**
    \brief Find intersection of a ray and a plane.
@@ -68,21 +67,20 @@ int hit_box (const vox_dot, const vox_dot, const vox_dot, const vox_dot, vox_dot
    \param planedot a dot on the plane
    \param planenum an axis number the plane is aligned with
    \param res where intersection is stored
-   \param min minimal coordinates of the box
-   \param max maximal coordinates of the box
+   \param box a box
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_plane_within_box (const vox_dot, const vox_dot, const vox_dot, int,
-                          vox_dot, const vox_dot, const vox_dot);
+int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
+                          int planenum, vox_dot res, const struct vox_box *box);
 
 /**
    \brief Find intersection of a box and a ball.
    
    The box and the ball are solid
 **/
-int box_ball_interp (const vox_dot, const vox_dot, const vox_dot, float);
+int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius);
 float* closest_in_set (vox_dot[], int, const vox_dot, float (*) (const vox_dot, const vox_dot));
-float fill_ratio (const vox_dot min, const vox_dot max, size_t n);
+float fill_ratio (const struct vox_box *box, size_t n);
 #endif
 
 #endif

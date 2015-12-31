@@ -39,8 +39,7 @@ typedef struct
 **/
 struct vox_node
 {
-    vox_dot bb_min; /**< \brief Minimal coordinate of the bounding box */
-    vox_dot bb_max; /**< \brief Maximal coordinate of the bounding box */
+    struct vox_box bounding_box;
     size_t dots_num;
 #ifdef SSE_INTRIN
     int unused[2];
@@ -102,6 +101,6 @@ float vox_inacc_balanceness (struct vox_node *tree);
 /**
    \brief Get the bounding box for voxels in tree
 **/
-void vox_bounding_box (const struct vox_node *tree, vox_dot min, vox_dot max);
+void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 
 #endif

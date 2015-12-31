@@ -24,7 +24,7 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     if (leaf) *leaf = tree;
 
     if (!(VOX_FULLP (tree)) ||
-        !(hit_box (tree->bb_min, tree->bb_max, origin, dir, tmp)))
+        !(hit_box (&(tree->bounding_box), origin, dir, tmp)))
     {
         WITH_STAT (if (recursion == 0) gstats.rti_early_exits++);
         goto end;
@@ -36,12 +36,14 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
         // with voxels stored in the leaf and return closest one
         float dist_closest, dist_far;
         vox_dot *dots = tree->data.dots;
+        struct vox_box *voxel = alloca (sizeof (struct vox_box));
 
         // tmp is a "far" intersection, while res is the closest one.
         for (i=0; i<tree->dots_num; i++)
         {
-            sum_vector (dots[i], vox_voxel, tmp);
-            if (hit_box (dots[i], tmp, origin, dir, tmp))
+            vox_dot_copy (voxel->min, dots[i]);
+            sum_vector (voxel->min, vox_voxel, voxel->max);
+            if (hit_box (voxel, origin, dir, tmp))
             {
                 dist_far = calc_abs_metric (origin, tmp);
                 if (((found) && (dist_far < dist_closest)) || (!found))
@@ -80,7 +82,7 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     {
         plane_inter_idx[plane_counter] = i;
         if (hit_plane_within_box (origin, dir, inner->center, i, plane_inter[plane_counter],
-                                  tree->bb_min, tree->bb_max)) plane_counter++;
+                                  &(tree->bounding_box))) plane_counter++;
     }
 
     for (i=0; i<plane_counter; i++)
@@ -124,16 +126,17 @@ int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float r
 {
     int i;
     if (!(VOX_FULLP (tree))) return 0;
-    if (box_ball_interp (tree->bb_min, tree->bb_max, center, radius))
+    if (box_ball_interp (&(tree->bounding_box), center, radius))
     {
         if (VOX_LEAFP (tree))
         {
-            vox_dot tmp;
             vox_dot *dots = tree->data.dots;
+            struct vox_box *voxel = alloca (sizeof (struct vox_box));
             for (i=0; i<tree->dots_num; i++)
             {
-                sum_vector (dots[i], vox_voxel, tmp);
-                if (box_ball_interp (dots[i], tmp, center, radius)) return 1;
+                vox_dot_copy (voxel->min, dots[i]);
+                sum_vector (voxel->min, vox_voxel, voxel->max);
+                if (box_ball_interp (voxel, center, radius)) return 1;
             }
         }
         else

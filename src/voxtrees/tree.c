@@ -32,40 +32,40 @@ static void calc_avg (const vox_dot set[], size_t n, vox_dot res)
 #endif /* SSE_INTRIN */
 
 #ifdef SSE_INTRIN
-static void calc_bounding_box (const vox_dot set[], size_t n, vox_dot min, vox_dot max)
+static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *box)
 {
     size_t i;
-    __v4sf minv = _mm_load_ps (set[0]);
-    __v4sf maxv = minv;
+    __v4sf min = _mm_load_ps (set[0]);
+    __v4sf max = min;
 
     for (i=1; i<n; i++)
     {
-        minv = __builtin_ia32_minps (minv, _mm_load_ps (set[i]));
-        maxv = __builtin_ia32_maxps (maxv, _mm_load_ps (set[i]));
+        min = __builtin_ia32_minps (min, _mm_load_ps (set[i]));
+        max = __builtin_ia32_maxps (max, _mm_load_ps (set[i]));
     }
-    maxv += _mm_load_ps (vox_voxel);
+    max += _mm_load_ps (vox_voxel);
 
-    _mm_store_ps (min, minv);
-    _mm_store_ps (max, maxv);
+    _mm_store_ps (box->min, min);
+    _mm_store_ps (box->max, max);
 }
 #else /* SSE_INTRIN */
-static void calc_bounding_box (const vox_dot set[], size_t n, vox_dot min, vox_dot max)
+static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *box)
 {
     size_t i;
     int j;
     
-    vox_dot_copy (min, set[0]);
-    vox_dot_copy (max, set[0]);
+    vox_dot_copy (box->min, set[0]);
+    vox_dot_copy (box->max, set[0]);
 
     for (i=0; i<n; i++)
     {
         for (j=0; j<VOX_N; j++)
         {
-            if (set[i][j] < min[j]) min[j] = set[i][j];
-            else if (set[i][j] > max[j]) max[j] = set[i][j];
+            if (set[i][j] < box->min[j]) box->min[j] = set[i][j];
+            else if (set[i][j] > box->max[j]) box->max[j] = set[i][j];
         }
     }
-    sum_vector (max, vox_voxel, max);
+    sum_vector (box->max, vox_voxel, box->max);
 }
 #endif /* SSE_INTRIN */
 
@@ -156,7 +156,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     {
         res = node_alloc (leaf);
         res->dots_num = n;
-        calc_bounding_box (set, n, res->bb_min, res->bb_max);
+        calc_bounding_box (set, n, &(res->bounding_box));
 
         if (leaf)
         {
@@ -250,8 +250,8 @@ float vox_inacc_balanceness (struct vox_node *tree)
     return vox_inacc_depth (tree) / expected_depth;
 }
 
-void vox_bounding_box (const struct vox_node* tree, vox_dot min, vox_dot max)
+void vox_bounding_box (const struct vox_node* tree, struct vox_box *box)
 {
-    vox_dot_copy (min, tree->bb_min);
-    vox_dot_copy (max, tree->bb_max);
+    vox_dot_copy (box->min, tree->bounding_box.min);
+    vox_dot_copy (box->max, tree->bounding_box.max);
 }
