@@ -163,7 +163,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             WITH_STAT (gstats.leaf_nodes++);
             WITH_STAT (gstats.depth_hist[recursion]++);
             res->data.dots = set;
-            WITH_STAT (float ratio = fill_ratio (res->bb_min, res->bb_max, n));
+            WITH_STAT (float ratio = fill_ratio (&(res->bounding_box), n));
             WITH_STAT (update_fill_ratio_hist (ratio));
             WITH_STAT (gstats.empty_volume += get_empty_volume (ratio, n));
         }
