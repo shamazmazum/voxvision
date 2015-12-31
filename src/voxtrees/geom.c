@@ -1,11 +1,19 @@
 #include <math.h>
 #include "geom.h"
 
+#ifdef SSE_INTRIN
+void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
+{
+    __v4sf dot = _mm_load_ps (a);
+    _mm_store_ps (res, dot + _mm_load_ps (b));
+}
+#else
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
     int i;
     for (i=0; i<VOX_N; i++) res[i] = a[i] + b[i];
 }
+#endif
 
 int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 {
@@ -32,6 +40,18 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
     return res;
 }
 
+#ifdef SSE_INTRIN
+static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    __v4sf v = _mm_load_ps (dot);
+    __v4sf fitted = v;
+    fitted = _mm_max_ps (fitted, _mm_load_ps (box->min));
+    fitted = _mm_min_ps (fitted, _mm_load_ps (box->max));
+    v = fitted == v;
+    _mm_store_ps (res, fitted);
+    return (_mm_movemask_ps(v) & 7) == 7;
+}
+#else
 static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
 {
     int i, the_same = 1;
@@ -51,6 +71,7 @@ static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot r
     }
     return the_same;
 }
+#endif
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation

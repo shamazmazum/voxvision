@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <strings.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -11,11 +12,11 @@ vox_dot vox_voxel = {1.0, 1.0, 1.0};
 static void calc_avg (const vox_dot set[], size_t n, vox_dot res)
 {
     size_t i;
-    __v4sf lenmul = _mm_set_ps1 (1.0/n);
+    __v4sf len = _mm_set_ps1 (n);
     __v4sf resv = _mm_set_ps1 (0.0);
 
     for (i=0; i<n; i++) resv += _mm_load_ps (set[i]);
-    resv *= lenmul;
+    resv /= len;
 
     _mm_store_ps (res, resv);
 }
@@ -23,11 +24,10 @@ static void calc_avg (const vox_dot set[], size_t n, vox_dot res)
 static void calc_avg (const vox_dot set[], size_t n, vox_dot res)
 {
     size_t i;
-    float lenmul = 1.0/n;
-    memset (res, 0, sizeof(vox_dot));
+    bzero (res, sizeof(vox_dot));
 
     for (i=0; i<n; i++) sum_vector (set[i], res, res);
-    for (i=0; i<VOX_N; i++) res[i] *= lenmul;
+    for (i=0; i<VOX_N; i++) res[i] /= n;
 }
 #endif /* SSE_INTRIN */
 
@@ -40,8 +40,8 @@ static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *bo
 
     for (i=1; i<n; i++)
     {
-        min = __builtin_ia32_minps (min, _mm_load_ps (set[i]));
-        max = __builtin_ia32_maxps (max, _mm_load_ps (set[i]));
+        min = _mm_min_ps (min, _mm_load_ps (set[i]));
+        max = _mm_max_ps (max, _mm_load_ps (set[i]));
     }
     max += _mm_load_ps (vox_voxel);
 
@@ -136,7 +136,7 @@ static void* node_alloc (int leaf)
     */
     size_t alloc_base = offsetof (struct vox_node, data);
     size_t size = alloc_base + ((leaf) ? sizeof (vox_dot*) : sizeof (vox_inner_data));
-    return malloc (size);
+    return aligned_alloc (16, size);
 }
 
 WITH_STAT (static int recursion = -1;)
