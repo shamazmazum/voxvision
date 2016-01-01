@@ -18,6 +18,9 @@ struct statistics
 
     float empty_volume;
     unsigned long fill_ratio_hist[FILL_RATIO_LEN];
+
+    unsigned long dense_leafs;
+    unsigned long dense_dots;
 };
 
 extern struct statistics gstats;

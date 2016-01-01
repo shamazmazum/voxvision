@@ -15,7 +15,10 @@
 /**
    Is the node a leaf?
 **/
-#define VOX_LEAFP(node) (!(node) || ((node)->dots_num <= VOX_MAX_DOTS))
+#define LEAF 1
+#define DENSE_LEAF 2
+#define VOX_LEAFP(node) (!(node) || ((node)->flags & (LEAF|DENSE_LEAF)))
+#define VOX_DENSE_LEAFP(node) (!(node) || ((node)->flags & DENSE_LEAF))
 
 /**
    Is the node full?
@@ -40,7 +43,8 @@ typedef struct
 struct vox_node
 {
     struct vox_box bounding_box;
-    size_t dots_num;
+    unsigned int flags;
+    unsigned int dots_num;
 #ifdef SSE_INTRIN
     int unused[2];
 #endif

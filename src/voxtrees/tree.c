@@ -128,15 +128,16 @@ static size_t sort_set (vox_dot set[], size_t n, size_t offset, int subspace, co
     return counter;
 }
 
-static void* node_alloc (int leaf)
+static void* node_alloc (int flavor)
 {
     /*
       FIXME: We may need to be sure if vox_dot fields of node
       structure are properly aligned in future, so use aligned_alloc()
       instead of malloc()
     */
-    size_t alloc_base = offsetof (struct vox_node, data);
-    size_t size = alloc_base + ((leaf) ? sizeof (vox_dot*) : sizeof (vox_inner_data));
+    size_t size = offsetof (struct vox_node, data);
+    if (flavor & LEAF) size += sizeof (vox_dot*);
+    else if (!(flavor & DENSE_LEAF)) size += sizeof (vox_inner_data);
     return aligned_alloc (16, size);
 }
 
@@ -151,21 +152,32 @@ WITH_STAT (static int recursion = -1;)
 */
 struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 {
-    int leaf = n <= VOX_MAX_DOTS;
     struct vox_node *res  = NULL;
     WITH_STAT (recursion++);
 
     if (n > 0)
     {
-        res = node_alloc (leaf);
+        struct vox_box box;
+        calc_bounding_box (set, n, &box);
+        int densep = (dense_set_p (&box, n)) ? DENSE_LEAF : 0;
+        int leafp = (n <= VOX_MAX_DOTS) ? LEAF : 0;
+        res = node_alloc (leafp | densep);
         res->dots_num = n;
-        calc_bounding_box (set, n, &(res->bounding_box));
-
-        if (leaf)
+        res->flags = 0;
+        vox_dot_copy (res->bounding_box.min, box.min);
+        vox_dot_copy (res->bounding_box.max, box.max);
+        if (densep)
+        {
+            res->flags |= DENSE_LEAF;
+            WITH_STAT (gstats.dense_leafs++);
+            WITH_STAT (gstats.dense_dots+=n);
+        }
+        else if (leafp)
         {
             WITH_STAT (gstats.leaf_nodes++);
             WITH_STAT (gstats.depth_hist[recursion]++);
             res->data.dots = set;
+            res->flags |= LEAF;
             WITH_STAT (float ratio = fill_ratio (&(res->bounding_box), n));
             WITH_STAT (update_fill_ratio_hist (ratio));
             WITH_STAT (gstats.empty_volume += get_empty_volume (ratio, n));

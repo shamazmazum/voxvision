@@ -27,6 +27,13 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
         WITH_STAT (if (recursion == 0) gstats.rti_early_exits++);
         goto end;
     }
+    if (VOX_DENSE_LEAFP (tree))
+    {
+        found = 1;
+        vox_dot_copy (res, tmp);
+        WITH_STAT (if (recursion == 0) gstats.rti_early_exits++);
+        goto end;
+    }
 
     if (VOX_LEAFP(tree))
     {
@@ -126,6 +133,7 @@ int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float r
     if (!(VOX_FULLP (tree))) return 0;
     if (box_ball_interp (&(tree->bounding_box), center, radius))
     {
+        if (VOX_DENSE_LEAFP (tree)) return 1;
         if (VOX_LEAFP (tree))
         {
             vox_dot *dots = tree->data.dots;

@@ -12,13 +12,14 @@ static void print_statistics()
     gstats.leaf_nodes += gstats.empty_nodes;
     printf (
         "Voxtrees library statistics:\n\n"
-        "Leaf nodes in tree(s) constructed %lu\n"
+        "Leaf nodes in tree(s) constructed (without dense leafs) %lu\n"
         "Empty nodes constructed %lu (%lu%%)\n"
         "vox_ray_tree_intersection(): calls: %lu\n"
         "vox_ray_tree_intersection(): early exits: %lu (%lu%%)\n"
         "vox_ray_tree_intersection(): ray does not cross subspaces: %lu (%lu%%)\n"
         "vox_ray_tree_intersection(): worst cases without intersection: %lu (%lu%%)\n"
-        "Empty volume in leafs %f\n",
+        "Empty volume in leafs %f\n"
+        "%lu dots in %lu dense leaf nodes\n",
         gstats.leaf_nodes,
         gstats.empty_nodes, gstats.empty_nodes*100/gstats.leaf_nodes,
         gstats.rti_calls,
@@ -26,7 +27,8 @@ static void print_statistics()
         gstats.rti_first_subspace,
         gstats.rti_first_subspace*100/gstats.rti_calls,
         gstats.rti_worst_cases, gstats.rti_worst_cases*100/gstats.rti_calls,
-        gstats.empty_volume);
+        gstats.empty_volume,
+        gstats.dense_dots, gstats.dense_leafs);
 
     printf ("Voxtrees number-by-depth histogram:\n");
     for (i=0; i<DEPTH_MAX; i++) printf ("%lu ", gstats.depth_hist[i]);

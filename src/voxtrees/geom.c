@@ -176,3 +176,15 @@ float fill_ratio (const struct vox_box *box, size_t n)
     vox_volume *= n;
     return vox_volume/bb_volume;
 }
+
+int dense_set_p (const struct vox_box *box, size_t n)
+{
+    float bb_volume, vox_volume;
+    vox_dot size;
+    int i;
+
+    for (i=0; i<VOX_N; i++) size[i] = box->max[i] - box->min[i];
+    bb_volume = size[0]*size[1]*size[2];
+    vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
+    return fabs (n*vox_volume - bb_volume) < vox_volume;
+}
