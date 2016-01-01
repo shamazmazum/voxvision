@@ -69,7 +69,12 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
     memset (ort, 0, sizeof(vox_dot)*3);
     for (i=0; i<3; i++)
     {
+        // Basis unit vectors in the world coordinate system
         ort[i][i] = 1;
+        /*
+          After rotation it is the basis unit vectors of camera's
+          coordinate system.
+        */
         vox_rotate_vector (camera->rotation, ort[i], ort[i]);
         float sinang = sinf(delta[i]);
         float cosang = cosf(delta[i]);
@@ -79,6 +84,11 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
         }
         r[i][3] = cosang;
     }
+    /*
+      For each axis i, r[i] has a rotation in the world coordinate system
+      around camera's basis unit vector i.
+      Resulting rotation is a composition of all these rotations
+    */
 
     vox_quat_mul (r[0], camera->rotation, tmp);
     vox_quat_mul (r[1], tmp, r[0]);

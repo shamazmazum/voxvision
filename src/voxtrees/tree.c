@@ -132,7 +132,8 @@ static void* node_alloc (int leaf)
 {
     /*
       FIXME: We may need to be sure if vox_dot fields of node
-      structure are properly aligned in future
+      structure are properly aligned in future, so use aligned_alloc()
+      instead of malloc()
     */
     size_t alloc_base = offsetof (struct vox_node, data);
     size_t size = alloc_base + ((leaf) ? sizeof (vox_dot*) : sizeof (vox_inner_data));
@@ -141,11 +142,13 @@ static void* node_alloc (int leaf)
 
 WITH_STAT (static int recursion = -1;)
 
-// Self-explanatory. No, really.
-// Being short: if number of voxels in a set is less or equal
-// to maximum number allowed, create a leaf and store voxels there.
-// Otherwise split the set into 2^N parts and proceed with each of subsets
-// recursively.
+/*
+  Self-explanatory. No, really.
+  Being short: if number of voxels in a set is less or equal
+  to maximum number allowed, create a leaf and store voxels there.
+  Otherwise split the set into 2^N parts and proceed with each of subsets
+  recursively.
+*/
 struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 {
     int leaf = n <= VOX_MAX_DOTS;
@@ -174,10 +177,18 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             size_t new_offset, offset = 0;
 
             calc_avg (set, n, inner->center);
+            /*
+              Align the center of division, so any voxel belongs to only one subspace
+              entirely. Faces of voxels may be the exception though
+            */
             vox_align (inner->center);
 
             for (idx=0; idx<VOX_NS; idx++)
             {
+                /*
+                  XXX: Current algorithm always divides voxels by two or more
+                  subspaces. Is it true in general?
+                */
                 new_offset = sort_set (set, n, offset, idx, inner->center);
                 inner->children[idx] = vox_make_tree (set+offset, new_offset-offset);
                 offset = new_offset;
