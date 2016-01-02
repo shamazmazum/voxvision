@@ -82,27 +82,6 @@ void vox_destroy_tree (struct vox_node *tree);
 size_t vox_voxels_in_tree (struct vox_node *tree);
 
 /**
-   \brief Calculate a depth of the tree.
-   
-   This function is called inaccurate because
-   it uses a predefined path from root to leaf,
-   treating all other paths to any leaf having
-   the same length
-
-   \param tree the tree
-   \return depth of the tree
-**/
-int vox_inacc_depth (struct vox_node *tree);
-
-/**
-   \brief Estimate balanceness of the tree.
-
-   If value returned from this function is far from 1.0,
-   the tree is unbalanced
-**/
-float vox_inacc_balanceness (struct vox_node *tree);
-
-/**
    \brief Get the bounding box for voxels in tree
 **/
 void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);

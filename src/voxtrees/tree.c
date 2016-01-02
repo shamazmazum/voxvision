@@ -217,17 +217,6 @@ size_t vox_voxels_in_tree (struct vox_node *tree)
     return tree->dots_num;
 }
 
-static int vox_inacc_depth_ (struct vox_node *tree, int res)
-{
-    if (VOX_LEAFP (tree)) return res;
-    else return vox_inacc_depth_ (tree->data.inner.children[res&(VOX_NS-1)], res+1);
-}
-
-int vox_inacc_depth (struct vox_node *tree)
-{
-    return vox_inacc_depth_ (tree, 0);
-}
-
 void vox_destroy_tree (struct vox_node *tree)
 {
     if (!(VOX_LEAFP (tree)))
@@ -236,41 +225,6 @@ void vox_destroy_tree (struct vox_node *tree)
         for (i=0; i<VOX_NS; i++) vox_destroy_tree (tree->data.inner.children[i]);
     }
     free (tree);
-}
-
-/* Taken from my voxel-octrees library for common lisp:
-
-   ;; FIXME: Logical derivations are so:
-   ;;  1) We presume that each leaf in the tree contains
-   ;;     the same number of elements (more precise:
-   ;;     (1 + *max-dots*) / 2.
-   ;;  2) We also think that number of nodes between the root
-   ;;     and any leaf of tree (no matter the path we follow)
-   ;;     is the same too.
-   ;;
-   ;;  1) and 2) are true for "idealy" balanced trees.
-   ;;  The INACCURATE-BALANCENESS exploits these two assumptions
-   ;;  and takes ratio of tree depth calculated both by using
-   ;;  known number of voxels in the tree and by traversing
-   ;;  the tree from root to leaf incrementing the depth by 1.
-   ;;
-   ;;  It is designed to return 1 if TREE conformes both
-   ;;  1) and 2) statements.
-   ;;
-   ;;  So if the TREE is balanced the function returns 1.
-   ;;  In other words, if INACCURATE-BALANCENESS does not
-   ;;  return 1 if the tree is unbalanced.
-   
-   ;; The following function called "inaccurate" because
-   ;; it uses two assumptions listed above and does not
-   ;; establish (two-way) equality between the fact that
-   ;; tree is balanced and equality of its result to 1
-*/
-   
-float vox_inacc_balanceness (struct vox_node *tree)
-{
-    float expected_depth = ceilf (log (2.0 * vox_voxels_in_tree (tree) / (1 + VOX_MAX_DOTS)) / log (VOX_NS));
-    return vox_inacc_depth (tree) / expected_depth;
 }
 
 void vox_bounding_box (const struct vox_node* tree, struct vox_box *box)
