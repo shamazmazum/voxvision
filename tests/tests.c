@@ -25,16 +25,16 @@
     while (0)
 
 #define PREC 0.0001
-#define NSET 2000000
 
-vox_dot *working_set;
-struct vox_node *working_tree;
+static struct vox_node *working_tree;
+static vox_dot half_voxel;
+static vox_dot neg_half_voxel;
 
-static int dot_betweenp (const vox_dot min, const vox_dot max, const vox_dot dot)
+static int dot_betweenp (const struct vox_box *box, const vox_dot dot)
 {
     int i;
 
-    for (i=0; i<VOX_N; i++) {if ((dot[i] < min[i]) || (dot[i] > max[i])) return 0;}
+    for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] > box->max[i])) return 0;}
     return 1;
 }
 
@@ -179,37 +179,61 @@ void rot_saves_norm ()
     CU_ASSERT (fabsf (vox_dot_product (vect, vect) - vox_dot_product (res, res)) < PREC);
 }
 
-void prepare_rnd_set_and_tree (struct vox_node **node_ptr, vox_dot **set_ptr)
+struct vox_node* prepare_rnd_set_and_tree ()
 {
-    int i;
-    vox_dot *set = malloc (sizeof (vox_dot) * NSET);
-    for (i=0; i<NSET; i++)
+    int i,j,k;
+    size_t counter = 0;
+    vox_dot *set = malloc (sizeof (vox_dot) * 1000000);
+    // Make a ball with radius 50 and center (0, 0, 0)
+    for (i=-50; i<50; i++)
     {
-        set[i][0] = 1.0*rand();
-        set[i][1] = 1.0*rand();
-        set[i][2] = 1.0*rand();
+        for (j=-50; j<50; j++)
+        {
+            for (k=-50; k<50; k++)
+            {
+                int dist = i*i + j*j + k*k;
+                if (dist < 2500)
+                {
+                    set[counter][0] = i;
+                    set[counter][1] = j;
+                    set[counter][2] = k;
+                    counter++;
+                }
+            }
+        }
     }
-
-    *node_ptr = vox_make_tree (set, NSET);
-    *set_ptr = set;
+    return  vox_make_tree (set, counter);
 }
 
 void check_tree (struct vox_node *tree)
 {
-    vox_dot snd_corner;
+    vox_dot tmp;
     int i;
 
     if (VOX_FULLP (tree))
     {
-        if (VOX_LEAFP (tree))
+        if (VOX_DENSE_LEAFP (tree))
+        {
+            /*
+              Dense leafs contain an exact number of dots depending on
+              volume of their bounding boxes
+            */
+            vox_dot size;
+            for (i=0; i<VOX_N; i++)
+                size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
+            float bb_volume = size[0]*size[1]*size[2];
+            bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
+            CU_ASSERT (tree->dots_num == (int)bb_volume);
+        }
+        else if (VOX_LEAFP (tree))
         {
             vox_dot *dots = tree->data.dots;
             // Check that all voxels are covered by bounding box
             for (i=0; i<tree->dots_num; i++)
             {
-                sum_vector (dots[i], vox_voxel, snd_corner);
-                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, dots[i]));
-                CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, snd_corner));
+                sum_vector (dots[i], vox_voxel, tmp);
+                CU_ASSERT (dot_betweenp (&(tree->bounding_box), dots[i]));
+                CU_ASSERT (dot_betweenp (&(tree->bounding_box), tmp));
             }
         }
         else
@@ -221,12 +245,18 @@ void check_tree (struct vox_node *tree)
                 if (VOX_FULLP (child))
                 {
                     // Check if child's bounding box is inside parent's
-                    CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_min));
-                    CU_ASSERT (dot_betweenp (tree->bb_min, tree->bb_max, child->bb_max));
+                    CU_ASSERT (dot_betweenp (&(tree->bounding_box), child->bounding_box.min));
+                    CU_ASSERT (dot_betweenp (&(tree->bounding_box), child->bounding_box.max));
 
-                    // Check subspace
-                    CU_ASSERT (get_subspace_idx (inner.center, child->bb_min) == i);
-                    CU_ASSERT (get_subspace_idx (inner.center, child->bb_max) == i);
+                    /*
+                      Check subspace. We add/subtract a small value (half size of a voxel)
+                      to bounding box corners because faces of bounding box may belong to
+                      another subspace. What is inside may not.
+                    */
+                    sum_vector (child->bounding_box.min, half_voxel, tmp);
+                    CU_ASSERT (get_subspace_idx (inner.center, tmp) == i);
+                    sum_vector (child->bounding_box.max, neg_half_voxel, tmp);
+                    CU_ASSERT (get_subspace_idx (inner.center, tmp) == i);
                 }
                 // Test a child recursively
                 check_tree (child);
@@ -388,7 +418,13 @@ int main ()
     
 
     printf ("Creating working set and working tree\n");
-    prepare_rnd_set_and_tree (&working_tree, &working_set);
+    working_tree = prepare_rnd_set_and_tree ();
+    int i;
+    for (i=0; i<VOX_N; i++)
+    {
+        half_voxel[i] = vox_voxel[i]/2;
+        neg_half_voxel[i] = -vox_voxel[i]/2;
+    }
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
