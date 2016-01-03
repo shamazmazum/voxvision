@@ -86,4 +86,6 @@ size_t vox_voxels_in_tree (struct vox_node *tree);
 **/
 void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 
+vox_dot* vox_recopy_tree (struct vox_node *tree);
+
 #endif

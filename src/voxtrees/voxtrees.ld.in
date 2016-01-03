@@ -1,6 +1,7 @@
 VOXTREES_@voxvision_VERSION@ {
     global: vox_destroy_tree;
             vox_make_tree;
+            vox_recopy_tree;
             vox_ray_tree_intersection;
             vox_tree_ball_collidep;
             vox_voxel;

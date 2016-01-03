@@ -149,6 +149,9 @@ int main (int argc, char *argv[])
     time = gettime() - time;
     printf ("Building tree (%lu voxels) took %f\n",
             vox_voxels_in_tree (tree), time);
+    vox_dot *new_set = vox_recopy_tree (tree);
+    free (set);
+    set = new_set;
 
     sdl_init = 1;
     if (SDL_Init (SDL_INIT_VIDEO) != 0)

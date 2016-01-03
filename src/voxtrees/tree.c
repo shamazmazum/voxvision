@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -231,4 +232,60 @@ void vox_bounding_box (const struct vox_node* tree, struct vox_box *box)
 {
     vox_dot_copy (box->min, tree->bounding_box.min);
     vox_dot_copy (box->max, tree->bounding_box.max);
+}
+
+/*
+  Calculate a number of voxels in underlying array for which the tree
+  has references in leaf nodes.
+*/
+static size_t underlying_voxels (const struct vox_node *tree)
+{
+    size_t n;
+    int i;
+
+    // Dense leaf has only bounding box which is like one big voxel
+    if (VOX_DENSE_LEAFP (tree)) n = 0;
+    else if (VOX_LEAFP (tree)) n = tree->dots_num;
+    else
+    {
+        n = 0;
+        for (i=0; i<VOX_NS; i++) n += underlying_voxels (tree->data.inner.children[i]);
+    }
+    return n;
+}
+
+static vox_dot* do_recopy (struct vox_node *tree, vox_dot *space)
+{
+    vox_dot *shifted_space;
+    int i;
+
+    if (VOX_DENSE_LEAFP (tree)) shifted_space = space;
+    else if (VOX_LEAFP (tree))
+    {
+        memcpy (space, tree->data.dots, sizeof(vox_dot)*tree->dots_num);
+        tree->data.dots = space;
+        shifted_space = space + tree->dots_num;
+    }
+    else
+    {
+        for (i=0; i<VOX_NS; i++)
+        {
+            shifted_space = do_recopy (tree->data.inner.children[i], space);
+            space = shifted_space;
+        }
+    }
+    return shifted_space;
+}
+
+/*
+  Do tree recopying. This operation creates a new underlying array, possibly
+  smaller in size in which unused data is not present and used data is placed
+  without gaps. Unused data is those voxels which are covered by dense leafs.
+*/
+vox_dot* vox_recopy_tree (struct vox_node *tree)
+{
+    size_t len = underlying_voxels (tree);
+    vox_dot *array = malloc (sizeof (vox_dot) * len);
+    do_recopy (tree, array);
+    return array;
 }
