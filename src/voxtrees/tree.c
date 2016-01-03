@@ -285,7 +285,7 @@ static vox_dot* do_recopy (struct vox_node *tree, vox_dot *space)
 vox_dot* vox_recopy_tree (struct vox_node *tree)
 {
     size_t len = underlying_voxels (tree);
-    vox_dot *array = malloc (sizeof (vox_dot) * len);
+    vox_dot *array = aligned_alloc (16, sizeof (vox_dot) * len);
     do_recopy (tree, array);
     return array;
 }
