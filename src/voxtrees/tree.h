@@ -12,22 +12,13 @@
 
 #ifdef VOXTREES_SOURCE
 
-/**
-   Is the node a leaf?
-**/
 #define LEAF 1
 #define DENSE_LEAF 2
 #define VOX_LEAFP(node) (!(node) || ((node)->flags & (LEAF|DENSE_LEAF)))
 #define VOX_DENSE_LEAFP(node) (!(node) || ((node)->flags & DENSE_LEAF))
 
-/**
-   Is the node full?
-**/
 #define VOX_FULLP(node) ((node))
 
-/**
-   \brief Data specific to inner nodes
-**/
 typedef struct
 {
     vox_dot center; /**< \brief Center of subdivision */
@@ -37,9 +28,6 @@ typedef struct
     struct vox_node *children[VOX_NS]; /**< \brief Children of this node */
 } vox_inner_data;
 
-/**
-   \brief Node of a voxel octree
-**/
 struct vox_node
 {
     struct vox_box bounding_box;
@@ -52,7 +40,7 @@ struct vox_node
     {
         vox_dot *dots;
         vox_inner_data inner;
-    } data; /**< \brief Data specific to inner and leaf nodes */
+    } data;
 };
 #else /* VOXTREES_SOURCE */
 struct vox_node;
@@ -61,7 +49,7 @@ struct vox_node;
 /**
    \brief Turn a set of voxels into a tree.
 
-   The underlying set must remain valid when tree is used.
+   The underlying set must remain valid while tree is used.
 
    \param set a set of dots (of type vox_dot) to form a tree
    \param n number of voxels in the set
@@ -82,10 +70,21 @@ void vox_destroy_tree (struct vox_node *tree);
 size_t vox_voxels_in_tree (struct vox_node *tree);
 
 /**
-   \brief Get the bounding box for voxels in tree
+   \brief Get the bounding box for voxels in the tree
 **/
 void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 
+/**
+   \brief Optimize an underlying set of the tree.
+
+   This function replaces an old underlying set with a new one
+   which possibly is smaller than the old one. You can free the
+   old set after this operation. The new set must be valid while
+   the tree is used. You can free() it after destruction of the
+   tree.
+
+   \return A pointer to the new set.
+**/
 vox_dot* vox_recopy_tree (struct vox_node *tree);
 
 #endif
