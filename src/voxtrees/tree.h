@@ -14,9 +14,9 @@
 
 #define LEAF 1
 #define DENSE_LEAF 2
-#define VOX_LEAFP(node) (!(node) || ((node)->flags & (LEAF|DENSE_LEAF)))
-#define VOX_DENSE_LEAFP(node) (!(node) || ((node)->flags & DENSE_LEAF))
-
+#define LEAF_MASK 3
+#define DYNAMIC 4
+#define VOX_LEAFP(node) (!(node) || ((node)->flags & LEAF_MASK))
 #define VOX_FULLP(node) ((node))
 
 typedef struct
@@ -86,5 +86,7 @@ void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
    \return A pointer to the new set.
 **/
 vox_dot* vox_recopy_tree (struct vox_node *tree);
+
+int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 #endif

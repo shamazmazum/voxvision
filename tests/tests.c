@@ -212,7 +212,7 @@ void check_tree (struct vox_node *tree)
 
     if (VOX_FULLP (tree))
     {
-        if (VOX_DENSE_LEAFP (tree))
+        if (tree->flags & DENSE_LEAF)
         {
             /*
               Dense leafs contain an exact number of dots depending on
@@ -223,9 +223,11 @@ void check_tree (struct vox_node *tree)
                 size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
             float bb_volume = size[0]*size[1]*size[2];
             bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-            CU_ASSERT (tree->dots_num == (int)bb_volume);
+            CU_ASSERT (vox_voxels_in_tree (tree) == (int)bb_volume);
+            // Forbidden flags coombination
+            CU_ASSERT (!(tree->flags & DYNAMIC));
         }
-        else if (VOX_LEAFP (tree))
+        else if (tree->flags & LEAF)
         {
             vox_dot *dots = tree->data.dots;
             // Check that all voxels are covered by bounding box
@@ -239,9 +241,11 @@ void check_tree (struct vox_node *tree)
         else
         {
             vox_inner_data inner = tree->data.inner;
+            size_t number_sum = 0;
             for (i=0; i<VOX_NS; i++)
             {
                 struct vox_node *child = inner.children[i];
+                number_sum += vox_voxels_in_tree (child);
                 if (VOX_FULLP (child))
                 {
                     // Check if child's bounding box is inside parent's
@@ -261,6 +265,7 @@ void check_tree (struct vox_node *tree)
                 // Test a child recursively
                 check_tree (child);
             }
+            CU_ASSERT (vox_voxels_in_tree (tree) == number_sum);
         }
     }
 }
@@ -324,6 +329,88 @@ void quat_mul ()
 }
 
 void test_tree_cons () {check_tree (working_tree);}
+
+void test_tree_ins()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot1 = {0, 0, 0};
+    vox_dot dot11 = {0.5, 0.1, 0.8};
+    vox_dot dot2 = {6, 6, 6};
+    int res;
+
+    // Insert the first voxel
+    res = vox_insert_voxel (&tree, dot1);
+    CU_ASSERT (res);
+    CU_ASSERT (VOX_FULLP (tree) && vox_voxels_in_tree (tree) == 1);
+
+    // Insert the same voxel again
+    res = vox_insert_voxel (&tree, dot11);
+    CU_ASSERT (!res);
+    CU_ASSERT (VOX_FULLP (tree) && vox_voxels_in_tree (tree) == 1);
+    // Insert another voxel
+    res = vox_insert_voxel (&tree, dot2);
+    CU_ASSERT (res);
+    CU_ASSERT (VOX_FULLP (tree) && vox_voxels_in_tree (tree) == 2);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+
+    // Make a fake tree with dense leaf as root
+    tree = aligned_alloc(16, sizeof (struct vox_node));
+    tree->bounding_box.min[0] = 5;
+    tree->bounding_box.min[1] = 5;
+    tree->bounding_box.min[2] = 5;
+    tree->bounding_box.max[0] = 10;
+    tree->bounding_box.max[1] = 10;
+    tree->bounding_box.max[2] = 10;
+    tree->dots_num = 125;
+    tree->flags = DENSE_LEAF;
+    res = vox_insert_voxel (&tree, dot2);
+    CU_ASSERT (!res);
+    res = vox_insert_voxel (&tree, dot1);
+    CU_ASSERT (res && vox_voxels_in_tree (tree) == 126);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+
+    tree = NULL;
+    int i, j, k;
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                dot1[0] = 2*i;
+                dot1[1] = 2*j;
+                dot1[2] = 2*k;
+                res = vox_insert_voxel (&tree, dot1);
+                CU_ASSERT (res);
+            }
+        }
+    }
+    CU_ASSERT (vox_voxels_in_tree (tree) == 27);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+
+    // Check dense node creation
+    tree = NULL;
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                dot1[0] = i;
+                dot1[1] = j;
+                dot1[2] = k;
+                res = vox_insert_voxel (&tree, dot1);
+                CU_ASSERT (res);
+            }
+        }
+    }
+    CU_ASSERT (vox_voxels_in_tree (tree) == 27);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+}
 
 static struct vox_rnd_ctx* make_fake_context (vox_camera_interface *iface)
 {
@@ -407,6 +494,9 @@ int main ()
     if (vox_suite == NULL) PROC_SUIT_ERROR;
 
     test = CU_add_test (vox_suite, "Tree construction", test_tree_cons);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Insertion", test_tree_ins);
     if (test == NULL) PROC_TEST_ERROR;
 
     // Renderer library

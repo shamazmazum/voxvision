@@ -194,3 +194,23 @@ int dense_set_p (const struct vox_box *box, size_t n)
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
     return fabs (n*vox_volume - bb_volume) < vox_volume;
 }
+
+// SSE counterpart? Is it worth it?
+int voxel_in_box (const struct vox_box *box, const vox_dot dot)
+{
+    int i;
+
+    for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) return 0;}
+    return 1;
+}
+
+void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    int i;
+    for (i=0; i<VOX_N; i++)
+    {
+        float d1 = fabsf (box->min[i] - dot[i]);
+        float d2 = fabsf (box->max[i] - dot[i]);
+        res[i] = (d1 < d2) ? box->min[i] : box->max[i];
+    }
+}
