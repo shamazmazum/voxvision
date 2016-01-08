@@ -21,7 +21,9 @@ struct controls global_controls =
     .fly_down       = SDLK_2,
 
     .shrink         = SDLK_h,
-    .grow           = SDLK_g
+    .grow           = SDLK_g,
+
+    .insert         = SDLK_i
 };
 
 // And the same for the settings.

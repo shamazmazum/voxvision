@@ -20,6 +20,8 @@ struct controls
 
     unsigned short shrink;
     unsigned short grow;
+
+    unsigned short insert;
 };
 extern struct controls global_controls;
 

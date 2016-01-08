@@ -18,7 +18,7 @@
     fprintf (stderr, errormsg); \
     exit (1); }} while (0);
 
-double gettime ()
+static double gettime ()
 {
     struct timeval tv;
     gettimeofday (&tv, 0);
@@ -26,7 +26,7 @@ double gettime ()
 }
 
 /* FIXME: There is a standard POSIX way for this? */
-int get_file_directory (const char *path, char *dir)
+static int get_file_directory (const char *path, char *dir)
 {
     int res, len;
     char *cursor;
@@ -42,10 +42,29 @@ int get_file_directory (const char *path, char *dir)
     return 1;
 }
 
-void usage ()
+static void usage ()
 {
     fprintf (stderr, "Usage: voxvision-demo [-c config-file] dataset-config\n");
     exit (1);
+}
+
+static void insert_box (struct vox_node **tree, vox_dot center, int size)
+{
+    int i,j,k;
+    vox_dot dot;
+    for (i=-size; i<size; i++)
+    {
+        for (j=-size; j<size; j++)
+        {
+            for (k=-size; k<size; k++)
+            {
+                dot[0] = center[0] + i*vox_voxel[0];
+                dot[1] = center[1] + j*vox_voxel[1];
+                dot[2] = center[2] + k*vox_voxel[2];
+                vox_insert_voxel (tree, dot);
+            }
+        }
+    }
 }
 
 int main (int argc, char *argv[])
@@ -223,6 +242,21 @@ int main (int argc, char *argv[])
                         radius+=5;
                     radius = vox_simple_camera_set_radius (camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
+                }
+                else if (event.key.keysym.sym == global_controls.insert)
+                {
+                    vox_dot inter;
+                    vox_dot dir;
+                    camera->iface.screen2world (camera, dir, screen->w/2, screen->h/2);
+                    int interp = vox_ray_tree_intersection
+                        (tree, camera->iface.get_position (camera),
+                         dir, inter, NULL);
+                    if (interp)
+                    {
+                        insert_box (&tree, inter, 5);
+                        free (ctx);
+                        ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+                    }
                 }
                 else if (event.key.keysym.sym == SDLK_q) goto end;
                 else if (event.key.keysym.sym == SDLK_F11) SDL_SaveBMP (screen, "screen.bmp");
