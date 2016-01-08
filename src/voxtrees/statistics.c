@@ -23,10 +23,9 @@ static void print_statistics()
         gstats.leaf_nodes,
         gstats.empty_nodes, gstats.empty_nodes*100/gstats.leaf_nodes,
         gstats.rti_calls,
-        gstats.rti_early_exits, gstats.rti_early_exits*100/gstats.rti_calls,
-        gstats.rti_first_subspace,
-        gstats.rti_first_subspace*100/gstats.rti_calls,
-        gstats.rti_worst_cases, gstats.rti_worst_cases*100/gstats.rti_calls,
+        gstats.rti_early_exits, (gstats.rti_calls) ? gstats.rti_early_exits*100/gstats.rti_calls: 0,
+        gstats.rti_first_subspace, (gstats.rti_calls) ? gstats.rti_first_subspace*100/gstats.rti_calls: 0,
+        gstats.rti_worst_cases, (gstats.rti_calls) ? gstats.rti_worst_cases*100/gstats.rti_calls: 0,
         gstats.empty_volume,
         gstats.dense_dots, gstats.dense_leafs);
 
