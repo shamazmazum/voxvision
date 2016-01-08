@@ -14,9 +14,8 @@
 
 #define LEAF 1
 #define DENSE_LEAF 2
-#define VOX_LEAFP(node) (!(node) || ((node)->flags & (LEAF|DENSE_LEAF)))
-#define VOX_DENSE_LEAFP(node) (!(node) || ((node)->flags & DENSE_LEAF))
-
+#define LEAF_MASK 3
+#define VOX_LEAFP(node) (!(node) || ((node)->flags & LEAF_MASK))
 #define VOX_FULLP(node) ((node))
 
 typedef struct

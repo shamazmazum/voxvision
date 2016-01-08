@@ -215,7 +215,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 
 size_t vox_voxels_in_tree (struct vox_node *tree)
 {
-    return tree->dots_num;
+    return (VOX_FULLP (tree)) ? tree->dots_num: 0;
 }
 
 void vox_destroy_tree (struct vox_node *tree)
@@ -240,38 +240,40 @@ void vox_bounding_box (const struct vox_node* tree, struct vox_box *box)
 */
 static size_t underlying_voxels (const struct vox_node *tree)
 {
-    size_t n;
+    size_t n = 0;
     int i;
 
-    // Dense leaf has only bounding box which is like one big voxel
-    if (VOX_DENSE_LEAFP (tree)) n = 0;
-    else if (VOX_LEAFP (tree)) n = tree->dots_num;
-    else
+    if (VOX_FULLP (tree))
     {
-        n = 0;
-        for (i=0; i<VOX_NS; i++) n += underlying_voxels (tree->data.inner.children[i]);
+        if (tree->flags & LEAF) n = tree->dots_num;
+        else if (!(tree->flags & LEAF_MASK))
+        {
+            for (i=0; i<VOX_NS; i++) n += underlying_voxels (tree->data.inner.children[i]);
+        }
     }
     return n;
 }
 
 static vox_dot* do_recopy (struct vox_node *tree, vox_dot *space)
 {
-    vox_dot *shifted_space;
+    vox_dot *shifted_space = space;
     int i;
 
-    if (VOX_DENSE_LEAFP (tree)) shifted_space = space;
-    else if (VOX_LEAFP (tree))
+    if (VOX_FULLP (tree))
     {
-        memcpy (space, tree->data.dots, sizeof(vox_dot)*tree->dots_num);
-        tree->data.dots = space;
-        shifted_space = space + tree->dots_num;
-    }
-    else
-    {
-        for (i=0; i<VOX_NS; i++)
+        if (tree->flags & LEAF)
         {
-            shifted_space = do_recopy (tree->data.inner.children[i], space);
-            space = shifted_space;
+            memcpy (space, tree->data.dots, sizeof(vox_dot)*tree->dots_num);
+            tree->data.dots = space;
+            shifted_space = space + tree->dots_num;
+        }
+        else if (!(tree->flags & LEAF_MASK))
+        {
+            for (i=0; i<VOX_NS; i++)
+            {
+                shifted_space = do_recopy (tree->data.inner.children[i], space);
+                space = shifted_space;
+            }
         }
     }
     return shifted_space;
