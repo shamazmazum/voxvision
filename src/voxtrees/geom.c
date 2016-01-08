@@ -125,6 +125,12 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     float k;
     if (dir[planenum] == 0.0) return 0;
     k = planedot[planenum] - origin[planenum];
+    /*
+      k == 0 means that origin lays on the plane.
+      This is a special case which is not handeled here.
+      Just return that there is no intersection.
+    */
+    if (k == 0) return 0;
     if ((dir[planenum] < 0) != (k < 0)) return 0;
 
     k = k / dir[planenum];

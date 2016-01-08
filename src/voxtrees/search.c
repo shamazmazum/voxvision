@@ -66,6 +66,19 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     const vox_inner_data *inner = &(tree->data.inner);
     // Find subspace index of the entry point
     int subspace = get_subspace_idx (inner->center, tmp);
+    for (i=0; i<VOX_N; i++)
+    {
+        /*
+          If the following is true, subspace index must be fixed according to the ray's
+          direction. This is because get_subspace_idx returns no useful in that special
+          case.
+        */
+        if (inner->center[i] == origin[i])
+        {
+            if (dir[i] > 0) subspace &= ~(1<<i);
+            else subspace |= 1<<i;
+        }
+    }
     // Look if we are lucky and the ray hits any box before it traverses the dividing planes
     // (in other words it hits a box close enough to the entry_point)
     if (vox_ray_tree_intersection (inner->children[subspace], tmp, dir,
