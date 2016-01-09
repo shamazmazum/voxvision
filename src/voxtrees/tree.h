@@ -84,11 +84,23 @@ void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
 
 /**
-   \brief Insert a voxel in the tree on the fly
+   \brief Insert a voxel in the tree on the fly.
 
    Many applications of this function will result in unbalanced tree.
    You can rebalance the tree by recreating it with vox_rebuild_tree()
+
+   \return 1 on success, 0 if the voxel was already in the tree.
 **/
 int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+
+/**
+   \brief Delete a voxel from the tree on the fly.
+
+   You can call vox_rebuild_tree() after many applications of this
+   function to get a more balanced tree.
+
+   \return 1 on success, 0 if there was no such voxel in the tree.
+**/
+int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 #endif

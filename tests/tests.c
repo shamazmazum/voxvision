@@ -66,7 +66,7 @@ static int quat_eq (vox_quat v1, vox_quat v2)
     else return 0;
 }
 
-void test_rotation_around_itself ()
+static void test_rotation_around_itself ()
 {
     // Rotate vector around itself on 0.2 radian
     vox_quat basex = {sinf(0.1), 0.0, 0.0, cos(0.1)};
@@ -91,7 +91,7 @@ void test_rotation_around_itself ()
     CU_ASSERT (vect_eq (resz, vectz));
 }
 
-void test_change_axis ()
+static void test_change_axis ()
 {
     // Rotating x aroung y and getting z and so on
     float sincos = sqrtf(2.0)/2.0;
@@ -125,7 +125,7 @@ static float* vector_inv (const vox_dot dot, vox_dot res)
     return res;
 }
 
-void test_anticommut ()
+static void test_anticommut ()
 {
     // Rotating x around y must result in rotaiong y around x with different sign
     float sincos = sqrtf(2.0)/2.0;
@@ -143,7 +143,7 @@ void test_anticommut ()
     CU_ASSERT (vect_eq (res1, vector_inv (res2, res2)));
 }
 
-void rot_composition ()
+static void rot_composition ()
 {
     // Provided rotations q1, q2 and vector v test if q1 `rot` (q2 `rot` v) == q3 `rot` v,
     // where q3 = q1*q2
@@ -168,7 +168,7 @@ void rot_composition ()
     CU_ASSERT (vect_eq (res1, res2));
 }
 
-void rot_saves_norm ()
+static void rot_saves_norm ()
 {
     vox_quat base = {0.5, 0.5, 0.5, 0.5};
     // Random numbers
@@ -179,7 +179,7 @@ void rot_saves_norm ()
     CU_ASSERT (fabsf (vox_dot_product (vect, vect) - vox_dot_product (res, res)) < PREC);
 }
 
-struct vox_node* prepare_rnd_set_and_tree ()
+static struct vox_node* prepare_rnd_set_and_tree ()
 {
     int i,j,k;
     size_t counter = 0;
@@ -205,7 +205,7 @@ struct vox_node* prepare_rnd_set_and_tree ()
     return  vox_make_tree (set, counter);
 }
 
-void check_tree (struct vox_node *tree)
+static void check_tree (struct vox_node *tree)
 {
     vox_dot tmp;
     int i;
@@ -268,7 +268,7 @@ void check_tree (struct vox_node *tree)
     }
 }
 
-void quat_mul ()
+static void quat_mul ()
 {
     vox_quat res;
     
@@ -326,9 +326,9 @@ void quat_mul ()
     CU_ASSERT (quat_eq (res, e));
 }
 
-void test_tree_cons () {check_tree (working_tree);}
+static void test_tree_cons () {check_tree (working_tree);}
 
-void test_tree_ins()
+static void test_tree_ins()
 {
     struct vox_node *tree = NULL;
     vox_dot dot1 = {0, 0, 0};
@@ -410,6 +410,50 @@ void test_tree_ins()
     vox_destroy_tree (tree);
 }
 
+static void test_tree_del()
+{
+    vox_dot *set = aligned_alloc (16, sizeof(vox_dot)*27);
+    int i,j,k,counter = 0;
+    struct vox_node *tree;
+
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                set[counter][0] = i*vox_voxel[0];
+                set[counter][1] = j*vox_voxel[1];
+                set[counter][2] = k*vox_voxel[2];
+                counter++;
+            }
+        }
+    }
+    tree = vox_make_tree (set, 27);
+    free (set);
+
+    vox_dot dot;
+    int n;
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                dot[0] = i*vox_voxel[0];
+                dot[1] = j*vox_voxel[1];
+                dot[2] = k*vox_voxel[2];
+                n = vox_voxels_in_tree (tree);
+                vox_delete_voxel (&tree, dot);
+                CU_ASSERT (n - vox_voxels_in_tree (tree) == 1);
+                check_tree (tree);
+            }
+        }
+    }
+    // Not really needed
+    vox_destroy_tree (tree);
+}
+
 static struct vox_rnd_ctx* make_fake_context (vox_camera_interface *iface)
 {
     SDL_Surface *surf = malloc (sizeof(SDL_Surface));
@@ -425,7 +469,7 @@ static void free_fake_context (struct vox_rnd_ctx *ctx)
     free (ctx);
 }
 
-void test_simp_camera ()
+static void test_simp_camera ()
 {
     vox_dot pos = {0,0,0};
     vox_dot angles;
@@ -495,6 +539,9 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vox_suite, "Insertion", test_tree_ins);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Deletion", test_tree_del);
     if (test == NULL) PROC_TEST_ERROR;
 
     // Renderer library

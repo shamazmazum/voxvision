@@ -391,7 +391,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
         // Check if the voxel is already in the tree
         for (i=0; i<tree->dots_num; i++)
         {
-            if (memcmp (tree->data.dots[i], voxel, sizeof (vox_dot)) == 0) return 0;
+            if (vox_dot_equalp (tree->data.dots[i], voxel)) return 0;
         }
         res = 1;
         // We have enough space to add a voxel
@@ -433,4 +433,83 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 {
     vox_align_floor (voxel);
     return vox_insert_voxel_ (tree_ptr, voxel);
+}
+
+static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
+{
+    int res = 0;
+    struct vox_node *tree = *tree_ptr;
+    struct vox_node *node = tree;
+    int i;
+
+    if (VOX_FULLP (tree) &&
+        voxel_in_box (&(tree->bounding_box), voxel))
+    {
+        // XXX: update bounding box
+        if (tree->flags & LEAF)
+        {
+            for (i=0; i<tree->dots_num; i++)
+                if (vox_dot_equalp (tree->data.dots[i], voxel)) break;
+            if (i < tree->dots_num)
+            {
+                res = 1;
+                memmove (tree->data.dots + i, tree->data.dots + i + 1,
+                         sizeof (vox_dot) * (tree->dots_num - i - 1));
+                tree->dots_num--;
+                if (tree->dots_num == 0)
+                {
+                    vox_destroy_tree (tree);
+                    node = NULL;
+                }
+            }
+        }
+        else if (tree->flags & DENSE_LEAF)
+        {
+            res = 1;
+            /*
+              XXX: this may be really slow.
+              Destroy given dense leaf and rebuild a tree without needed voxel
+            */
+            vox_dot *set = aligned_alloc (16, sizeof(vox_dot) * tree->dots_num);
+            vox_dot *shifted_set = flatten_tree (tree, set);
+            assert (shifted_set - set == tree->dots_num);
+            /*
+              XXX: Proper index may be calculated faster, if needed.
+              Just find it using loop now
+            */
+            for (i=0; i<tree->dots_num; i++)
+                if (vox_dot_equalp (set[i], voxel)) break;
+            assert (i < tree->dots_num);
+            memmove (set + i, set + i + 1,
+                     sizeof (vox_dot) * (tree->dots_num - i - 1));
+            node = vox_make_tree (set, tree->dots_num - 1);
+            vox_destroy_tree (tree);
+            free (set);
+        }
+        else
+        {
+            // Inner node
+            vox_inner_data *inner = &(tree->data.inner);
+            int idx = get_subspace_idx (inner->center, voxel);
+            res = vox_delete_voxel_ (&(inner->children[idx]), voxel);
+            if (res)
+            {
+                tree->dots_num--;
+                if (tree->dots_num == 0)
+                {
+                    vox_destroy_tree (tree);
+                    node = NULL;
+                }
+            }
+        }
+    }
+
+    *tree_ptr = node;
+    return res;
+}
+
+int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel)
+{
+    vox_align_floor (voxel);
+    return vox_delete_voxel_ (tree_ptr, voxel);
 }
