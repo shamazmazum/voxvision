@@ -48,7 +48,7 @@ static void usage ()
     exit (1);
 }
 
-static void insert_box (struct vox_node **tree, vox_dot center, int size)
+static void amend_box (struct vox_node **tree, vox_dot center, int size, int add)
 {
     int i,j,k;
     vox_dot dot;
@@ -61,7 +61,8 @@ static void insert_box (struct vox_node **tree, vox_dot center, int size)
                 dot[0] = center[0] + i*vox_voxel[0];
                 dot[1] = center[1] + j*vox_voxel[1];
                 dot[2] = center[2] + k*vox_voxel[2];
-                vox_insert_voxel (tree, dot);
+                if (add) vox_insert_voxel (tree, dot);
+                else vox_delete_voxel (tree, dot);
             }
         }
     }
@@ -241,7 +242,8 @@ int main (int argc, char *argv[])
                     radius = vox_simple_camera_set_radius (camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
                 }
-                else if (event.key.keysym.sym == global_controls.insert)
+                else if ((event.key.keysym.sym == global_controls.insert) ||
+                         (event.key.keysym.sym == global_controls.delete))
                 {
                     vox_dot inter;
                     vox_dot dir;
@@ -251,7 +253,10 @@ int main (int argc, char *argv[])
                          dir, inter, NULL);
                     if (interp)
                     {
-                        insert_box (&tree, inter, 5);
+                        if (event.key.keysym.sym == global_controls.insert)
+                            amend_box (&tree, inter, 5, 1);
+                        else
+                            amend_box (&tree, inter, 5, 0);
                         free (ctx);
                         ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
                     }

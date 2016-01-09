@@ -23,7 +23,8 @@ struct controls global_controls =
     .shrink         = SDLK_h,
     .grow           = SDLK_g,
 
-    .insert         = SDLK_i
+    .insert         = SDLK_i,
+    .delete         = SDLK_o
 };
 
 // And the same for the settings.

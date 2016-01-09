@@ -22,6 +22,7 @@ struct controls
     unsigned short grow;
 
     unsigned short insert;
+    unsigned short delete;
 };
 extern struct controls global_controls;
 
