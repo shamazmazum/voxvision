@@ -255,49 +255,62 @@ void vox_bounding_box (const struct vox_node* tree, struct vox_box *box)
 /*
   Turn a tree back to plain array
 */
-static vox_dot* flatten_tree (const struct vox_node *tree, vox_dot *set)
+static size_t flatten_tree (const struct vox_node *tree, vox_dot *set)
 {
-    vox_dot *shifted_set = set;
+    size_t count = 0;
     if (VOX_FULLP (tree))
     {
         if (tree->flags & LEAF)
         {
             memcpy (set, tree->data.dots, tree->dots_num * sizeof(vox_dot));
-            shifted_set += tree->dots_num;
+            count = tree->dots_num;
         }
         else if (tree->flags & DENSE_LEAF)
         {
-            int i,j,k,count = 0;
-            vox_dot dim, current;
+            int i,j,k;
+            vox_dot current;
+            int dim[VOX_N];
+            /*
+              XXX: This requires reworking.
+
+              Here I find the the number of voxels in a dense leaf along each
+              axis. This number is, of course, integer, but I have only
+              floating point coordinates of the bounding box. Therefore dim[]
+              will be calculated improperly for non-integral vox_voxel
+              components.
+            */
             for (i=0; i<VOX_N; i++)
                 dim[i] = (tree->bounding_box.max[i] - tree->bounding_box.min[i])/vox_voxel[i];
+            current[0] = tree->bounding_box.min[0];
             for (i=0; i<dim[0]; i++)
             {
+                current[1] = tree->bounding_box.min[1];
                 for (j=0; j<dim[1]; j++)
                 {
+                    current[2] = tree->bounding_box.min[2];
                     for (k=0; k<dim[2]; k++)
                     {
-                        current[0] = tree->bounding_box.min[0] + i*vox_voxel[0];
-                        current[1] = tree->bounding_box.min[1] + j*vox_voxel[1];
-                        current[2] = tree->bounding_box.min[2] + k*vox_voxel[2];
                         vox_dot_copy (set[count], current);
+                        current[2] += vox_voxel[2];
                         count++;
                     }
+                    current[1] += vox_voxel[1];
                 }
+                current[0] += vox_voxel[0];
             }
-            shifted_set += count;
         }
         else
         {
             int i;
             for (i=0; i<VOX_NS; i++)
             {
-                shifted_set = flatten_tree (tree->data.inner.children[i], set);
-                set = shifted_set;
+                size_t subcount = flatten_tree (tree->data.inner.children[i], set);
+                set += subcount;
+                count += subcount;
             }
         }
     }
-    return shifted_set;
+    return count;
 }
 
 struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
@@ -306,8 +319,8 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
     if (VOX_FULLP (tree))
     {
         vox_dot *dots = aligned_alloc (16, sizeof(vox_dot) * tree->dots_num);
-        vox_dot *dots_after_copy = flatten_tree (tree, dots);
-        assert (dots_after_copy - dots == tree->dots_num);
+        size_t num = flatten_tree (tree, dots);
+        assert (num == tree->dots_num);
         new_tree = vox_make_tree (dots, tree->dots_num);
     }
     return new_tree;
@@ -357,7 +370,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                 */
                 dots = alloca (sizeof (vox_dot)*VOX_MAX_DOTS + 16);
                 dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
-                size_t count = flatten_tree (tree, dots) - dots;
+                size_t count = flatten_tree (tree, dots);
                 assert (count == tree->dots_num);
                 vox_dot_copy (dots[count], voxel);
                 node = vox_make_tree (dots, count+1);
@@ -471,8 +484,8 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
               Destroy given dense leaf and rebuild a tree without needed voxel
             */
             vox_dot *set = aligned_alloc (16, sizeof(vox_dot) * tree->dots_num);
-            vox_dot *shifted_set = flatten_tree (tree, set);
-            assert (shifted_set - set == tree->dots_num);
+            size_t count = flatten_tree (tree, set);
+            assert (count == tree->dots_num);
             /*
               XXX: Proper index may be calculated faster, if needed.
               Just find it using loop now
