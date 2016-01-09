@@ -224,8 +224,6 @@ void check_tree (struct vox_node *tree)
             float bb_volume = size[0]*size[1]*size[2];
             bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
             CU_ASSERT (vox_voxels_in_tree (tree) == (int)bb_volume);
-            // Forbidden flags coombination
-            CU_ASSERT (!(tree->flags & DYNAMIC));
         }
         else if (tree->flags & LEAF)
         {

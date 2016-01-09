@@ -168,9 +168,7 @@ int main (int argc, char *argv[])
     time = gettime() - time;
     printf ("Building tree (%lu voxels) took %f\n",
             vox_voxels_in_tree (tree), time);
-    vox_dot *new_set = vox_recopy_tree (tree);
     free (set);
-    set = new_set;
 
     sdl_init = 1;
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
@@ -259,6 +257,15 @@ int main (int argc, char *argv[])
                     }
                 }
                 else if (event.key.keysym.sym == SDLK_q) goto end;
+                else if (event.key.keysym.sym == SDLK_r)
+                {
+                    struct vox_node *new_tree = vox_rebuild_tree (tree);
+                    vox_destroy_tree (tree);
+                    tree = new_tree;
+                    free (ctx);
+                    ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+                    printf ("Tree rebuilt\n");
+                }
                 else if (event.key.keysym.sym == SDLK_F11) SDL_SaveBMP (screen, "screen.bmp");
                 break;
             case SDL_QUIT:
@@ -281,11 +288,7 @@ end:
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
     if (camera != NULL) free (camera);
-    if (tree != NULL)
-    {
-        vox_destroy_tree (tree);
-        free (set);
-    }
+    if (tree != NULL) vox_destroy_tree (tree);
     if (sdl_init) SDL_Quit();
 
     return 0;
