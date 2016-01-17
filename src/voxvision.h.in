@@ -18,6 +18,7 @@
 
 // Types
 
+#include <string.h>
 #if defined(SSE_INTRIN)
 #include <xmmintrin.h>
 typedef float vox_dot[4] __attribute__ ((aligned (16)));
@@ -26,7 +27,6 @@ typedef float vox_quat[4] __attribute__ ((aligned (16)));
 #else
 typedef float vox_dot[3];
 typedef float vox_quat[4];
-#include <string.h>
 #define vox_dot_copy(d1, d2) memcpy ((d1), (d2), sizeof (vox_dot))
 #endif
 // FIXME: Will SSE counterpart be faster?
