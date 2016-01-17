@@ -157,6 +157,20 @@ static void* node_alloc (int flavor)
 
 WITH_STAT (static int recursion = -1;)
 
+static struct vox_node* make_dense_leaf (const struct vox_box *box)
+{
+    struct vox_node *res = node_alloc (DENSE_LEAF);
+    size_t dim[3];
+
+    vox_dot_copy (res->bounding_box.min, box->min);
+    vox_dot_copy (res->bounding_box.max, box->max);
+    res->flags = DENSE_LEAF;
+    get_dimensions (box, dim);
+    res->dots_num = dim[0]*dim[1]*dim[2];
+
+    return res;
+}
+
 /*
   Self-explanatory. No, really.
   Being short: if number of voxels in a set is less or equal
@@ -447,6 +461,82 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
     return vox_insert_voxel_ (tree_ptr, voxel);
 }
 
+/*
+  Helper function for dense node special case.
+  It always deletes.
+*/
+static struct vox_node* delete_from_big_dense (struct vox_node *tree, vox_dot voxel) __attribute__((noinline));
+static struct vox_node* delete_from_big_dense (struct vox_node *tree, vox_dot voxel)
+{
+    struct vox_node *node1, *node2;
+    size_t n1 = 0, n2 = 0;
+    vox_inner_data *inner;
+    vox_dot other_end;
+    struct vox_box bb;
+    int full, i;
+
+    sum_vector (voxel, vox_voxel, other_end);
+    node1 = node_alloc (0);
+    /*
+      XXX: Just copy the bounding box. It can be smaller, actually.
+      But it is hard to determine.
+    */
+    vox_dot_copy (node1->bounding_box.min, tree->bounding_box.min);
+    vox_dot_copy (node1->bounding_box.max, tree->bounding_box.max);
+    node1->flags = 0;
+    inner = &(node1->data.inner);
+    vox_dot_copy (inner->center, voxel);
+    bzero (inner->children, sizeof (inner->children));
+    full = 0;
+
+    for (i=1; i<VOX_NS; i++)
+    {
+        int success = divide_box (&(node1->bounding_box), voxel, &bb, i);
+        if (success == 0) continue;
+        full = 1;
+        inner->children[i] = make_dense_leaf (&bb);
+        n1 += inner->children[i]->dots_num;
+    }
+
+    if (full)
+    {
+        node2 = node_alloc (0);
+        inner->children[0] = node2;
+    }
+    else node2 = node1;
+
+    // Sorry for boilerplate code. Must be reworked
+    vox_dot_copy (node2->bounding_box.min, voxel);
+    vox_dot_copy (node2->bounding_box.max, tree->bounding_box.max);
+    node2->flags = 0;
+    inner = &(node2->data.inner);
+    vox_dot_copy (inner->center, other_end);
+    bzero (inner->children, sizeof (inner->children));
+    full = 0;
+
+    for (i=0; i<VOX_NS-1; i++)
+    {
+        int success = divide_box (&(node2->bounding_box), other_end, &bb, i);
+        if (success == 0) continue;
+        full = 1;
+        inner->children[i] = make_dense_leaf (&bb);
+        n2 += inner->children[i]->dots_num;
+    }
+    node2->dots_num = n2;
+    node1->dots_num = n1+n2;
+
+    if (!full)
+    {
+        assert (node1 != node2);
+        vox_destroy_tree (node2);
+        node1->data.inner.children[0] = NULL;
+    }
+
+    assert (node1->dots_num == tree->dots_num - 1);
+
+    return node1;
+}
+
 static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
 {
     int res = 0;
@@ -478,25 +568,43 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
         else if (tree->flags & DENSE_LEAF)
         {
             res = 1;
-            /*
-              XXX: this may be really slow.
-              Destroy given dense leaf and rebuild a tree without needed voxel
-            */
-            vox_dot *set = aligned_alloc (16, sizeof(vox_dot) * tree->dots_num);
-            size_t count = flatten_tree (tree, set);
-            assert (count == tree->dots_num);
-            /*
-              XXX: Proper index may be calculated faster, if needed.
-              Just find it using loop now
-            */
-            for (i=0; i<tree->dots_num; i++)
-                if (vox_dot_equalp (set[i], voxel)) break;
-            assert (i < tree->dots_num);
-            memmove (set + i, set + i + 1,
-                     sizeof (vox_dot) * (tree->dots_num - i - 1));
-            node = vox_make_tree (set, tree->dots_num - 1);
-            vox_destroy_tree (tree);
-            free (set);
+            // Downgrade to an ordinary leaf or even destroy the node
+            if (tree->dots_num <= VOX_MAX_DOTS)
+            {
+                if (tree->dots_num == 1)
+                {
+                    vox_destroy_tree (tree);
+                    node = NULL;
+                }
+                else
+                {
+                    vox_dot *set;
+                    set = alloca (sizeof (vox_dot)*VOX_MAX_DOTS + 16);
+                    set = (void*)(((unsigned long) set + 15) & ~(unsigned long)15);
+                    size_t count = flatten_tree (tree, set);
+                    assert (count == tree->dots_num);
+                    /*
+                      XXX: Proper index may be calculated faster, if needed.
+                      Just find it using loop now
+                    */
+                    for (i=0; i<tree->dots_num; i++)
+                        if (vox_dot_equalp (set[i], voxel)) break;
+                    assert (i < tree->dots_num);
+                    memmove (set + i, set + i + 1,
+                             sizeof (vox_dot) * (tree->dots_num - i - 1));
+                    node = vox_make_tree (set, tree->dots_num - 1);
+                    vox_destroy_tree (tree);
+                }
+            }
+            else
+            {
+                /*
+                  Divide our dense leaf into many dense leafs in 1 or 2 inner
+                  nodes.
+                */
+                node = delete_from_big_dense (tree, voxel);
+                vox_destroy_tree (tree);
+            }
         }
         else
         {

@@ -215,18 +215,20 @@ void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
     }
 }
 
-void divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx)
+int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx)
 {
     int i;
 
     vox_dot_copy (res->min, box->min);
     vox_dot_copy (res->max, box->max);
 
-    for (i=0; i<VOX_NS; i++)
+    for (i=0; i<VOX_N; i++)
     {
         if (idx & (1<<i)) res->max[i] = center[i];
         else res->min[i] = center[i];
+        if (res->min[i] == res->max[i]) return 0;
     }
+    return 1;
 }
 
 /*
