@@ -162,8 +162,7 @@ static struct vox_node* make_dense_leaf (const struct vox_box *box)
     struct vox_node *res = node_alloc (DENSE_LEAF);
     size_t dim[3];
 
-    vox_dot_copy (res->bounding_box.min, box->min);
-    vox_dot_copy (res->bounding_box.max, box->max);
+    vox_box_copy (&(res->bounding_box), box);
     res->flags = DENSE_LEAF;
     get_dimensions (box, dim);
     res->dots_num = dim[0]*dim[1]*dim[2];
@@ -192,8 +191,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         res = node_alloc (leafp | densep);
         res->dots_num = n;
         res->flags = 0;
-        vox_dot_copy (res->bounding_box.min, box.min);
-        vox_dot_copy (res->bounding_box.max, box.max);
+        vox_box_copy (&(res->bounding_box), &box);
         if (densep)
         {
             res->flags |= DENSE_LEAF;
@@ -262,8 +260,7 @@ void vox_destroy_tree (struct vox_node *tree)
 
 void vox_bounding_box (const struct vox_node* tree, struct vox_box *box)
 {
-    vox_dot_copy (box->min, tree->bounding_box.min);
-    vox_dot_copy (box->max, tree->bounding_box.max);
+    vox_box_copy (box, &(tree->bounding_box));
 }
 
 /*
@@ -394,8 +391,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                 node = node_alloc (0);
                 inner = &(node->data.inner);
                 bzero (inner, sizeof (vox_inner_data));
-                vox_dot_copy (node->bounding_box.min, tree->bounding_box.min);
-                vox_dot_copy (node->bounding_box.max, tree->bounding_box.max);
+                vox_box_copy (&(node->bounding_box), &(tree->bounding_box));
                 update_bounding_box (&(node->bounding_box), voxel);
                 node->flags = 0;
                 node->dots_num = tree->dots_num + 1;
@@ -481,8 +477,7 @@ static struct vox_node* delete_from_big_dense (struct vox_node *tree, vox_dot vo
       XXX: Just copy the bounding box. It can be smaller, actually.
       But it is hard to determine.
     */
-    vox_dot_copy (node1->bounding_box.min, tree->bounding_box.min);
-    vox_dot_copy (node1->bounding_box.max, tree->bounding_box.max);
+    vox_box_copy (&(node1->bounding_box), &(tree->bounding_box));
     node1->flags = 0;
     inner = &(node1->data.inner);
     vox_dot_copy (inner->center, voxel);

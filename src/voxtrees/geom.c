@@ -219,8 +219,7 @@ int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box 
 {
     int i;
 
-    vox_dot_copy (res->min, box->min);
-    vox_dot_copy (res->max, box->max);
+    vox_box_copy (res, box);
 
     for (i=0; i<VOX_N; i++)
     {

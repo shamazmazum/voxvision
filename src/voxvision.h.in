@@ -39,5 +39,6 @@ struct vox_box
     vox_dot min; /**< \brief minimal coordinate */
     vox_dot max; /**< \brief maximal coordinate */
 };
+#define vox_box_copy(b1, b2) memcpy ((b1), (b2), sizeof (struct vox_box))
 
 #endif
