@@ -269,18 +269,17 @@ static size_t flatten_tree (const struct vox_node *tree, vox_dot *set)
         {
             int i,j,k;
             vox_dot current;
-            int dim[VOX_N];
+            size_t dim[VOX_N];
             /*
               XXX: This requires reworking.
 
               Here I find the the number of voxels in a dense leaf along each
               axis. This number is, of course, integer, but I have only
               floating point coordinates of the bounding box. Therefore dim[]
-              will be calculated improperly for non-integral vox_voxel
-              components.
+              will be calculated improperly if the precision of floating
+              point arithmetic is not enough.
             */
-            for (i=0; i<VOX_N; i++)
-                dim[i] = (tree->bounding_box.max[i] - tree->bounding_box.min[i])/vox_voxel[i];
+            get_dimensions (&(tree->bounding_box), dim);
             current[0] = tree->bounding_box.min[0];
             for (i=0; i<dim[0]; i++)
             {
