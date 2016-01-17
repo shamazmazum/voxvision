@@ -332,6 +332,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
         size_t num = flatten_tree (tree, dots);
         assert (num == tree->dots_num);
         new_tree = vox_make_tree (dots, tree->dots_num);
+        free (dots);
     }
     return new_tree;
 }
