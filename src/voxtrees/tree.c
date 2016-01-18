@@ -361,6 +361,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
     // If tree is an empty leaf, allocate a regular leaf node and store the voxel there
     if (!(VOX_FULLP (tree)))
     {
+        WITH_STAT (gstats.leaf_insertions++);
         dots = alloca (sizeof (vox_dot) + 16);
         dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
         vox_dot_copy (dots[0], voxel);
@@ -371,6 +372,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
     {
         if (!(voxel_in_box (&(tree->bounding_box), voxel)))
         {
+            WITH_STAT (gstats.dense_insertions++);
             res = 1;
             if (tree->dots_num < VOX_MAX_DOTS)
             {
@@ -415,6 +417,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
         {
             if (vox_dot_equalp (tree->data.dots[i], voxel)) return 0;
         }
+        WITH_STAT (gstats.leaf_insertions++);
         res = 1;
         // We have enough space to add a voxel
         if (tree->dots_num < VOX_MAX_DOTS)
@@ -549,6 +552,7 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                 if (vox_dot_equalp (tree->data.dots[i], voxel)) break;
             if (i < tree->dots_num)
             {
+                WITH_STAT (gstats.leaf_deletions++);
                 res = 1;
                 memmove (tree->data.dots + i, tree->data.dots + i + 1,
                          sizeof (vox_dot) * (tree->dots_num - i - 1));
@@ -562,6 +566,7 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
         }
         else if (tree->flags & DENSE_LEAF)
         {
+            WITH_STAT (gstats.dense_deletions++);
             res = 1;
             // Downgrade to an ordinary leaf or even destroy the node
             if (tree->dots_num <= VOX_MAX_DOTS)

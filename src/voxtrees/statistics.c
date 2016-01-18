@@ -36,6 +36,15 @@ static void print_statistics()
     printf ("Leafs fill ratio histogram:\n");
     for (i=0; i<FILL_RATIO_LEN; i++) printf ("%lu ", gstats.fill_ratio_hist[i]);
     printf ("\n");
+
+    printf ("Insertions in leaf nodes %lu\n"
+            "Deletions from leaf nodes %lu\n"
+            "Insertions in dense leaf nodes %lu\n"
+            "Deletions from dense leaf nodes %lu\n",
+            gstats.leaf_insertions,
+            gstats.leaf_deletions,
+            gstats.dense_insertions,
+            gstats.dense_deletions);
 }
 
 void update_fill_ratio_hist (float ratio)
