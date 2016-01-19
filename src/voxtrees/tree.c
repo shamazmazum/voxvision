@@ -336,6 +336,19 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
     return new_tree;
 }
 
+#ifdef SSE_INTRIN
+static void update_bounding_box (struct vox_box *box, vox_dot dot)
+{
+    __v4sf d = _mm_load_ps (dot);
+    __v4sf d_max = d + _mm_load_ps (vox_voxel);
+
+    __v4sf box_min = _mm_min_ps (d, _mm_load_ps (box->min));
+    __v4sf box_max = _mm_max_ps (d_max, _mm_load_ps (box->max));
+
+    _mm_store_ps (box->min, box_min);
+    _mm_store_ps (box->max, box_max);
+}
+#else
 static void update_bounding_box (struct vox_box *box, vox_dot dot)
 {
     vox_dot dot_max;
@@ -348,6 +361,7 @@ static void update_bounding_box (struct vox_box *box, vox_dot dot)
         box->max[i] = (dot_max[i] > box->max[i]) ? dot_max[i] : box->max[i];
     }
 }
+#endif
 
 static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
 {
@@ -389,7 +403,14 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
             }
             else
             {
-                // Put a dense leaf and this voxel in a new inner node
+                /*
+                  Put a dense leaf and this voxel in a new inner node.
+                  Benchmarks show that this is the slowest part of this function
+                  (especially when compiled with SSE_INTRIN).
+                */
+                vox_dot inner_dot;
+                int idx1, idx2;
+
                 node = node_alloc (0);
                 inner = &(node->data.inner);
                 bzero (inner, sizeof (vox_inner_data));
@@ -397,14 +418,23 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                 update_bounding_box (&(node->bounding_box), voxel);
                 node->flags = 0;
                 node->dots_num = tree->dots_num + 1;
+                // Can we find another center of division easily?
                 closest_vertex (&(tree->bounding_box), voxel, inner->center);
-                vox_dot inner_dot;
+#ifdef SSE_INTRIN
+                __v4sf inner_vector = _mm_load_ps (tree->bounding_box.min) +
+                    _mm_load_ps (tree->bounding_box.max);
+                inner_vector /= _mm_set_ps1 (2.0);
+                _mm_store_ps (inner_dot, inner_vector);
+                idx1 = get_subspace_idx_simd (inner->center, inner_dot);
+                idx2 = get_subspace_idx_simd (inner->center, voxel);
+#else
                 for (i=0; i<VOX_N; i++)
                     inner_dot[i] = (tree->bounding_box.min[i]+tree->bounding_box.max[i]) / 2;
-                int idx = get_subspace_idx (inner->center, inner_dot);
-                inner->children[idx] = tree;
-                int idx2 = get_subspace_idx (inner->center, voxel);
-                assert (idx != idx2);
+                idx1 = get_subspace_idx (inner->center, inner_dot);
+                idx2 = get_subspace_idx (inner->center, voxel);
+#endif
+                assert (idx1 != idx2);
+                inner->children[idx1] = tree;
                 // Insert voxel in an empty leaf
                 vox_insert_voxel_ (&(inner->children[idx2]), voxel);
             }

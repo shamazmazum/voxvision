@@ -195,7 +195,18 @@ int dense_set_p (const struct vox_box *box, size_t n)
     return fabs (n*vox_volume - bb_volume) < vox_volume;
 }
 
-// SSE counterpart? Is it worth it?
+#if 0
+int voxel_in_box (const struct vox_box *box, const vox_dot dot)
+{
+    __v4sf d = _mm_load_ps (dot);
+    __v4sf lt_min = d <  _mm_load_ps (box->min);
+    __v4sf be_max = d >= _mm_load_ps (box->max);
+    // XXX: Will the sign bit be the same in result of this operation?
+    __v4sf inside = lt_min * be_max;
+    int mask = _mm_movemask_ps (inside);
+    return !(mask & 7);
+}
+#else
 int voxel_in_box (const struct vox_box *box, const vox_dot dot)
 {
     int i;
@@ -203,6 +214,7 @@ int voxel_in_box (const struct vox_box *box, const vox_dot dot)
     for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) return 0;}
     return 1;
 }
+#endif
 
 void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
 {
