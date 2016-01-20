@@ -290,6 +290,7 @@ static size_t flatten_tree (const struct vox_node *tree, vox_dot *set)
               point arithmetic is not enough.
             */
             get_dimensions (&(tree->bounding_box), dim);
+            assert (dim[0]*dim[1]*dim[2] == tree->dots_num);
             current[0] = tree->bounding_box.min[0];
             for (i=0; i<dim[0]; i++)
             {
@@ -328,8 +329,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
     if (VOX_FULLP (tree))
     {
         vox_dot *dots = aligned_alloc (16, sizeof(vox_dot) * tree->dots_num);
-        size_t num = flatten_tree (tree, dots);
-        assert (num == tree->dots_num);
+        flatten_tree (tree, dots);
         new_tree = vox_make_tree (dots, tree->dots_num);
         free (dots);
     }
@@ -396,10 +396,9 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                 */
                 dots = alloca (sizeof (vox_dot)*VOX_MAX_DOTS + 16);
                 dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
-                size_t count = flatten_tree (tree, dots);
-                assert (count == tree->dots_num);
-                vox_dot_copy (dots[count], voxel);
-                node = vox_make_tree (dots, count+1);
+                flatten_tree (tree, dots);
+                vox_dot_copy (dots[tree->dots_num], voxel);
+                node = vox_make_tree (dots, tree->dots_num+1);
             }
             else
             {
@@ -611,8 +610,7 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                     vox_dot *set;
                     set = alloca (sizeof (vox_dot)*VOX_MAX_DOTS + 16);
                     set = (void*)(((unsigned long) set + 15) & ~(unsigned long)15);
-                    size_t count = flatten_tree (tree, set);
-                    assert (count == tree->dots_num);
+                    flatten_tree (tree, set);
                     /*
                       XXX: Proper index may be calculated faster, if needed.
                       Just find it using loop now
