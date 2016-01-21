@@ -454,6 +454,67 @@ static void test_tree_del()
     vox_destroy_tree (tree);
 }
 
+static void test_tree_C676d50c2 ()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot;
+
+    dot[0] = 0; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+
+    dot[0] = 0; dot[1] = 0; dot[2] = -1;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 0; dot[2] = -2;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 0; dot[2] = 1;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 0; dot[2] = 2;
+    vox_insert_voxel (&tree, dot);
+
+    dot[0] = -1; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = -2; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = -3; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = -4; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+
+    dot[0] = 1; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 2; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 3; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 4; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+
+    dot[0] = 0; dot[1] = -1; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = -2; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = -3; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = -4; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+
+    dot[0] = 0; dot[1] = 1; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 2; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 3; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 4; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+
+    vox_dot origin = {-2, -2, 0};
+    vox_dot dir = {1, 1, -1};
+    vox_dot res;
+
+    int interp = vox_ray_tree_intersection (tree, origin, dir, res, NULL);
+    CU_ASSERT (interp);
+}
+
 static struct vox_rnd_ctx* make_fake_context (vox_camera_interface *iface)
 {
     SDL_Surface *surf = malloc (sizeof(SDL_Surface));
@@ -542,6 +603,9 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vox_suite, "Deletion", test_tree_del);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Search (commit 676d50c2)", test_tree_C676d50c2);
     if (test == NULL) PROC_TEST_ERROR;
 
     // Renderer library
