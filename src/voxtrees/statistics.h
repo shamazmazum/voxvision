@@ -21,6 +21,11 @@ struct statistics
 
     unsigned long dense_leafs;
     unsigned long dense_dots;
+
+    unsigned long dense_insertions;
+    unsigned long dense_deletions;
+    unsigned long leaf_insertions;
+    unsigned long leaf_deletions;
 };
 
 extern struct statistics gstats;

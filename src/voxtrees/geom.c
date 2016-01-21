@@ -194,3 +194,64 @@ int dense_set_p (const struct vox_box *box, size_t n)
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
     return fabs (n*vox_volume - bb_volume) < vox_volume;
 }
+
+#if 0
+int voxel_in_box (const struct vox_box *box, const vox_dot dot)
+{
+    __v4sf d = _mm_load_ps (dot);
+    __v4sf lt_min = d <  _mm_load_ps (box->min);
+    __v4sf be_max = d >= _mm_load_ps (box->max);
+    // XXX: Will the sign bit be the same in result of this operation?
+    __v4sf inside = lt_min * be_max;
+    int mask = _mm_movemask_ps (inside);
+    return !(mask & 7);
+}
+#else
+int voxel_in_box (const struct vox_box *box, const vox_dot dot)
+{
+    int i;
+
+    for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) return 0;}
+    return 1;
+}
+#endif
+
+void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    int i;
+    for (i=0; i<VOX_N; i++)
+    {
+        float d1 = fabsf (box->min[i] - dot[i]);
+        float d2 = fabsf (box->max[i] - dot[i]);
+        res[i] = (d1 < d2) ? box->min[i] : box->max[i];
+    }
+}
+
+int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx)
+{
+    int i;
+
+    vox_box_copy (res, box);
+
+    for (i=0; i<VOX_N; i++)
+    {
+        if (idx & (1<<i)) res->max[i] = center[i];
+        else res->min[i] = center[i];
+        if (res->min[i] == res->max[i]) return 0;
+    }
+    return 1;
+}
+
+/*
+  XXX: Use of this function is discouraged.
+  This function is used only for dense leafs to get dimensions and number of
+  voxels inside those leafs. If the precision of floating point arithmetic is
+  not enough, this function will return wrong results. Further work must be done
+  to eliminate use of this function (and rework flatten_tree() so it doesn't
+  depend on this one).
+*/
+void get_dimensions (const struct vox_box *box, size_t dim[])
+{
+    int i;
+    for (i=0; i<VOX_N; i++) dim[i] = (box->max[i] - box->min[i]) / vox_voxel[i];
+}

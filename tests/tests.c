@@ -66,7 +66,7 @@ static int quat_eq (vox_quat v1, vox_quat v2)
     else return 0;
 }
 
-void test_rotation_around_itself ()
+static void test_rotation_around_itself ()
 {
     // Rotate vector around itself on 0.2 radian
     vox_quat basex = {sinf(0.1), 0.0, 0.0, cos(0.1)};
@@ -91,7 +91,7 @@ void test_rotation_around_itself ()
     CU_ASSERT (vect_eq (resz, vectz));
 }
 
-void test_change_axis ()
+static void test_change_axis ()
 {
     // Rotating x aroung y and getting z and so on
     float sincos = sqrtf(2.0)/2.0;
@@ -125,7 +125,7 @@ static float* vector_inv (const vox_dot dot, vox_dot res)
     return res;
 }
 
-void test_anticommut ()
+static void test_anticommut ()
 {
     // Rotating x around y must result in rotaiong y around x with different sign
     float sincos = sqrtf(2.0)/2.0;
@@ -143,7 +143,7 @@ void test_anticommut ()
     CU_ASSERT (vect_eq (res1, vector_inv (res2, res2)));
 }
 
-void rot_composition ()
+static void rot_composition ()
 {
     // Provided rotations q1, q2 and vector v test if q1 `rot` (q2 `rot` v) == q3 `rot` v,
     // where q3 = q1*q2
@@ -168,7 +168,7 @@ void rot_composition ()
     CU_ASSERT (vect_eq (res1, res2));
 }
 
-void rot_saves_norm ()
+static void rot_saves_norm ()
 {
     vox_quat base = {0.5, 0.5, 0.5, 0.5};
     // Random numbers
@@ -179,7 +179,7 @@ void rot_saves_norm ()
     CU_ASSERT (fabsf (vox_dot_product (vect, vect) - vox_dot_product (res, res)) < PREC);
 }
 
-struct vox_node* prepare_rnd_set_and_tree ()
+static struct vox_node* prepare_rnd_set_and_tree ()
 {
     int i,j,k;
     size_t counter = 0;
@@ -205,14 +205,14 @@ struct vox_node* prepare_rnd_set_and_tree ()
     return  vox_make_tree (set, counter);
 }
 
-void check_tree (struct vox_node *tree)
+static void check_tree (struct vox_node *tree)
 {
     vox_dot tmp;
     int i;
 
     if (VOX_FULLP (tree))
     {
-        if (VOX_DENSE_LEAFP (tree))
+        if (tree->flags & DENSE_LEAF)
         {
             /*
               Dense leafs contain an exact number of dots depending on
@@ -223,9 +223,9 @@ void check_tree (struct vox_node *tree)
                 size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
             float bb_volume = size[0]*size[1]*size[2];
             bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-            CU_ASSERT (tree->dots_num == (int)bb_volume);
+            CU_ASSERT (vox_voxels_in_tree (tree) == (int)bb_volume);
         }
-        else if (VOX_LEAFP (tree))
+        else if (tree->flags & LEAF)
         {
             vox_dot *dots = tree->data.dots;
             // Check that all voxels are covered by bounding box
@@ -239,9 +239,11 @@ void check_tree (struct vox_node *tree)
         else
         {
             vox_inner_data inner = tree->data.inner;
+            size_t number_sum = 0;
             for (i=0; i<VOX_NS; i++)
             {
                 struct vox_node *child = inner.children[i];
+                number_sum += vox_voxels_in_tree (child);
                 if (VOX_FULLP (child))
                 {
                     // Check if child's bounding box is inside parent's
@@ -261,11 +263,12 @@ void check_tree (struct vox_node *tree)
                 // Test a child recursively
                 check_tree (child);
             }
+            CU_ASSERT (vox_voxels_in_tree (tree) == number_sum);
         }
     }
 }
 
-void quat_mul ()
+static void quat_mul ()
 {
     vox_quat res;
     
@@ -323,7 +326,133 @@ void quat_mul ()
     CU_ASSERT (quat_eq (res, e));
 }
 
-void test_tree_cons () {check_tree (working_tree);}
+static void test_tree_cons () {check_tree (working_tree);}
+
+static void test_tree_ins()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot1 = {0, 0, 0};
+    vox_dot dot11 = {0.5, 0.1, 0.8};
+    vox_dot dot2 = {6, 6, 6};
+    int res;
+
+    // Insert the first voxel
+    res = vox_insert_voxel (&tree, dot1);
+    CU_ASSERT (res);
+    CU_ASSERT (VOX_FULLP (tree) && vox_voxels_in_tree (tree) == 1);
+
+    // Insert the same voxel again
+    res = vox_insert_voxel (&tree, dot11);
+    CU_ASSERT (!res);
+    CU_ASSERT (VOX_FULLP (tree) && vox_voxels_in_tree (tree) == 1);
+    // Insert another voxel
+    res = vox_insert_voxel (&tree, dot2);
+    CU_ASSERT (res);
+    CU_ASSERT (VOX_FULLP (tree) && vox_voxels_in_tree (tree) == 2);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+
+    // Make a fake tree with dense leaf as root
+    tree = aligned_alloc(16, sizeof (struct vox_node));
+    tree->bounding_box.min[0] = 5;
+    tree->bounding_box.min[1] = 5;
+    tree->bounding_box.min[2] = 5;
+    tree->bounding_box.max[0] = 10;
+    tree->bounding_box.max[1] = 10;
+    tree->bounding_box.max[2] = 10;
+    tree->dots_num = 125;
+    tree->flags = DENSE_LEAF;
+    res = vox_insert_voxel (&tree, dot2);
+    CU_ASSERT (!res);
+    res = vox_insert_voxel (&tree, dot1);
+    CU_ASSERT (res && vox_voxels_in_tree (tree) == 126);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+
+    tree = NULL;
+    int i, j, k;
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                dot1[0] = 2*i;
+                dot1[1] = 2*j;
+                dot1[2] = 2*k;
+                res = vox_insert_voxel (&tree, dot1);
+                CU_ASSERT (res);
+            }
+        }
+    }
+    CU_ASSERT (vox_voxels_in_tree (tree) == 27);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+
+    // Check dense node creation
+    tree = NULL;
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                dot1[0] = i;
+                dot1[1] = j;
+                dot1[2] = k;
+                res = vox_insert_voxel (&tree, dot1);
+                CU_ASSERT (res);
+            }
+        }
+    }
+    CU_ASSERT (vox_voxels_in_tree (tree) == 27);
+    check_tree (tree);
+    vox_destroy_tree (tree);
+}
+
+static void test_tree_del()
+{
+    vox_dot *set = aligned_alloc (16, sizeof(vox_dot)*27);
+    int i,j,k,counter = 0;
+    struct vox_node *tree;
+
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                set[counter][0] = i*vox_voxel[0];
+                set[counter][1] = j*vox_voxel[1];
+                set[counter][2] = k*vox_voxel[2];
+                counter++;
+            }
+        }
+    }
+    tree = vox_make_tree (set, 27);
+    free (set);
+
+    vox_dot dot;
+    int n;
+    for (i=0; i<3; i++)
+    {
+        for (j=0; j<3; j++)
+        {
+            for (k=0; k<3; k++)
+            {
+                dot[0] = i*vox_voxel[0];
+                dot[1] = j*vox_voxel[1];
+                dot[2] = k*vox_voxel[2];
+                n = vox_voxels_in_tree (tree);
+                vox_delete_voxel (&tree, dot);
+                CU_ASSERT (n - vox_voxels_in_tree (tree) == 1);
+                check_tree (tree);
+            }
+        }
+    }
+    // Not really needed
+    vox_destroy_tree (tree);
+}
 
 static struct vox_rnd_ctx* make_fake_context (vox_camera_interface *iface)
 {
@@ -340,7 +469,7 @@ static void free_fake_context (struct vox_rnd_ctx *ctx)
     free (ctx);
 }
 
-void test_simp_camera ()
+static void test_simp_camera ()
 {
     vox_dot pos = {0,0,0};
     vox_dot angles;
@@ -407,6 +536,12 @@ int main ()
     if (vox_suite == NULL) PROC_SUIT_ERROR;
 
     test = CU_add_test (vox_suite, "Tree construction", test_tree_cons);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Insertion", test_tree_ins);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Deletion", test_tree_del);
     if (test == NULL) PROC_TEST_ERROR;
 
     // Renderer library

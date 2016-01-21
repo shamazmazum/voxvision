@@ -18,7 +18,7 @@
     fprintf (stderr, errormsg); \
     exit (1); }} while (0);
 
-double gettime ()
+static double gettime ()
 {
     struct timeval tv;
     gettimeofday (&tv, 0);
@@ -26,7 +26,7 @@ double gettime ()
 }
 
 /* FIXME: There is a standard POSIX way for this? */
-int get_file_directory (const char *path, char *dir)
+static int get_file_directory (const char *path, char *dir)
 {
     int res, len;
     char *cursor;
@@ -42,10 +42,30 @@ int get_file_directory (const char *path, char *dir)
     return 1;
 }
 
-void usage ()
+static void usage ()
 {
     fprintf (stderr, "Usage: voxvision-demo [-c config-file] dataset-config\n");
     exit (1);
+}
+
+static void amend_box (struct vox_node **tree, vox_dot center, int size, int add)
+{
+    int i,j,k;
+    vox_dot dot;
+    for (i=-size; i<size; i++)
+    {
+        for (j=-size; j<size; j++)
+        {
+            for (k=-size; k<size; k++)
+            {
+                dot[0] = center[0] + i*vox_voxel[0];
+                dot[1] = center[1] + j*vox_voxel[1];
+                dot[2] = center[2] + k*vox_voxel[2];
+                if (add) vox_insert_voxel (tree, dot);
+                else vox_delete_voxel (tree, dot);
+            }
+        }
+    }
 }
 
 int main (int argc, char *argv[])
@@ -149,9 +169,7 @@ int main (int argc, char *argv[])
     time = gettime() - time;
     printf ("Building tree (%lu voxels) took %f\n",
             vox_voxels_in_tree (tree), time);
-    vox_dot *new_set = vox_recopy_tree (tree);
     free (set);
-    set = new_set;
 
     sdl_init = 1;
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
@@ -224,7 +242,35 @@ int main (int argc, char *argv[])
                     radius = vox_simple_camera_set_radius (camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
                 }
+                else if ((event.key.keysym.sym == global_controls.insert) ||
+                         (event.key.keysym.sym == global_controls.delete))
+                {
+                    vox_dot inter;
+                    vox_dot dir;
+                    camera->iface.screen2world (camera, dir, screen->w/2, screen->h/2);
+                    int interp = vox_ray_tree_intersection
+                        (tree, camera->iface.get_position (camera),
+                         dir, inter, NULL);
+                    if (interp)
+                    {
+                        if (event.key.keysym.sym == global_controls.insert)
+                            amend_box (&tree, inter, 5, 1);
+                        else
+                            amend_box (&tree, inter, 5, 0);
+                        free (ctx);
+                        ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+                    }
+                }
                 else if (event.key.keysym.sym == SDLK_q) goto end;
+                else if (event.key.keysym.sym == SDLK_r)
+                {
+                    struct vox_node *new_tree = vox_rebuild_tree (tree);
+                    vox_destroy_tree (tree);
+                    tree = new_tree;
+                    free (ctx);
+                    ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+                    printf ("Tree rebuilt\n");
+                }
                 else if (event.key.keysym.sym == SDLK_F11) SDL_SaveBMP (screen, "screen.bmp");
                 break;
             case SDL_QUIT:
@@ -247,11 +293,7 @@ end:
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
     if (camera != NULL) free (camera);
-    if (tree != NULL)
-    {
-        vox_destroy_tree (tree);
-        free (set);
-    }
+    if (tree != NULL) vox_destroy_tree (tree);
     if (sdl_init) SDL_Quit();
 
     return 0;

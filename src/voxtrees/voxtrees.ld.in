@@ -1,14 +1,16 @@
 VOXTREES_@voxvision_VERSION@ {
     global: vox_destroy_tree;
             vox_make_tree;
-            vox_recopy_tree;
+            vox_rebuild_tree;
+            vox_insert_voxel;
+            vox_delete_voxel;
             vox_ray_tree_intersection;
             vox_tree_ball_collidep;
             vox_voxel;
             vox_voxels_in_tree;
             vox_bounding_box;
-# FIXME: Used only for tests:
             sum_vector;
+# FIXME: Used only for tests:
             get_subspace_idx;
     local: *;
 };

@@ -82,6 +82,10 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
 float* closest_in_set (vox_dot[], int, const vox_dot, float (*) (const vox_dot, const vox_dot));
 float fill_ratio (const struct vox_box *box, size_t n);
 int dense_set_p (const struct vox_box *box, size_t n);
+int voxel_in_box (const struct vox_box *box, const vox_dot dot);
+void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res);
+int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx);
+void get_dimensions (const struct vox_box *box, size_t dim[]);
 #endif
 
 #endif

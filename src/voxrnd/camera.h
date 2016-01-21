@@ -17,6 +17,9 @@ typedef struct
     #ifdef VOXRND_SOURCE
     void *camera; /**< \brief A reference to camera. Supply it as the first argument to camera methods */
     struct vox_rnd_ctx *ctx;
+    #else
+    void *padding[2];
+    #endif
 
     void (*screen2world) (void* obj, vox_dot ray, int sx, int sy);
     /**<
@@ -27,9 +30,6 @@ typedef struct
        \param sx screen x coordinate
        \param sy screen y coordinate
      */
-    #else
-    void *padding[3];
-    #endif
 
     float* (*get_position) (void* obj);
     /**<

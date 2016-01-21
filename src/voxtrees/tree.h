@@ -48,7 +48,8 @@ struct vox_node;
 /**
    \brief Turn a set of voxels into a tree.
 
-   The underlying set must remain valid while tree is used.
+   The underlying set is destructively modified and can be freed after
+   creation.
 
    \param set a set of dots (of type vox_dot) to form a tree
    \param n number of voxels in the set
@@ -74,16 +75,32 @@ size_t vox_voxels_in_tree (struct vox_node *tree);
 void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 
 /**
-   \brief Optimize an underlying set of the tree.
+   \brief Rebuild a tree.
 
-   This function replaces an old underlying set with a new one
-   which possibly is smaller than the old one. You can free the
-   old set after this operation. The new set must be valid while
-   the tree is used. You can free() it after destruction of the
-   tree.
-
-   \return A pointer to the new set.
+   You can rebuild a tree completely and destroy the old one with
+   vox_destroy_tree(). The new tree can be more balanced. Use this
+   after a big amount of insertions.
 **/
-vox_dot* vox_recopy_tree (struct vox_node *tree);
+struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
+
+/**
+   \brief Insert a voxel in the tree on the fly.
+
+   Many applications of this function will result in unbalanced tree.
+   You can rebalance the tree by recreating it with vox_rebuild_tree()
+
+   \return 1 on success, 0 if the voxel was already in the tree.
+**/
+int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+
+/**
+   \brief Delete a voxel from the tree on the fly.
+
+   You can call vox_rebuild_tree() after many applications of this
+   function to get a more balanced tree.
+
+   \return 1 on success, 0 if there was no such voxel in the tree.
+**/
+int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 #endif
