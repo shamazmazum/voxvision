@@ -145,26 +145,6 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
     return calc_sqr_metric (fitted, center) < (radius*radius);
 }
 
-// Not used anymore
-#if 0
-float* closest_in_set (vox_dot set[], int n, const vox_dot dot, float (*metric) (const vox_dot, const vox_dot))
-{
-    float *res = set[0];
-    float dist = metric(dot, res);
-    int i;
-
-    for (i=1; i<n; i++)
-    {
-        if (dist > metric(set[i], dot))
-        {
-            dist = metric(set[i], dot);
-            res = set[i];
-        }
-    }
-    return res;
-}
-#endif
-
 float fill_ratio (const struct vox_box *box, size_t n)
 {
     float bb_volume, vox_volume;
