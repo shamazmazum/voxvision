@@ -47,9 +47,9 @@ static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot r
     __v4sf fitted = v;
     fitted = _mm_max_ps (fitted, _mm_load_ps (box->min));
     fitted = _mm_min_ps (fitted, _mm_load_ps (box->max));
-    v = fitted == v;
+    v = fitted != v;
     _mm_store_ps (res, fitted);
-    return (_mm_movemask_ps(v) & 7) == 7;
+    return !(_mm_movemask_ps(v) & 7);
 }
 #else
 static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
@@ -91,18 +91,14 @@ int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir,
     max_dist = -1;
     for (i=0; i<VOX_N; i++)
     {
-        if ((candidate_plane[i] == origin[i]) || dir[i] == 0.0) tmp = -1.0;
-        else
+        tmp = (candidate_plane[i] - origin[i])/dir[i];
+        if (tmp > max_dist)
         {
-            tmp = (candidate_plane[i] - origin[i])/dir[i];
-            if (tmp > max_dist)
-            {
-                plane_num = i;
-                max_dist = tmp;
-            }
+            plane_num = i;
+            max_dist = tmp;
         }
     }
-    if (max_dist < 0) return 0;
+    if (max_dist <= 0) return 0;
 
     for (i=0; i<VOX_N; i++)
     {
@@ -123,15 +119,14 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
 {
     int i;
     float k;
-    if (dir[planenum] == 0.0) return 0;
     k = planedot[planenum] - origin[planenum];
     /*
       k == 0 means that origin lays on the plane.
       This is a special case which is not handeled here.
       Just return that there is no intersection.
     */
-    if (k == 0) return 0;
-    if ((dir[planenum] < 0) != (k < 0)) return 0;
+    if ((k == 0) ||
+        (dir[planenum] < 0) != (k < 0)) return 0;
 
     k = k / dir[planenum];
 
@@ -147,7 +142,7 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
 {
     vox_dot fitted;
     fit_into_box (box, center, fitted);
-    return (calc_sqr_metric (fitted, center) < (radius*radius)) ? 1 : 0;
+    return calc_sqr_metric (fitted, center) < (radius*radius);
 }
 
 // Not used anymore
