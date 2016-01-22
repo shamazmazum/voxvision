@@ -1,2 +1,2 @@
-mybuild/*
+build*
 src/voxvision.h

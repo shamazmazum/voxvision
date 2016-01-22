@@ -58,8 +58,8 @@ Building
 --------
 From directory containing this file:
 ```
-mkdir mybuild
-cd mybuild
+mkdir build
+cd build
 cmake -DCMAKE_BUILD_TYPE=RELEASE ..
 make
 make install
