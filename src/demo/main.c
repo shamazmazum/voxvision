@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <iniparser.h>
+#ifdef USE_GCD
+#include <dispatch/dispatch.h>
+#endif
 
 #include <voxtrees.h>
 #include <voxrnd.h>
@@ -76,9 +79,16 @@ int main (int argc, char *argv[])
     int fd = -1, cwd = -1, sdl_init = 0, ch;
     double time;
 
-    struct vox_node *tree = NULL;
     vox_simple_camera *camera = NULL;
+#ifdef USE_GCD
+    __block struct vox_node *tree = NULL;
+    __block struct vox_rnd_ctx *ctx = NULL;
+    dispatch_queue_t tree_queue = NULL;
+    dispatch_group_t tree_group = NULL;
+#else
+    struct vox_node *tree = NULL;
     struct vox_rnd_ctx *ctx = NULL;
+#endif
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -171,6 +181,13 @@ int main (int argc, char *argv[])
             vox_voxels_in_tree (tree), time);
     free (set);
 
+#if USE_GCD
+    // Synchronous tree operations queue and group
+    tree_queue = dispatch_queue_create ("tree ops", 0);
+    if (tree_queue == NULL) goto end;
+    tree_group = dispatch_group_create ();
+#endif
+
     sdl_init = 1;
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
     {
@@ -206,7 +223,18 @@ int main (int argc, char *argv[])
     {
         SDL_Event event;
         SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0, 0, 0));
+#if USE_GCD
+        /*
+          Wait for all synchronous tree operations to complete then
+          render a frame and again wait for renderer to complete.
+
+          Asynchronous non-destructive tree operations like rebuilding
+          a tree still may be executed in parallel on other queues.
+        */
+        dispatch_sync (tree_queue, ^{vox_render (ctx);});
+#else
         vox_render (ctx);
+#endif
         vox_dot step = {0,0,0};
         vox_dot rot_delta = {0,0,0};
         Uint8 *keystate = SDL_GetKeyState (NULL);
@@ -245,6 +273,13 @@ int main (int argc, char *argv[])
                 else if ((event.key.keysym.sym == global_controls.insert) ||
                          (event.key.keysym.sym == global_controls.delete))
                 {
+#ifdef USE_GCD
+                    /*
+                      Tree modification will be performed when there
+                      are no other operations in the group.
+                    */
+                    dispatch_group_notify (tree_group, tree_queue, ^{
+#endif
                     vox_dot inter;
                     vox_dot dir;
                     camera->iface.screen2world (camera, dir, screen->w/2, screen->h/2);
@@ -260,18 +295,38 @@ int main (int argc, char *argv[])
                         free (ctx);
                         ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
                     }
+#ifdef USE_GCD
+                    });
+#endif
                 }
                 else if (event.key.keysym.sym == SDLK_q) goto end;
                 else if (event.key.keysym.sym == SDLK_r)
                 {
+#ifdef USE_GCD
+                    /*
+                      Rebuild the tree asynchronously and then
+                      update the context.
+                    */
+                    dispatch_group_async (tree_group,
+                                          dispatch_get_global_queue
+                                          (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+#endif
                     struct vox_node *new_tree = vox_rebuild_tree (tree);
+#ifdef USE_GCD
+                    dispatch_sync (tree_queue, ^{
+#endif
                     vox_destroy_tree (tree);
                     tree = new_tree;
                     free (ctx);
-                    ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+                    ctx = vox_make_renderer_context
+                        (screen, tree, &(camera->iface));
                     printf ("Tree rebuilt\n");
+#ifdef USE_GCD
+                    });});
+#endif
                 }
-                else if (event.key.keysym.sym == SDLK_F11) SDL_SaveBMP (screen, "screen.bmp");
+                else if (event.key.keysym.sym == SDLK_F11)
+                    SDL_SaveBMP (screen, "screen.bmp");
                 break;
             case SDL_QUIT:
                 goto end;
@@ -295,6 +350,10 @@ end:
     if (camera != NULL) free (camera);
     if (tree != NULL) vox_destroy_tree (tree);
     if (sdl_init) SDL_Quit();
+#if USE_GCD
+    if (tree_queue != NULL) dispatch_release (tree_queue);
+    if (tree_group != NULL) dispatch_release (tree_group);
+#endif
 
     return 0;
 }

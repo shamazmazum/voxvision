@@ -62,7 +62,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
       not root scene node, if possible
     */
 #ifdef USE_GCD
-    dispatch_apply (n>>2, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_HIGH, 0),
+    dispatch_apply (n>>2, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                     ^(size_t p1)
 #else
     int p1;

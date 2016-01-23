@@ -26,6 +26,9 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
 target_link_libraries (voxrnd ${SDL_LIBRARY} m)
 if (GCD_FOUND)
 target_link_libraries (voxrnd ${GCD_LIBRARY})
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+target_link_libraries (voxrnd BlocksRuntime)
+endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif (GCD_FOUND)
 
 install (FILES camera.h renderer.h
