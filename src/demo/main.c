@@ -91,7 +91,6 @@ int main (int argc, char *argv[])
     dispatch_group_t tree_group = NULL;
 #else
     struct vox_node *tree = NULL;
-    struct vox_rnd_ctx *ctx = NULL;
 #endif
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
