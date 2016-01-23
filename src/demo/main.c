@@ -80,9 +80,9 @@ int main (int argc, char *argv[])
     double time;
 
     vox_simple_camera *camera = NULL;
+    struct vox_rnd_ctx *ctx = NULL;
 #ifdef USE_GCD
     __block struct vox_node *tree = NULL;
-    __block struct vox_rnd_ctx *ctx = NULL;
     dispatch_queue_t tree_queue = NULL;
     dispatch_group_t tree_group = NULL;
 #else
@@ -292,8 +292,7 @@ int main (int argc, char *argv[])
                             amend_box (&tree, inter, 5, 1);
                         else
                             amend_box (&tree, inter, 5, 0);
-                        free (ctx);
-                        ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+                        vox_rc_set_scene (ctx, tree);
                     }
 #ifdef USE_GCD
                     });
@@ -317,9 +316,7 @@ int main (int argc, char *argv[])
 #endif
                     vox_destroy_tree (tree);
                     tree = new_tree;
-                    free (ctx);
-                    ctx = vox_make_renderer_context
-                        (screen, tree, &(camera->iface));
+                    vox_rc_set_scene (ctx, tree);
                     printf ("Tree rebuilt\n");
 #ifdef USE_GCD
                     });});

@@ -35,14 +35,24 @@ struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_
 {
     struct vox_rnd_ctx *ctx = malloc (sizeof(struct vox_rnd_ctx));
     ctx->surface = surface;
-    ctx->scene = scene;
+    if (camera != NULL) vox_rc_set_camera (ctx, camera);
+    vox_rc_set_scene (ctx, scene);
+
+    return ctx;
+}
+
+void vox_rc_set_camera (struct vox_rnd_ctx *ctx, vox_camera_interface *camera)
+{
     ctx->camera = camera;
     camera->ctx = ctx;
+}
 
+void vox_rc_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
+{
+    ctx->scene = scene;
     // FIXME: calculate colors in runtime
     // Only a temporary solution to get a colorful output
     color_coeff (scene, ctx->mul, ctx->add);
-    return ctx;
 }
 
 void vox_render (struct vox_rnd_ctx *ctx)

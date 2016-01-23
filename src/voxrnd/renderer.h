@@ -29,12 +29,25 @@ struct vox_rnd_ctx;
    User must free() it after use.
 
    \param surface an SDL surface to render to
-   \param scene the root node for the scene
-   \param camera the camera
+   \param scene the root node for the scene.
+   \param camera the camera. If camera is
+   NULL, you must set it later with setter
+   function.
+
    \return a pointer to allocated context
  **/
 struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_node *scene,
                                                vox_camera_interface *camera);
+
+/**
+   \brief Scene setter for renderer context
+**/
+void vox_rc_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene);
+
+/**
+   \brief Camera setter for renderer context
+**/
+void vox_rc_set_camera (struct vox_rnd_ctx *ctx, vox_camera_interface *camera);
 
 /**
    \brief Render a scene on SDL surface.

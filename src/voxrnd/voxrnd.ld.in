@@ -5,6 +5,8 @@ VOXRND_@voxvision_VERSION@ {
             vox_simple_camera_get_radius;
 #           vox_destroy_simple_camera;
             vox_make_renderer_context;
+            vox_rc_set_camera;
+            vox_rc_set_scene;
             vox_render;
 # For the tests
             vox_quat_mul;
