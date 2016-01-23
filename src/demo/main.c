@@ -1,10 +1,14 @@
-#include <SDL/SDL.h>
 #include <sys/time.h>
 #include <sys/param.h>
+
+#include <fcntl.h>
 #include <unistd.h>
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <fcntl.h>
+#include <string.h>
+
+#include <SDL/SDL.h>
 #include <iniparser.h>
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
@@ -35,13 +39,13 @@ static int get_file_directory (const char *path, char *dir)
     char *cursor;
     strcpy (dir, path);
     len = strlen (path);
-    cursor = dir + len - 1;
+    cursor = dir + len;
     while (*cursor != '/')
     {
         if (cursor == dir) return 0;
         cursor--;
     }
-    *cursor = '\0';
+    *(cursor+1) = '\0';
     return 1;
 }
 
@@ -76,7 +80,7 @@ int main (int argc, char *argv[])
     dimension d;
     vox_dot *set;
     dictionary *cfg;
-    int fd = -1, cwd = -1, sdl_init = 0, ch;
+    int fd = -1, sdl_init = 0, ch;
     double time;
 
     vox_simple_camera *camera = NULL;
@@ -146,11 +150,12 @@ int main (int argc, char *argv[])
 
 
     // Read dataset
-    cwd = open (".", O_RDONLY);
-    char path[MAXPATHLEN];
-    if (get_file_directory (datacfgname, path)) chdir (path);
+    char dataset_path[MAXPATHLEN];
+    if (!get_file_directory (datacfgname, dataset_path))
+        strcpy (dataset_path, "./");
+    strcat (dataset_path, datasetname);
 
-    fd = open (datasetname, O_RDONLY);
+    fd = open (dataset_path, O_RDONLY);
     if (fd == -1)
     {
         fprintf (stderr, "Cannot open dataset\n");
@@ -169,9 +174,6 @@ int main (int argc, char *argv[])
 
     close (fd);
     fd = -1;
-    fchdir (cwd);
-    close (cwd);
-    cwd = -1;
 
     // Build voxel tree
     time = gettime ();
@@ -341,7 +343,6 @@ int main (int argc, char *argv[])
     }
 
 end:
-    if (cwd >= 0) close (cwd);
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
     if (camera != NULL) free (camera);
