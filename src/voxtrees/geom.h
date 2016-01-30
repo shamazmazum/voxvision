@@ -15,7 +15,11 @@
    \param b
    \param res an array where the result is stored
 **/
+#ifdef SSE_INTRIN
+#define sum_vector(a,b,res) _mm_store_ps ((res), _mm_load_ps (a) + _mm_load_ps (b))
+#else
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
+#endif
 
 #ifdef VOXTREES_SOURCE
 /**

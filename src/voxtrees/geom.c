@@ -1,13 +1,7 @@
 #include <math.h>
 #include "geom.h"
 
-#ifdef SSE_INTRIN
-void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
-{
-    __v4sf dot = _mm_load_ps (a);
-    _mm_store_ps (res, dot + _mm_load_ps (b));
-}
-#else
+#ifndef SSE_INTRIN
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
     int i;
