@@ -31,6 +31,6 @@ int vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin
    \param radius radius of the ball
    \return 1 if collision was found, 0 otherwise
 **/
-int vox_tree_ball_collidep (struct vox_node* tree, const vox_dot center, float radius);
+int vox_tree_ball_collidep (const struct vox_node* tree, const vox_dot center, float radius);
 
 #endif

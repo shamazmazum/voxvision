@@ -140,7 +140,7 @@ end:
     return found;
 }
 
-int vox_tree_ball_collidep (struct vox_node *tree, const vox_dot center, float radius)
+int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, float radius)
 {
     int i;
     if (!(VOX_FULLP (tree))) return 0;

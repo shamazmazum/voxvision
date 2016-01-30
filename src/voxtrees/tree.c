@@ -239,7 +239,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     return res;
 }
 
-size_t vox_voxels_in_tree (struct vox_node *tree)
+size_t vox_voxels_in_tree (const struct vox_node *tree)
 {
     return (VOX_FULLP (tree)) ? tree->dots_num : 0;
 }

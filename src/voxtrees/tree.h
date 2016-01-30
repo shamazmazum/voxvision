@@ -67,7 +67,7 @@ void vox_destroy_tree (struct vox_node *tree);
 /**
    \brief Return number of voxels in the tree.
 **/
-size_t vox_voxels_in_tree (struct vox_node *tree);
+size_t vox_voxels_in_tree (const struct vox_node *tree);
 
 /**
    \brief Get the bounding box for voxels in the tree
