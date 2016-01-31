@@ -364,8 +364,31 @@ static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 }
 #endif
 
-static int vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel);
-static struct vox_node* __attribute__((noinline))
+static int voxel_in_tree (const struct vox_node *tree, const vox_dot voxel)
+{
+    int i;
+
+    if (VOX_FULLP (tree) &&
+        voxel_in_box (&(tree->bounding_box), voxel))
+    {
+        if (tree->flags & DENSE_LEAF) return 1;
+        if (tree->flags & LEAF)
+        {
+            for (i=0; i<tree->dots_num; i++)
+                if (vox_dot_equalp (voxel, tree->data.dots[i])) return 1;
+        }
+        else
+        {
+            const vox_inner_data *inner = &(tree->data.inner);
+            i = get_subspace_idx (inner->center, voxel);
+            return voxel_in_tree (inner->children[i], voxel);
+        }
+    }
+    return 0;
+}
+
+static void vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel);
+static struct vox_node* __attribute__((noinline)) // always inserts
     insert_in_big_dense (struct vox_node *tree, const vox_dot voxel)
 {
     /*
@@ -409,10 +432,10 @@ static struct vox_node* __attribute__((noinline))
     return node;
 }
 
-static int vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
+// always inserts
+static void vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
     struct vox_node *tree = *tree_ptr;
-    int res = 0;
     vox_dot *dots;
     struct vox_node *node = tree;
 
@@ -424,39 +447,28 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
         dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
         vox_dot_copy (dots[0], voxel);
         node = vox_make_tree (dots, 1);
-        res = 1;
     }
     else if (tree->flags & DENSE_LEAF)
     {
-        if (!(voxel_in_box (&(tree->bounding_box), voxel)))
+        WITH_STAT (gstats.dense_insertions++);
+        if (tree->dots_num < VOX_MAX_DOTS)
         {
-            WITH_STAT (gstats.dense_insertions++);
-            res = 1;
-            if (tree->dots_num < VOX_MAX_DOTS)
-            {
-                /*
-                  Downgrade to an ordinary leaf. This will result is lesser amount
-                  of inner nodes.
-                */
-                dots = alloca (sizeof (vox_dot)*VOX_MAX_DOTS + 16);
-                dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
-                flatten_tree (tree, dots);
-                vox_dot_copy (dots[tree->dots_num], voxel);
-                node = vox_make_tree (dots, tree->dots_num+1);
-            }
-            else node = insert_in_big_dense (tree, voxel);
+            /*
+              Downgrade to an ordinary leaf. This will result is lesser amount
+              of inner nodes.
+            */
+            dots = alloca (sizeof (vox_dot)*VOX_MAX_DOTS + 16);
+            dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
+            flatten_tree (tree, dots);
+            vox_dot_copy (dots[tree->dots_num], voxel);
+            node = vox_make_tree (dots, tree->dots_num+1);
         }
+        else node = insert_in_big_dense (tree, voxel);
     }
     else if (tree->flags & LEAF)
     {
         int i;
-        // Check if the voxel is already in the tree
-        for (i=0; i<tree->dots_num; i++)
-        {
-            if (vox_dot_equalp (tree->data.dots[i], voxel)) return 0;
-        }
         WITH_STAT (gstats.leaf_insertions++);
-        res = 1;
         // We have enough space to add a voxel
         if (tree->dots_num < VOX_MAX_DOTS)
         {
@@ -482,20 +494,28 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
         vox_inner_data *inner = &(tree->data.inner);
         int idx = get_subspace_idx (inner->center, voxel);
         update_bounding_box (&(tree->bounding_box), voxel);
-        if (vox_insert_voxel_ (&(inner->children[idx]), voxel))
+        tree->dots_num++;
+        if (dense_set_p (&(tree->bounding_box), tree->dots_num))
         {
-            res = 1;
-            tree->dots_num++;
+            // Aggregate voxels in the dense leaf
+            node = make_dense_leaf (&(tree->bounding_box));
+            assert (node->dots_num == tree->dots_num);
+            vox_destroy_tree (tree);
         }
+        // TCO, maybe
+        else return vox_insert_voxel_ (&(inner->children[idx]), voxel);
     }
     *tree_ptr = node;
-    return res;
 }
 
 int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 {
+    int res;
+
     vox_align_floor (voxel);
-    return vox_insert_voxel_ (tree_ptr, voxel);
+    res = !(voxel_in_tree (*tree_ptr, voxel));
+    if (res) vox_insert_voxel_ (tree_ptr, voxel);
+    return res;
 }
 
 /*
@@ -667,6 +687,7 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 
 int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 {
+    // May use voxel_in_tree() here, but won't
     vox_align_floor (voxel);
     return vox_delete_voxel_ (tree_ptr, voxel);
 }
