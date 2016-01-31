@@ -338,7 +338,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
 }
 
 #ifdef SSE_INTRIN
-static void update_bounding_box (struct vox_box *box, vox_dot dot)
+static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 {
     __v4sf d = _mm_load_ps (dot);
     __v4sf d_max = d + _mm_load_ps (vox_voxel);
@@ -350,7 +350,7 @@ static void update_bounding_box (struct vox_box *box, vox_dot dot)
     _mm_store_ps (box->max, box_max);
 }
 #else
-static void update_bounding_box (struct vox_box *box, vox_dot dot)
+static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 {
     vox_dot dot_max;
     int i;
@@ -364,14 +364,57 @@ static void update_bounding_box (struct vox_box *box, vox_dot dot)
 }
 #endif
 
-static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
+static int vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel);
+static struct vox_node* __attribute__((noinline))
+    insert_in_big_dense (struct vox_node *tree, const vox_dot voxel)
+{
+    /*
+      Put a dense leaf and this voxel in a new inner node.
+      Benchmarks show that this is the slowest part of this function
+      (especially when compiled with SSE_INTRIN).
+    */
+    vox_dot inner_dot;
+    int idx1, idx2;
+    int i;
+    struct vox_node *node;
+    vox_inner_data *inner;
+
+    node = node_alloc (0);
+    inner = &(node->data.inner);
+    bzero (inner, sizeof (vox_inner_data));
+    vox_box_copy (&(node->bounding_box), &(tree->bounding_box));
+    update_bounding_box (&(node->bounding_box), voxel);
+    node->flags = 0;
+    node->dots_num = tree->dots_num + 1;
+    // Can we find another center of division easily?
+    closest_vertex (&(tree->bounding_box), voxel, inner->center);
+#ifdef SSE_INTRIN
+    __v4sf inner_vector = _mm_load_ps (tree->bounding_box.min) +
+        _mm_load_ps (tree->bounding_box.max);
+    inner_vector /= _mm_set_ps1 (2.0);
+    _mm_store_ps (inner_dot, inner_vector);
+    idx1 = get_subspace_idx_simd (inner->center, inner_dot);
+    idx2 = get_subspace_idx_simd (inner->center, voxel);
+#else
+    for (i=0; i<VOX_N; i++)
+        inner_dot[i] = (tree->bounding_box.min[i]+tree->bounding_box.max[i]) / 2;
+    idx1 = get_subspace_idx (inner->center, inner_dot);
+    idx2 = get_subspace_idx (inner->center, voxel);
+#endif
+    assert (idx1 != idx2);
+    inner->children[idx1] = tree;
+    // Insert voxel in an empty leaf
+    vox_insert_voxel_ (&(inner->children[idx2]), voxel);
+
+    return node;
+}
+
+static int vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
     struct vox_node *tree = *tree_ptr;
     int res = 0;
     vox_dot *dots;
     struct vox_node *node = tree;
-    int i;
-    vox_inner_data *inner;
 
     // If tree is an empty leaf, allocate a regular leaf node and store the voxel there
     if (!(VOX_FULLP (tree)))
@@ -401,47 +444,12 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
                 vox_dot_copy (dots[tree->dots_num], voxel);
                 node = vox_make_tree (dots, tree->dots_num+1);
             }
-            else
-            {
-                /*
-                  Put a dense leaf and this voxel in a new inner node.
-                  Benchmarks show that this is the slowest part of this function
-                  (especially when compiled with SSE_INTRIN).
-                */
-                vox_dot inner_dot;
-                int idx1, idx2;
-
-                node = node_alloc (0);
-                inner = &(node->data.inner);
-                bzero (inner, sizeof (vox_inner_data));
-                vox_box_copy (&(node->bounding_box), &(tree->bounding_box));
-                update_bounding_box (&(node->bounding_box), voxel);
-                node->flags = 0;
-                node->dots_num = tree->dots_num + 1;
-                // Can we find another center of division easily?
-                closest_vertex (&(tree->bounding_box), voxel, inner->center);
-#ifdef SSE_INTRIN
-                __v4sf inner_vector = _mm_load_ps (tree->bounding_box.min) +
-                    _mm_load_ps (tree->bounding_box.max);
-                inner_vector /= _mm_set_ps1 (2.0);
-                _mm_store_ps (inner_dot, inner_vector);
-                idx1 = get_subspace_idx_simd (inner->center, inner_dot);
-                idx2 = get_subspace_idx_simd (inner->center, voxel);
-#else
-                for (i=0; i<VOX_N; i++)
-                    inner_dot[i] = (tree->bounding_box.min[i]+tree->bounding_box.max[i]) / 2;
-                idx1 = get_subspace_idx (inner->center, inner_dot);
-                idx2 = get_subspace_idx (inner->center, voxel);
-#endif
-                assert (idx1 != idx2);
-                inner->children[idx1] = tree;
-                // Insert voxel in an empty leaf
-                vox_insert_voxel_ (&(inner->children[idx2]), voxel);
-            }
+            else node = insert_in_big_dense (tree, voxel);
         }
     }
     else if (tree->flags & LEAF)
     {
+        int i;
         // Check if the voxel is already in the tree
         for (i=0; i<tree->dots_num; i++)
         {
@@ -471,7 +479,7 @@ static int vox_insert_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
     else
     {
         // For inner node we need only to upgrade bounding box
-        inner = &(tree->data.inner);
+        vox_inner_data *inner = &(tree->data.inner);
         int idx = get_subspace_idx (inner->center, voxel);
         update_bounding_box (&(tree->bounding_box), voxel);
         if (vox_insert_voxel_ (&(inner->children[idx]), voxel))
@@ -494,8 +502,8 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
   Helper function for dense node special case.
   It always deletes.
 */
-static struct vox_node* delete_from_big_dense (struct vox_node *tree, vox_dot voxel) __attribute__((noinline));
-static struct vox_node* delete_from_big_dense (struct vox_node *tree, vox_dot voxel)
+static struct vox_node* __attribute__((noinline))
+    delete_from_big_dense (struct vox_node *tree, const vox_dot voxel)
 {
     struct vox_node *node1, *node2;
     size_t n1 = 0, n2 = 0;
@@ -565,7 +573,7 @@ static struct vox_node* delete_from_big_dense (struct vox_node *tree, vox_dot vo
     return node1;
 }
 
-static int vox_delete_voxel_ (struct vox_node **tree_ptr, vox_dot voxel)
+static int vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
     int res = 0;
     struct vox_node *tree = *tree_ptr;
