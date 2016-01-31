@@ -103,4 +103,12 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 **/
 int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
+/**
+   \brief Dump a tree to standard output stream.
+
+   This is ment solely for debugging purposes and can produce
+   very big output.
+**/
+void vox_dump_tree (const struct vox_node *tree);
+
 #endif

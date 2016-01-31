@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -660,4 +661,54 @@ int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 {
     vox_align_floor (voxel);
     return vox_delete_voxel_ (tree_ptr, voxel);
+}
+
+void vox_dump_tree (const struct vox_node *tree)
+{
+    const char *leaf_str = "LEAF";
+    const char *dense_str = "DENSE LEAF";
+    const char *inner_str = "INNER";
+    const char *desc;
+    int i;
+
+    if (VOX_FULLP (tree))
+    {
+        if (tree->flags & LEAF) desc = leaf_str;
+        else if (tree->flags & DENSE_LEAF) desc = dense_str;
+        else desc = inner_str;
+
+        printf ("Node %p %s\n", tree, desc);
+        printf ("Bounding box min <%f, %f, %f>\n",
+                tree->bounding_box.min[0],
+                tree->bounding_box.min[1],
+                tree->bounding_box.min[2]);
+        printf ("Bounding box max <%f, %f, %f>\n",
+                tree->bounding_box.max[0],
+                tree->bounding_box.max[1],
+                tree->bounding_box.max[2]);
+        printf ("Number of voxels %u\n", tree->dots_num);
+
+        if (tree->flags & LEAF)
+        {
+            printf ("Dots:\n");
+            for (i=0; i<tree->dots_num; i++)
+                printf ("<%f, %f, %f>\n",
+                        tree->data.dots[i][0],
+                        tree->data.dots[i][1],
+                        tree->data.dots[i][2]);
+        }
+        else if (!(tree->flags & LEAF_MASK))
+        {
+            printf ("Center <%f, %f, %f>\n",
+                    tree->data.inner.center[0],
+                    tree->data.inner.center[1],
+                    tree->data.inner.center[2]);
+            printf ("Children:\n");
+            for (i=0; i<VOX_NS; i++) printf ("%p\n", tree->data.inner.children[i]);
+        }
+        printf ("------Node ends here------\n");
+        if (!(tree->flags & LEAF_MASK))
+            for (i=0; i<VOX_NS; i++) vox_dump_tree (tree->data.inner.children[i]);
+        printf ("=======Node and children end here=======\n");
+    }
 }
