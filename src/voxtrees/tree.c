@@ -150,9 +150,13 @@ static void* node_alloc (int flavor)
       instead of malloc()
     */
     size_t size = offsetof (struct vox_node, data);
-    if (flavor & LEAF) size += sizeof (vox_dot*);
-    else if (!(flavor & DENSE_LEAF)) size += sizeof (vox_inner_data);
-    return aligned_alloc (16, size);
+    size_t addend;
+
+    if (flavor & DENSE_LEAF) addend = 0;
+    else if (flavor & LEAF) addend = sizeof (vox_dot*);
+    else addend = sizeof (vox_inner_data);
+
+    return aligned_alloc (16, size+addend);
 }
 
 WITH_STAT (static int recursion = -1;)
