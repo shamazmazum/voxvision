@@ -741,7 +741,9 @@ void vox_dump_tree (const struct vox_node *tree)
         }
         printf ("------Node ends here------\n");
         if (!(tree->flags & LEAF_MASK))
+        {
             for (i=0; i<VOX_NS; i++) vox_dump_tree (tree->data.inner.children[i]);
-        printf ("=======Node and children end here=======\n");
+            printf ("=======Node and children end here=======\n");
+        }
     }
 }
