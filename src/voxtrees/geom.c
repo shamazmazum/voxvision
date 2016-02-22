@@ -161,7 +161,7 @@ int dense_set_p (const struct vox_box *box, size_t n)
     for (i=0; i<VOX_N; i++) size[i] = box->max[i] - box->min[i];
     bb_volume = size[0]*size[1]*size[2];
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-    return fabs (n*vox_volume - bb_volume) < vox_volume;
+    return fabsf (n*vox_volume - bb_volume) < vox_volume;
 }
 
 #if 0
