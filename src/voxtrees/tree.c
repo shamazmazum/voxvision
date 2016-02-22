@@ -466,6 +466,7 @@ static void vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
             flatten_tree (tree, dots);
             vox_dot_copy (dots[tree->dots_num], voxel);
             node = vox_make_tree (dots, tree->dots_num+1);
+            vox_destroy_tree (tree);
         }
         else node = insert_in_big_dense (tree, voxel);
     }
