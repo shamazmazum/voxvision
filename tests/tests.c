@@ -454,6 +454,21 @@ static void test_tree_del()
     vox_destroy_tree (tree);
 }
 
+static void test_tree_ins_trans()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot = {0,0,0};
+    int i;
+
+    for (i=0; i<VOX_MAX_DOTS+4; i++)
+    {
+        dot[0]++;
+        vox_insert_voxel (&tree, dot);
+        CU_ASSERT (tree->flags & DENSE_LEAF);
+    }
+    vox_destroy_tree (tree);
+}
+
 static void test_tree_C676d50c2 ()
 {
     struct vox_node *tree = NULL;
@@ -603,6 +618,9 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vox_suite, "Deletion", test_tree_del);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Insert type transitions", test_tree_ins_trans);
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vox_suite, "Search (commit 676d50c2)", test_tree_C676d50c2);
