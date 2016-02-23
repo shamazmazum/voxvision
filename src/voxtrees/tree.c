@@ -558,63 +558,96 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 static struct vox_node* __attribute__((noinline))
     delete_from_big_dense (struct vox_node *tree, const vox_dot voxel)
 {
-    struct vox_node *node1, *node2;
+    struct vox_node *node1, *node2, *child;
     size_t n1 = 0, n2 = 0;
     vox_inner_data *inner;
     vox_dot other_end;
     struct vox_box bb;
     int full, i;
 
-    sum_vector (voxel, vox_voxel, other_end);
     node1 = node_alloc (0);
-    /*
-      XXX: Just copy the bounding box. It can be smaller, actually.
-      But it is hard to determine.
-    */
-    vox_box_copy (&(node1->bounding_box), &(tree->bounding_box));
-    node1->flags = 0;
     inner = &(node1->data.inner);
-    vox_dot_copy (inner->center, voxel);
     bzero (inner->children, sizeof (inner->children));
     full = 0;
 
     for (i=1; i<VOX_NS; i++)
     {
-        int success = divide_box (&(node1->bounding_box), voxel, &bb, i);
+        int success = divide_box (&(tree->bounding_box), voxel, &bb, i);
         if (success == 0) continue;
-        full = 1;
-        inner->children[i] = make_dense_leaf (&bb);
-        n1 += inner->children[i]->dots_num;
+        full++;
+        child = make_dense_leaf (&bb);
+        inner->children[i] = child;
+        n1 += child->dots_num;
     }
 
     if (full)
     {
+        /*
+          Special case 1.
+          There is only one child in the first inner node and it has
+          all the voxels we require. Return this child.
+        */
+        if ((full == 1) && (child->dots_num == tree->dots_num-1))
+        {
+            free (node1); // Free just the inner node
+            return child;
+        }
+        /*
+          Create the first inner node.
+
+          XXX: Just copy the bounding box. It can be smaller, actually.
+          But it is hard to determine.
+        */
+        vox_box_copy (&(node1->bounding_box), &(tree->bounding_box));
+        node1->flags = 0;
+        vox_dot_copy (inner->center, voxel);
+
         node2 = node_alloc (0);
         inner->children[0] = node2;
     }
     else node2 = node1;
 
+    sum_vector (voxel, vox_voxel, other_end);
     // Sorry for boilerplate code. Must be reworked
-    vox_dot_copy (node2->bounding_box.min, voxel);
-    vox_dot_copy (node2->bounding_box.max, tree->bounding_box.max);
-    node2->flags = 0;
+    vox_dot_copy (tree->bounding_box.min, voxel);
     inner = &(node2->data.inner);
-    vox_dot_copy (inner->center, other_end);
     bzero (inner->children, sizeof (inner->children));
     full = 0;
 
     for (i=0; i<VOX_NS-1; i++)
     {
-        int success = divide_box (&(node2->bounding_box), other_end, &bb, i);
+        int success = divide_box (&(tree->bounding_box), other_end, &bb, i);
         if (success == 0) continue;
-        full = 1;
-        inner->children[i] = make_dense_leaf (&bb);
-        n2 += inner->children[i]->dots_num;
+        full++;
+        child = make_dense_leaf (&bb);
+        inner->children[i] = child;
+        n2 += child->dots_num;
     }
+
     node2->dots_num = n2;
     node1->dots_num = n1+n2;
 
-    if (!full)
+    if (full == 1)
+    {
+        /*
+          Special case 2.
+          Inner node 2 has only one child. Delete inner node 2 and connect
+          the child directly to inner node 1.
+        */
+        free (node2); // Delete only the inner node, save child.
+        if (node1 != node2) node1->data.inner.children[0] = child;
+        else node1 = child;
+    }
+    else if (full)
+    {
+        /*
+          Create the second inner node (or the first, really.
+        */
+        vox_box_copy (&(node2->bounding_box), &(tree->bounding_box));
+        node2->flags = 0;
+        vox_dot_copy (inner->center, other_end);
+    }
+    else
     {
         assert (node1 != node2);
         vox_destroy_tree (node2);
@@ -622,7 +655,6 @@ static struct vox_node* __attribute__((noinline))
     }
 
     assert (node1->dots_num == tree->dots_num - 1);
-
     return node1;
 }
 
@@ -686,12 +718,12 @@ static int vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
                     vox_destroy_tree (tree);
                 }
             }
+            /*
+              Divide our dense leaf into many dense leafs in 1 or 2 inner
+              nodes or return a new dense leaf as a special case
+            */
             else
             {
-                /*
-                  Divide our dense leaf into many dense leafs in 1 or 2 inner
-                  nodes.
-                */
                 node = delete_from_big_dense (tree, voxel);
                 vox_destroy_tree (tree);
             }
