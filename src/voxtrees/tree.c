@@ -677,7 +677,7 @@ static struct vox_node* __attribute__((noinline))
 // It always deletes.
 static void vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
-    struct vox_node *tree;
+    struct vox_node *tree, *node;
     int i;
 
 again:
@@ -708,7 +708,7 @@ again:
         if (tree->dots_num <= VOX_MAX_DOTS)
         {
             // Give it a try, what if this is the case?
-            struct vox_node *node = delete_from_dense_stripe (tree, voxel);
+            node = delete_from_dense_stripe (tree, voxel);
             if (node)
             {
                 *tree_ptr = node;
@@ -741,6 +741,18 @@ again:
         // Inner node
         vox_inner_data *inner = &(tree->data.inner);
         int idx = get_subspace_idx (inner->center, voxel);
+        node = inner->children[idx];
+        if (node->dots_num == tree->dots_num)
+        {
+            /*
+              This means that this child is the only child of its parent.
+              So we can remove this parent and connect the child to parent's
+              parent directly.
+            */
+            *tree_ptr = node;
+            free (tree); // Save the child.
+            goto again;
+        }
         tree->dots_num--;
         tree_ptr = &(inner->children[idx]);
         goto again;
