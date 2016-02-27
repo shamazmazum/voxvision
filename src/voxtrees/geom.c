@@ -224,3 +224,17 @@ void get_dimensions (const struct vox_box *box, size_t dim[])
     int i;
     for (i=0; i<VOX_N; i++) dim[i] = (box->max[i] - box->min[i]) / vox_voxel[i];
 }
+
+// XXX: Depends on get_dimensions
+int stripep (const struct vox_box *box, int *which)
+{
+    size_t dim[VOX_N];
+    int i, count=0;
+    get_dimensions (box, dim);
+    for (i=0; i<VOX_N; i++)
+    {
+        if (dim[i] == 1) count++;
+        else *which = i;
+    }
+    return count == (VOX_N-1);
+}

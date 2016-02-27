@@ -410,11 +410,81 @@ static void test_tree_ins()
     vox_destroy_tree (tree);
 }
 
-static void test_tree_del()
+// Various deletion cases
+static void test_tree_del1()
 {
-    vox_dot *set = aligned_alloc (16, sizeof(vox_dot)*27);
-    int i,j,k,counter = 0;
-    struct vox_node *tree;
+    struct vox_node *tree = NULL;
+    vox_dot dot = {0,0,0};
+    int i;
+    for (i=0; i<VOX_MAX_DOTS+10; i++)
+    {
+        vox_insert_voxel (&tree, dot);
+        dot[1]++;
+    }
+    CU_ASSERT (tree->flags & DENSE_LEAF);
+
+    dot[1] = 0;
+    for (i=0; i<10; i++)
+    {
+        vox_delete_voxel (&tree, dot);
+        dot[1]++;
+        CU_ASSERT (tree->flags & DENSE_LEAF);
+        check_tree (tree);
+    }
+    vox_destroy_tree (tree);
+}
+
+static void test_tree_del2()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot = {0,0,0};
+    int i;
+    for (i=0; i<VOX_MAX_DOTS+10; i++)
+    {
+        vox_insert_voxel (&tree, dot);
+        dot[2]++;
+    }
+    CU_ASSERT (tree->flags & DENSE_LEAF);
+
+    dot[2] = VOX_MAX_DOTS+9;
+    for (i=0; i<10; i++)
+    {
+        vox_delete_voxel (&tree, dot);
+        dot[2]--;
+        CU_ASSERT (tree->flags & DENSE_LEAF);
+        check_tree (tree);
+    }
+    vox_destroy_tree (tree);
+}
+
+static void test_tree_del3()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot = {0,0,0};
+    int i;
+    for (i=0; i<VOX_MAX_DOTS+10; i++)
+    {
+        vox_insert_voxel (&tree, dot);
+        dot[0]++;
+    }
+    CU_ASSERT (tree->flags & DENSE_LEAF);
+
+    dot[0] = 1;
+    for (i=0; i<10; i++)
+    {
+        vox_delete_voxel (&tree, dot);
+        dot[0]++;
+        CU_ASSERT (!(tree->flags & LEAF_MASK));
+        check_tree (tree);
+    }
+    vox_destroy_tree (tree);
+}
+
+static void test_tree_del4()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot = {0,0,0};
+    int i,j,k;
 
     for (i=0; i<3; i++)
     {
@@ -422,35 +492,47 @@ static void test_tree_del()
         {
             for (k=0; k<3; k++)
             {
-                set[counter][0] = i*vox_voxel[0];
-                set[counter][1] = j*vox_voxel[1];
-                set[counter][2] = k*vox_voxel[2];
-                counter++;
+                dot[0] = i;
+                dot[1] = j;
+                dot[2] = k;
+                vox_insert_voxel (&tree, dot);
             }
         }
     }
-    tree = vox_make_tree (set, 27);
-    free (set);
 
-    vox_dot dot;
-    int n;
+    CU_ASSERT (tree->flags & DENSE_LEAF);
+    dot[0] = 0; dot[1] = 0; dot[2] = 0;
+    vox_delete_voxel (&tree, dot);
+    CU_ASSERT (!(tree->flags & LEAF_MASK));
+    check_tree (tree);
+    vox_destroy_tree (tree);
+}
+
+static void test_tree_del5()
+{
+    struct vox_node *tree = NULL;
+    vox_dot dot = {0,0,0};
+    int i,j,k;
+
     for (i=0; i<3; i++)
     {
         for (j=0; j<3; j++)
         {
             for (k=0; k<3; k++)
             {
-                dot[0] = i*vox_voxel[0];
-                dot[1] = j*vox_voxel[1];
-                dot[2] = k*vox_voxel[2];
-                n = vox_voxels_in_tree (tree);
-                vox_delete_voxel (&tree, dot);
-                CU_ASSERT (n - vox_voxels_in_tree (tree) == 1);
-                check_tree (tree);
+                dot[0] = i;
+                dot[1] = j;
+                dot[2] = k;
+                vox_insert_voxel (&tree, dot);
             }
         }
     }
-    // Not really needed
+
+    CU_ASSERT (tree->flags & DENSE_LEAF);
+    dot[0] = 1; dot[1] = 1; dot[2] = 1;
+    vox_delete_voxel (&tree, dot);
+    CU_ASSERT (!(tree->flags & LEAF_MASK));
+    check_tree (tree);
     vox_destroy_tree (tree);
 }
 
@@ -639,7 +721,19 @@ int main ()
     test = CU_add_test (vox_suite, "Insertion", test_tree_ins);
     if (test == NULL) PROC_TEST_ERROR;
 
-    test = CU_add_test (vox_suite, "Deletion", test_tree_del);
+    test = CU_add_test (vox_suite, "Deletion (case 1)", test_tree_del1);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Deletion (case 2)", test_tree_del2);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Deletion (case 3)", test_tree_del3);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Deletion (case 4)", test_tree_del4);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (vox_suite, "Deletion (case 5)", test_tree_del5);
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vox_suite, "Insertion type transitions", test_tree_ins_trans);
