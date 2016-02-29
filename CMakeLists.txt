@@ -22,6 +22,7 @@ unset (GCD_FOUND)
 endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 
 add_subdirectory (src)
+add_subdirectory (benchmarks)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
