@@ -1,8 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <voxtrees.h>
-
-#include "gettime.h"
+#include <gettime.h>
 
 #define N 10000000
 int main ()
