@@ -31,7 +31,7 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], fl
 }
 
 struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_node *scene,
-                                               vox_camera_interface *camera)
+                                               struct vox_camera_interface *camera)
 {
     struct vox_rnd_ctx *ctx = malloc (sizeof(struct vox_rnd_ctx));
     ctx->surface = surface;
@@ -41,10 +41,11 @@ struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_
     return ctx;
 }
 
-void vox_rc_set_camera (struct vox_rnd_ctx *ctx, vox_camera_interface *camera)
+void vox_rc_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera_interface *camera)
 {
     ctx->camera = camera;
     camera->ctx = ctx;
+    camera->set_window_size (camera->camera, ctx->surface->w, ctx->surface->h);
 }
 
 void vox_rc_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
@@ -61,7 +62,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
     Uint32 *pixels = surface->pixels;
     int w = surface->w;
     int h = surface->h;
-    vox_camera_interface *camera = ctx->camera;
+    struct vox_camera_interface *camera = ctx->camera;
     int n = w*h;
     float *origin = camera->get_position (camera->camera);
 

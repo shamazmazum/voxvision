@@ -12,7 +12,7 @@
 /**
    \brief A camera user interface
 **/
-typedef struct
+struct vox_camera_interface
 {
     #ifdef VOXRND_SOURCE
     void *camera; /**< \brief A reference to camera. Supply it as the first argument to camera methods */
@@ -66,7 +66,8 @@ typedef struct
        Oy is to the front, of axis Oz is up.
 
        \param obj a camera object
-       \param delta a vector with deltas of rotation angles. Must contain 3 elements
+       \param delta a vector with deltas of rotation angles. Must contain 3
+              elements.
     */
 
     int (*move_camera) (void* obj, vox_dot delta);
@@ -77,9 +78,29 @@ typedef struct
        on scene to which camera is attached.
 
        \param obj a camera object
-       \param delta a vector with deltas of camera position coordinates. Must contain 3 elements
+       \param delta a vector with deltas of camera position coordinates. Must
+              contain 3 elements 
     */
-} vox_camera_interface;
+
+    // 64 byte border. Rarely used methods below.
+
+    void (*set_window_size) (void* obj, int w, int h);
+    /**<
+       \brief Set screen/window size for a camera.
+
+       This method must be called before any screen2world() calls. Usually this
+       happens automatically when vox_make_renderer_context() and/or
+       vox_rc_set_camera() are called.
+
+       \param w width of the window
+       \param h height of the window
+    */
+
+    void (*destroy_camera) (void *obj);
+    /**<
+       \brief Destroy camera after use.
+    */
+};
 
 /**
    \brief A camera class.
@@ -89,25 +110,28 @@ typedef struct
 #ifdef VOXRND_SOURCE
 typedef struct
 {
-    vox_camera_interface iface;
+    struct vox_camera_interface *iface;
 
-    vox_dot position;
     float fov;
     float body_radius;
+    vox_dot position;
 
     vox_quat rotation;
+
+    float xmul, ymul;
+    // 64-byte border (SSE)
 } vox_simple_camera;
 #else
 typedef struct
 {
-    vox_camera_interface iface; /**< \brief camera interface */
+    struct vox_camera_interface *iface; /**< \brief camera interface */
 } vox_simple_camera;
 #endif
 
 /**
    \brief Create and initialize a simple camera
 
-   Camera can be free()'d after use.
+   Camera can be freed after use with destroy_camera() method.
 
    \param fov field of view
    \param position position of the camera
@@ -133,14 +157,5 @@ float vox_simple_camera_set_radius (vox_simple_camera *camera, float radius);
    See vox_simple_camera_set_radius() for details.
 **/
 float vox_simple_camera_get_radius (vox_simple_camera *camera);
-
-#if 0
-/**
-   \brief Destroy a simple camera and free its memory
-
-   \param camera a camera to be destroyed
-**/
-void vox_destroy_simple_camera (vox_simple_camera* camera);
-#endif
 
 #endif

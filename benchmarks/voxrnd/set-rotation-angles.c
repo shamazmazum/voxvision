@@ -14,7 +14,7 @@ int main ()
     vox_simple_camera *camera = vox_make_simple_camera (1.0, pos);
 
     time = gettime();
-    for (i=0; i<N; i++) camera->iface.set_rot_angles (camera, angles);
+    for (i=0; i<N; i++) camera->iface->set_rot_angles (camera, angles);
     time = gettime() - time;
     printf ("Setting rotation angles took %f seconds (%i iterations)\n", time, N);
 

@@ -207,8 +207,8 @@ int main (int argc, char *argv[])
     }
 
     camera = vox_make_simple_camera (fov, origin);
-    camera->iface.set_rot_angles (camera, angles);
-    ctx = vox_make_renderer_context (screen, tree, &(camera->iface));
+    camera->iface->set_rot_angles (camera, angles);
+    ctx = vox_make_renderer_context (screen, tree, camera->iface);
 
     SDL_Rect rect;
     rect.w = screen->w; rect.h = screen->h;
@@ -252,8 +252,8 @@ int main (int argc, char *argv[])
         else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
         if (keystate[global_controls.look_left]) rot_delta[2] += 0.01;
         else if (keystate[global_controls.look_right]) rot_delta[2] -= 0.01;
-        camera->iface.rotate_camera (camera, rot_delta);
-        camera->iface.move_camera (camera, step);
+        camera->iface->rotate_camera (camera, rot_delta);
+        camera->iface->move_camera (camera, step);
 
         if (SDL_PollEvent(&event))
         {
@@ -283,9 +283,9 @@ int main (int argc, char *argv[])
 #endif
                     vox_dot inter;
                     vox_dot dir;
-                    camera->iface.screen2world (camera, dir, screen->w/2, screen->h/2);
+                    camera->iface->screen2world (camera, dir, screen->w/2, screen->h/2);
                     int interp = vox_ray_tree_intersection
-                        (tree, camera->iface.get_position (camera),
+                        (tree, camera->iface->get_position (camera),
                          dir, inter, NULL);
                     if (interp)
                     {
@@ -344,7 +344,7 @@ int main (int argc, char *argv[])
 end:
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
-    if (camera != NULL) free (camera);
+    if (camera != NULL) camera->iface->destroy_camera (camera);
     if (tree != NULL) vox_destroy_tree (tree);
     if (sdl_init) SDL_Quit();
 #if USE_GCD

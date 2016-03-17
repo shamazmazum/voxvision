@@ -10,11 +10,13 @@
 static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
 {
     vox_simple_camera *camera = obj;
-    assert (camera->iface.ctx);
-    SDL_Surface *surface = camera->iface.ctx->surface;
-    ray[0] = camera->fov*(2.0*sx/surface->w - 1.0);
+    float xmul = camera->xmul;
+    float ymul = camera->ymul;
+
+    assert (xmul != 0 && ymul != 0);
+    ray[0] = camera->xmul*sx - camera->fov;
     ray[1] = 1.0;
-    ray[2] = camera->fov*(2.0*sy/surface->h - 1.0);
+    ray[2] = camera->ymul*sy - camera->fov;
 
     vox_rotate_vector (camera->rotation, ray, ray);
 }
@@ -24,7 +26,7 @@ static float* simple_get_position (void *camera) {return ((vox_simple_camera*)ca
 static int simple_set_position (void *obj, vox_dot pos)
 {
     vox_simple_camera *camera = obj;
-    int res = vox_tree_ball_collidep (camera->iface.ctx->scene, pos, camera->body_radius);
+    int res = vox_tree_ball_collidep (camera->iface->ctx->scene, pos, camera->body_radius);
     if (res == 0) vox_dot_copy (camera->position, pos);
     return res;
 }
@@ -54,7 +56,7 @@ static int simple_move_camera (void *obj, vox_dot delta)
     vox_dot new_pos;
     sum_vector (camera->position, delta, new_pos);
 
-    int res = vox_tree_ball_collidep (camera->iface.ctx->scene, new_pos, camera->body_radius);
+    int res = vox_tree_ball_collidep (camera->iface->ctx->scene, new_pos, camera->body_radius);
     if (res == 0) vox_dot_copy (camera->position, new_pos);
     return res;
 }
@@ -95,24 +97,44 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
     vox_quat_mul (r[2], r[0], camera->rotation);
 }
 
+static void simple_set_window_size (void *obj, int w, int h)
+{
+    vox_simple_camera *camera = obj;
+
+    camera->xmul = 2*camera->fov/w;
+    camera->ymul = 2*camera->fov/h;
+}
+
+static void simple_destroy_camera (void *obj)
+{
+    vox_simple_camera *camera = obj;
+
+    free (camera->iface);
+    free (camera);
+}
+
 vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
 {
     vox_simple_camera *camera;
     camera = aligned_alloc (16, sizeof (vox_simple_camera));
+    struct vox_camera_interface *iface = malloc (sizeof (struct vox_camera_interface));
+    camera->iface = iface;
     vox_dot_copy (camera->position, position);
     camera->fov = fov;
     camera->body_radius = 50;
-    memset (camera->rotation, 0, 3*sizeof(float));
+    bzero (camera->rotation, 3*sizeof(float));
     camera->rotation[3] = 1;
+    camera->xmul = 0; camera->ymul = 0;
 
-    camera->iface.screen2world = simple_screen2world;
-    camera->iface.get_position = simple_get_position;
-    camera->iface.set_position = simple_set_position;
-    camera->iface.set_rot_angles = simple_set_rot_angles;
-    camera->iface.move_camera = simple_move_camera;
-    camera->iface.rotate_camera = simple_rotate_camera;
-    camera->iface.camera = camera;
-    camera->iface.ctx = NULL;
+    iface->screen2world = simple_screen2world;
+    iface->get_position = simple_get_position;
+    iface->set_position = simple_set_position;
+    iface->set_rot_angles = simple_set_rot_angles;
+    iface->move_camera = simple_move_camera;
+    iface->rotate_camera = simple_rotate_camera;
+    iface->set_window_size = simple_set_window_size;
+    iface->destroy_camera = simple_destroy_camera;
+    iface->camera = camera;
     return camera;
 }
 

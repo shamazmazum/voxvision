@@ -3,7 +3,6 @@ VOXRND_@voxvision_VERSION@ {
             vox_make_simple_camera;
             vox_simple_camera_set_radius;
             vox_simple_camera_get_radius;
-#           vox_destroy_simple_camera;
             vox_make_renderer_context;
             vox_rc_set_camera;
             vox_rc_set_scene;
