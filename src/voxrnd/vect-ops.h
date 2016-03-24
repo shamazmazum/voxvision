@@ -21,12 +21,12 @@
    \param res a vector to store the result
    \return pointer to res
 **/
-float* vox_rotate_vector (const vox_quat, const vox_dot, vox_dot);
+void vox_rotate_vector (const vox_quat, const vox_dot, vox_dot);
 
 /**
    \brief Return multiplication of 2 quaternions
 **/
-float* vox_quat_mul (const vox_quat, const vox_quat, vox_quat);
+void vox_quat_mul (const vox_quat, const vox_quat, vox_quat);
 
 /**
    \brief Return dot product of 2 vectors

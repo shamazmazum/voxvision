@@ -69,15 +69,15 @@ static int quat_eq (vox_quat v1, vox_quat v2)
 static void test_rotation_around_itself ()
 {
     // Rotate vector around itself on 0.2 radian
-    vox_quat basex = {sinf(0.1), 0.0, 0.0, cos(0.1)};
+    vox_quat basex = {cos(0.1), sinf(0.1), 0.0, 0.0};
     vox_dot vectx = {1.0, 0.0, 0.0};
     vox_dot resx;
 
-    vox_quat basey = {0.0, sin(0.1), 0.0, cos(0.1)};
+    vox_quat basey = {cos(0.1), 0.0, sin(0.1), 0.0};
     vox_dot vecty = {0.0, 1.0, 0.0};
     vox_dot resy;
 
-    vox_quat basez = {0.0, 0.0, sin(0.1), cos(0.1)};
+    vox_quat basez = {cos(0.1), 0.0, 0.0, sin(0.1)};
     vox_dot vectz = {0.0, 0.0, 1.0};
     vox_dot resz;
     
@@ -96,15 +96,15 @@ static void test_change_axis ()
     // Rotating x aroung y and getting z and so on
     float sincos = sqrtf(2.0)/2.0;
     
-    vox_quat basex = {0.0, sincos, 0.0, sincos};
+    vox_quat basex = {sincos, 0.0, sincos, 0.0};
     vox_dot vectx = {1.0, 0.0, 0.0};
     vox_dot expx = {0.0, 0.0, -1.0};
 
-    vox_quat basey = {0.0, 0.0, sincos, sincos};
+    vox_quat basey = {sincos, 0.0, 0.0, sincos};
     vox_dot vecty = {0.0, 1.0, 0.0};
     vox_dot expy = {-1.0, 0.0, 0.0};
 
-    vox_quat basez = {sincos, 0.0, 0.0, sincos};
+    vox_quat basez = {sincos, sincos, 0.0, 0.0};
     vox_dot vectz = {0.0, 0.0, 1.0};
     vox_dot expz = {0.0, -1.0, 0.0};
     
@@ -130,8 +130,8 @@ static void test_anticommut ()
     // Rotating x around y must result in rotaiong y around x with different sign
     float sincos = sqrtf(2.0)/2.0;
     
-    vox_quat basex = {sincos, 0.0, 0.0, sincos};
-    vox_quat basey = {0.0, sincos, 0.0, sincos};
+    vox_quat basex = {sincos, sincos, 0.0, 0.0};
+    vox_quat basey = {sincos, 0.0, sincos, 0.0};
     
     vox_dot vectx = {1.0, 0.0, 0.0};
     vox_dot vecty = {0.0, 1.0, 0.0};
@@ -151,11 +151,11 @@ static void rot_composition ()
     float psi = 0.2;
 
     // First rotate around x by 0.2 radian
-    vox_quat base1 = {sinf(phi), 0, 0, cosf(phi)};
+    vox_quat base1 = {cosf(phi), sinf(phi), 0, 0};
     // Then round y by 0.4 radian
-    vox_quat base2 = {0, sinf(psi), 0, cosf(psi)};
+    vox_quat base2 = {cosf(psi), 0, sinf(psi), 0};
     // Result rotation is
-    vox_quat base_res = {sinf(phi)*cosf(psi), sinf(psi)*cosf(phi), sinf(psi)*sinf(phi), cosf(phi)*cosf(psi)};
+    vox_quat base_res = {cosf(phi)*cosf(psi), sinf(phi)*cosf(psi), sinf(psi)*cosf(phi), sinf(psi)*sinf(phi)};
 
     // Random numbers
     vox_dot vect = {132, 2, 35};
@@ -273,55 +273,55 @@ static void quat_mul ()
     vox_quat res;
     
     // Check multiplication table
-    vox_quat q11 = {1, 0, 0, 0};
-    vox_quat q12 = {0, 1, 0, 0};
-    vox_quat e1  = {0, 0, 1, 0};
+    vox_quat q11 = {0, 1, 0, 0};
+    vox_quat q12 = {0, 0, 1, 0};
+    vox_quat e1  = {0, 0, 0, 1};
     vox_quat_mul (q11, q12, res);
     CU_ASSERT (quat_eq (e1, res));
 
-    vox_quat q21 = {0, 1, 0, 0};
-    vox_quat q22 = {0, 0, 1, 0};
-    vox_quat e2  = {1, 0, 0, 0};
+    vox_quat q21 = {0, 0, 1, 0};
+    vox_quat q22 = {0, 0, 0, 1};
+    vox_quat e2  = {0, 1, 0, 0};
     vox_quat_mul (q21, q22, res);
     CU_ASSERT (quat_eq (e2, res));
 
-    vox_quat q31 = {0, 0, 1, 0};
-    vox_quat q32 = {1, 0, 0, 0};
-    vox_quat e3  = {0, 1, 0, 0};
+    vox_quat q31 = {0, 0, 0, 1};
+    vox_quat q32 = {0, 1, 0, 0};
+    vox_quat e3  = {0, 0, 1, 0};
     vox_quat_mul (q31, q32, res);
     CU_ASSERT (quat_eq (e3, res));
 
     // And in another direction...
-    vox_quat q41 = {0, 1, 0, 0};
-    vox_quat q42 = {1, 0, 0, 0};
-    vox_quat e4  = {0, 0, -1, 0};
+    vox_quat q41 = {0, 0, 1, 0};
+    vox_quat q42 = {0, 1, 0, 0};
+    vox_quat e4  = {0, 0, 0, -1};
     vox_quat_mul (q41, q42, res);
     CU_ASSERT (quat_eq (e4, res));
 
-    vox_quat q51 = {0, 0, 1, 0};
-    vox_quat q52 = {0, 1, 0, 0};
-    vox_quat e5  = {-1, 0, 0, 0};
+    vox_quat q51 = {0, 0, 0, 1};
+    vox_quat q52 = {0, 0, 1, 0};
+    vox_quat e5  = {0, -1, 0, 0};
     vox_quat_mul (q51, q52, res);
     CU_ASSERT (quat_eq (e5, res));
 
-    vox_quat q61 = {1, 0, 0, 0};
-    vox_quat q62 = {0, 0, 1, 0};
-    vox_quat e6  = {0, -1, 0, 0};
+    vox_quat q61 = {0, 1, 0, 0};
+    vox_quat q62 = {0, 0, 0, 1};
+    vox_quat e6  = {0, 0, -1, 0};
     vox_quat_mul (q61, q62, res);
     CU_ASSERT (quat_eq (e6, res));
 
     // Neutral element
     vox_quat qn1 = {4, 3, 2, 1};
-    vox_quat n =   {0, 0, 0, 1};
+    vox_quat n =   {1, 0, 0, 0};
     vox_quat_mul (qn1, n, res);
     CU_ASSERT (quat_eq (res, qn1));
     vox_quat_mul (n, qn1, res);
     CU_ASSERT (quat_eq (res, qn1));
     
     // Some random quaterions
-    vox_quat q1 = {1, 2, 3, 4};
-    vox_quat q2 = {0, 2, 0, 2};
-    vox_quat e  = {-4, 12, 8, 4};
+    vox_quat q1 = {4, 1, 2, 3};
+    vox_quat q2 = {2, 0, 2, 0};
+    vox_quat e  = {4, -4, 12, 8};
     vox_quat_mul (q1, q2, res);
     CU_ASSERT (quat_eq (res, e));
 }

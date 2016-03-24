@@ -41,8 +41,8 @@ static void simple_set_rot_angles (void *obj, vox_dot angles)
 
     for (i=0; i<3; i++)
     {
-        r[i][i] = sinf(angles[i]);
-        r[i][3] = cosf(angles[i]);
+        r[i][i+1] = sinf(angles[i]);
+        r[i][0] = cosf(angles[i]);
     }
 
     vox_quat_mul (r[1], r[0], tmp);
@@ -83,9 +83,9 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
         float cosang = cosf(delta[i]);
         for (j=0; j<3; j++)
         {
-            r[i][j] = sinang*ort[i][j];
+            r[i][j+1] = sinang*ort[i][j];
         }
-        r[i][3] = cosang;
+        r[i][0] = cosang;
     }
     /*
       For each axis i, r[i] has a rotation in the world coordinate system

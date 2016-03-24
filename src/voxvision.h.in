@@ -17,6 +17,27 @@
 #define VOX_VERSION "@voxvision_VERSION@"
 
 // Types
+/*
+  Data type layout:
+  1) vox_dot
+
+  ----+---+---+------
+  |   |   |   |     |
+  | x | y | z | XXX |
+  |   |   |   |     |
+  ----+---+---+------
+
+  0..........96....128
+
+  2) vox_quat
+
+  ----+---+---+----
+  |   |   |   |   |
+  | 1 | i | j | k |
+  |   |   |   |   |
+  ----+---+---+----
+  0..............128
+*/
 
 #include <string.h>
 #if defined(SSE_INTRIN)
