@@ -56,6 +56,7 @@ static int simple_move_camera (void *obj, vox_dot delta)
     vox_dot new_pos;
     sum_vector (camera->position, delta, new_pos);
 
+    assert (camera->iface->ctx);
     int res = vox_tree_ball_collidep (camera->iface->ctx->scene, new_pos, camera->body_radius);
     if (res == 0) vox_dot_copy (camera->position, new_pos);
     return res;
@@ -135,6 +136,7 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     iface->set_window_size = simple_set_window_size;
     iface->destroy_camera = simple_destroy_camera;
     iface->camera = camera;
+    iface->ctx = NULL;
     return camera;
 }
 
