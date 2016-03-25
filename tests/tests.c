@@ -30,6 +30,15 @@ static struct vox_node *working_tree;
 static vox_dot half_voxel;
 static vox_dot neg_half_voxel;
 
+static float dot_product (const vox_dot v1, const vox_dot v2)
+{
+    float res = 0;
+    int i;
+
+    for (i=0; i<VOX_N; i++) res += v1[i]*v2[i];
+    return res;
+}
+
 static int dot_betweenp (const struct vox_box *box, const vox_dot dot)
 {
     int i;
@@ -176,7 +185,7 @@ static void rot_saves_norm ()
     vox_dot res;
     vox_rotate_vector (base, vect, res);
 
-    CU_ASSERT (fabsf (vox_dot_product (vect, vect) - vox_dot_product (res, res)) < PREC);
+    CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PREC);
 }
 
 static struct vox_node* prepare_rnd_set_and_tree ()

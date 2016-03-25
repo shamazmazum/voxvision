@@ -2,83 +2,63 @@
 #include <pmmintrin.h>
 #include "vect-ops.h"
 
-static __v4sf quat_re (__v4sf q) {return _mm_shuffle_ps (q, q, 255);}
-static __v4sf quat_im (__v4sf q)
+static __v4sf dot_product_ (__v4sf a, __v4sf b)
 {
-    return _mm_and_ps (q, (__v4sf)_mm_set_epi32 (0, 0xffffffff, 0xffffffff, 0xffffffff));
-}
-
-static __v4sf dp (__v4sf v1, __v4sf v2)
-{
-    __v4sf tmp = v1*v2;
-    tmp = __builtin_ia32_haddps (tmp,tmp);
-    tmp = __builtin_ia32_haddps (tmp,tmp);
-    return tmp;
-}
-
-static __v4sf cp (__v4sf v1, __v4sf v2)
-{
-    __v4sf m1 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (3, 0, 2, 1)) * \
-                _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (3, 1, 0, 2));
-
-    __v4sf m2 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (3, 1, 0, 2)) *   \
-                _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (3, 0, 2, 1));
-    
-    return m1-m2;
-}
-
-float* vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
-{
-    __v4sf basev = _mm_load_ps (base);
-    __v4sf vect = _mm_load_ps (vector);
-
-    // Just to be sure, what we do not have any junk in real slot
-    vect = quat_im (vect);
-
-    __v4sf axis = quat_im (basev);
-    __v4sf tmp = _mm_set_ps1 (2.0) * cp (axis, vect);
-
-    __v4sf resv = vect + quat_re (basev) * tmp + cp (axis, tmp);
-
-    _mm_store_ps (res, resv);
+    __v4sf res = a*b;
+    res = _mm_hadd_ps (res, res);
+    res = _mm_hadd_ps (res, res);
     return res;
 }
 
-float* vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
+static __v4sf cross_product_ (__v4sf a, __v4sf b)
 {
-    __v4sf v1 = _mm_load_ps (q1);
-    __v4sf v2 = _mm_load_ps (q2);
-    __v4sf tmp1, tmp2, tmp3, tmp4, resv;
-    __v4sf sign_mask = (__v4sf)_mm_set_epi32 (0x80000000, 0, 0, 0);
+    __v4sf r1 = a * _mm_shuffle_ps (b, b, _MM_SHUFFLE (1, 3, 2, 0));
+    __v4sf r2 = b * _mm_shuffle_ps (a, a, _MM_SHUFFLE (1, 3, 2, 0));
+    __v4sf r = r1 - r2;
+    return _mm_shuffle_ps (r, r, _MM_SHUFFLE (1, 3, 2, 0));
+}
 
-    tmp1 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (3, 0, 2, 1)) *      \
-        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (3, 1, 0, 2));
+static __v4sf rotate_vector_ (__v4sf base, __v4sf vect)
+{
+    /* __v4sf zero = _mm_set_ps1 (0); */
+    /* __v4sf base_im = _mm_move_ss (base, zero); */
+    __v4sf base_re = _mm_shuffle_ps (base, base, 0);
+    __v4sf tmp = cross_product_ (base, vect);
+    tmp = tmp * _mm_set_ps1 (2.0);
 
-    tmp2 = -_mm_shuffle_ps (v1, v1, _MM_SHUFFLE (0, 1, 0, 2)) *      \
-        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (0, 0, 2, 1));
-
-    tmp3 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (1, 2, 1, 0)) *    \
-        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (1, 3, 3, 3));
-    tmp3 = _mm_xor_ps (tmp3, sign_mask);
-    
-    tmp4 = _mm_shuffle_ps (v1, v1, _MM_SHUFFLE (2, 3, 3, 3)) *    \
-        _mm_shuffle_ps (v2, v2, _MM_SHUFFLE (2, 2, 1, 0));
-    tmp4 = _mm_xor_ps (tmp4, sign_mask);
-
-    resv = tmp1+tmp2+tmp3+tmp4;
-    _mm_store_ps (res, resv);
+    __v4sf res = vect + base_re*tmp + cross_product_ (base, tmp);
     return res;
 }
 
-float vox_dot_product (const vox_dot v1, const vox_dot v2)
+static __v4sf quat_mul_ (__v4sf q1, __v4sf q2)
 {
-    __v4sf vect1 = _mm_load_ps (v1);
-    __v4sf vect2 = _mm_load_ps (v2);
-    
-    // Strip junk
-    vect1 = quat_im (vect1);
-    vect2 = quat_im (vect2);
+    __v4sf re_q1, re_q2, im_q1, im_q2, r1, r2, r3, r4;
+    __v4sf sign = _mm_set_epi32 (0x80000000, 0x80000000, 0x80000000, 0);
+    __v4sf re = q1*q2;
+    re = _mm_xor_ps (re, sign);
+    re = _mm_hadd_ps (re, re);
+    re = _mm_hadd_ps (re, re);
 
-    __v4sf prod = dp (vect1, vect2);
-    return prod[0];
+    re_q1 = _mm_shuffle_ps (q1, q1, 0);
+    re_q2 = _mm_shuffle_ps (q2, q2, 0);
+    r1 = re_q1 * q2;
+    r2 = re_q2 * q1;
+    r3 = cross_product_ (q1, q2);
+    r4 = r1+r2+r3;
+    r4 = _mm_move_ss (r4, re);
+    return r4;
+}
+
+void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
+{
+    __v4sf r = quat_mul_ (_mm_load_ps (q1), _mm_load_ps(q2));
+    _mm_store_ps (res, r);
+}
+
+void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
+{
+    __v4sf vect = _mm_slli_si128 (_mm_load_ps (vector), 4);
+    __v4sf r = rotate_vector_ (_mm_load_ps (base), vect);
+    r = _mm_srli_si128 (r, 4);
+    _mm_store_ps (res, r);
 }

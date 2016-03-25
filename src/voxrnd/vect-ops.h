@@ -28,10 +28,5 @@ void vox_rotate_vector (const vox_quat, const vox_dot, vox_dot);
 **/
 void vox_quat_mul (const vox_quat, const vox_quat, vox_quat);
 
-/**
-   \brief Return dot product of 2 vectors
-**/
-float vox_dot_product (const vox_dot, const vox_dot);
-
 #endif
 #endif

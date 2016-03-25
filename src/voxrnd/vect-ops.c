@@ -2,15 +2,6 @@
 
 #define VOX_N 3
 
-float vox_dot_product (const vox_dot v1, const vox_dot v2)
-{
-    float res = 0;
-    int i;
-
-    for (i=0; i<VOX_N; i++) res += v1[i]*v2[i];
-    return res;
-}
-
 static void vox_cross_product (const vox_dot v1, const vox_dot v2, vox_dot res)
 {
     res[0] =  v1[1]*v2[2] - v1[2]*v2[1];
