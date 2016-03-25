@@ -2,14 +2,6 @@
 #include <pmmintrin.h>
 #include "vect-ops.h"
 
-static __v4sf dot_product_ (__v4sf a, __v4sf b)
-{
-    __v4sf res = a*b;
-    res = _mm_hadd_ps (res, res);
-    res = _mm_hadd_ps (res, res);
-    return res;
-}
-
 static __v4sf cross_product_ (__v4sf a, __v4sf b)
 {
     __v4sf r1 = a * _mm_shuffle_ps (b, b, _MM_SHUFFLE (1, 3, 2, 0));
