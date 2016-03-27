@@ -7,7 +7,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "../voxvision.h"
+#include <voxvision.h>
 
 /**
    \brief A camera user interface
