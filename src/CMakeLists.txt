@@ -7,5 +7,5 @@ add_subdirectory (voxtrees)
 add_subdirectory (voxrnd)
 add_subdirectory (demo)
 
-install (FILES voxvision.h voxtrees.h voxrnd.h
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/voxvision.h voxtrees.h voxrnd.h
          DESTINATION include/voxvision)
