@@ -70,8 +70,8 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     {
         /*
           If the following is true, subspace index must be fixed according to the ray's
-          direction. This is because get_subspace_idx returns no useful in that special
-          case.
+          direction. This is because get_subspace_idx() may return wrong index in that
+          special case.
         */
         if (inner->center[i] == origin[i])
         {
