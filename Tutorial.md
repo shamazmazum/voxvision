@@ -5,7 +5,6 @@ Voxtrees
 --------
 
 ### Defining a voxel
-
 Each voxel in the **voxtrees** library is represented by the type `vox_dot`,
 which is just an array of 3 single float numbers. This dot type declares a
 vertex of a voxel with the minimal coordinates. If you add `vox_voxel` global
@@ -136,7 +135,7 @@ if (interp) printf ("There is/are voxel(s) close enough to {0,0,0}\n");
 ~~~~~~~~~~~~~~~~~~~~
 
 You can find where a ray hits the first voxel on its path through the
-tree. There is a functiion `vox_ray_tree_intersection()` for that.
+tree. There is a function `vox_ray_tree_intersection()` for that.
 ~~~~~~~~~~~~~~~~~~~~{.c}
 struct vox_node *leaf;
 vox_dot origin = {0,0,0};
@@ -152,3 +151,45 @@ them) are also NULL, but there are no intersections with them in any case.
 
 Voxrnd
 ------
+**voxrnd** is a rendering library which works in conjunction with **voxtrees**
+library. You can render a tree to a `SDL_Surface` with `vox_render()`
+function. To do this you must first create a renderer context with function
+`vox_make_renderer_context()`. It accepts three arguments: the surface, the
+scene (your tree) and the camera interface. You can get the interface by
+creating a simple camera with `vox_make_simple_camera()` function. The goal is
+to separate camera implementation (which can be redefined by user in his/her own
+camera class) and camera methods (interface) which is more or less standard and
+which is used in the library. Putting it all together you will get something
+like this:
+
+~~~~~~~~~~~~~~~~~~~~{.c}
+struct vox_node *tree = vox_make_tree (voxels, n);
+SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
+vox_dot origin = {0,0,0}; // Camera's origin
+float fov = 1.2; // Camera's field of view
+// Make a default camera
+vox_simple_camera *camera = vox_make_simple_camera (fov, origin);
+struct vox_rnd_ctx *ctx =
+     vox_make_renderer_context (surface, tree, camera->iface);
+vox_render (ctx);
+SDL_SaveBMP (screen, "rendering.bmp");
+free (ctx); // Free context after use
+camera->iface->destroy_camera (camera); // Destroy the camera
+vox_destroy_tree (tree); // Destroy the tree
+// And so on
+~~~~~~~~~~~~~~~~~~~~
+
+This will produce a visualisation of the tree. You can get more info on camera
+methods in `struct vox_camera_interface` documentation. The current "simple
+camera" implementation supports collision detection and 6 degrees of freedom
+(full translation and rotation in 3-dimensional space). The most common pattern
+to call these methods is
+~~~~~~~~~~~~~~~~~~~~{.c}
+vox_simple_camera *camera;
+// Initialisation skipped
+camera->iface->method_name (camera, arg1, arg2, ...);
+~~~~~~~~~~~~~~~~~~~~
+So the first argument to any method is a camera object itself, followed by other
+arguments. Currently, if you want to implement your own camera class, you must
+re-implement all of those methods by yourself. It's possible, but very
+unpractical, so the whole design is a subject to refactoring.
