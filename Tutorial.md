@@ -180,9 +180,7 @@ vox_destroy_tree (tree); // Destroy the tree
 ~~~~~~~~~~~~~~~~~~~~
 
 This will produce a visualisation of the tree. You can get more info on camera
-methods in `struct vox_camera_interface` documentation. The current "simple
-camera" implementation supports collision detection and 6 degrees of freedom
-(full translation and rotation in 3-dimensional space). The most common pattern
+methods in `struct vox_camera_interface` documentation. The most common pattern
 to call these methods is
 ~~~~~~~~~~~~~~~~~~~~{.c}
 vox_simple_camera *camera;
@@ -190,6 +188,10 @@ vox_simple_camera *camera;
 camera->iface->method_name (camera, arg1, arg2, ...);
 ~~~~~~~~~~~~~~~~~~~~
 So the first argument to any method is a camera object itself, followed by other
-arguments. Currently, if you want to implement your own camera class, you must
+arguments. 
+
+The current "simple camera" implementation supports collision detection and 6
+degrees of freedom (full translation and rotation in 3-dimensional
+space). Currently, if you want to implement your own camera class, you must
 re-implement all of those methods by yourself. It's possible, but very
-unpractical, so the whole design is a subject to refactoring.
+unpractical, so the whole design is a subject to refactoring. 
