@@ -17,11 +17,13 @@
    \param origin starting point of the ray
    \param dir direction of the ray
    \param res where result is stored
-   \param leaf where the leaf node is stored, if leaf is not NULL
-   \return 1 if intersection is found, 0 otherwise
+
+   \return leaf where the intersection is found or NULL
+   if there is no intersection.
 **/
-int vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin, const vox_dot dir,
-                               vox_dot res, const struct vox_node** leaf);
+const struct vox_node*
+vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
+                           const vox_dot dir, vox_dot res);
 
 /**
    \brief Find out if a ball collides with voxels in a tree

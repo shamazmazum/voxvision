@@ -7,20 +7,19 @@
 WITH_STAT (static int recursion = -1;)
 
 // Maybe following deserves a bit more explanation
-int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin, const vox_dot dir,
-                                    vox_dot res, const struct vox_node **leaf)
+const struct vox_node*
+vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
+                           const vox_dot dir, vox_dot res)
 {
     vox_dot tmp;
     int i;
     vox_dot *plane_inter;
     int *plane_inter_idx, tmp2;
-    int found = 0;
+    const struct vox_node *leaf = NULL;
 
     WITH_STAT (recursion++);
     WITH_STAT (if (recursion == 0) gstats.rti_calls++);
     
-    if (leaf) *leaf = tree;
-
     if (!(VOX_FULLP (tree)) ||
         !(hit_box (&(tree->bounding_box), origin, dir, tmp)))
     {
@@ -29,7 +28,7 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     }
     if (tree->flags & DENSE_LEAF)
     {
-        found = 1;
+        leaf = tree;
         vox_dot_copy (res, tmp);
         WITH_STAT (if (recursion == 0) gstats.rti_early_exits++);
         goto end;
@@ -51,11 +50,11 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
             if (hit_box (voxel, origin, dir, tmp))
             {
                 dist_far = calc_abs_metric (origin, tmp);
-                if (((found) && (dist_far < dist_closest)) || (!found))
+                if ((leaf && (dist_far < dist_closest)) || (!leaf))
                 {
                     dist_closest = dist_far;
                     vox_dot_copy (res, tmp);
-                    found = 1;
+                    leaf = tree;
                 }
             }
         }
@@ -81,10 +80,9 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
     }
     // Look if we are lucky and the ray hits any box before it traverses the dividing planes
     // (in other words it hits a box close enough to the entry_point)
-    if (vox_ray_tree_intersection (inner->children[subspace], tmp, dir,
-                                   res, leaf))
+    if ((leaf = vox_ray_tree_intersection (inner->children[subspace], tmp, dir,
+                                           res)))
     {
-        found = 1;
         WITH_STAT (if (recursion == 0) gstats.rti_first_subspace++);
         goto end;
     }
@@ -105,7 +103,10 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
 
     for (i=0; i<plane_counter; i++)
     {
-        // We want the closest intersection to be found, so find closest remaining intersection with dividing planes
+        /*
+          We want the closest intersection to be found,
+          so find closest remaining intersection with dividing planes.
+        */
         int j;
         for (j=i+1; j<plane_counter; j++)
         {
@@ -126,18 +127,15 @@ int vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin
         // For each intersection with dividing plane call vox_ray_tree_intersection recursively,
         // using child node specified by subspace index. If an intersection is found, return.
         // Note, what we specify an entry point to that child as a new ray origin
-        if (vox_ray_tree_intersection (inner->children[subspace], plane_inter[i], dir,
-                                       res, leaf))
-        {
-            found = 1;
+        if ((leaf = vox_ray_tree_intersection (inner->children[subspace], plane_inter[i], dir,
+                                               res)))
             goto end;
-        }
     }
     WITH_STAT (if (recursion == 0) gstats.rti_worst_cases++);
 
 end:
     WITH_STAT (recursion--);
-    return found;
+    return leaf;
 }
 
 int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, float radius)

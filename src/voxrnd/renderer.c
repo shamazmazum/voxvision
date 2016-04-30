@@ -82,7 +82,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
     {
         const struct vox_node *leaf = NULL;
         vox_dot dir, inter;
-        int interp, p2, p;
+        int p2, p;
         p = p1 << 2;
         for (p2=0; p2<4; p2++)
         {
@@ -91,15 +91,14 @@ void vox_render (struct vox_rnd_ctx *ctx)
             int j = p - i*w;
             camera->screen2world (camera->camera, dir, j, i);
 #if 1
-            interp = 0;
             if ((leaf != NULL) && (leaf != ctx->scene))
-                interp = vox_ray_tree_intersection (leaf,  origin, dir, inter, NULL);
-            if (interp == 0)
-                interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, &leaf);
+                leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
+            if (leaf == NULL)
+                leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
 #else
             interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
 #endif
-            if (interp)
+            if (leaf != NULL)
             {
                 Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
                 pixels[p] = color;

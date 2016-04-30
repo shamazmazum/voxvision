@@ -639,8 +639,8 @@ static void test_tree_C676d50c2 ()
     vox_dot dir = {1, 1, -1};
     vox_dot res;
 
-    int interp = vox_ray_tree_intersection (tree, origin, dir, res, NULL);
-    CU_ASSERT (interp);
+    const struct vox_node *leaf = vox_ray_tree_intersection (tree, origin, dir, res);
+    CU_ASSERT (leaf != NULL);
 }
 
 static void test_simp_camera ()

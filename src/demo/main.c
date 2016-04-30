@@ -284,10 +284,10 @@ int main (int argc, char *argv[])
                     vox_dot inter;
                     vox_dot dir;
                     camera->iface->screen2world (camera, dir, screen->w/2, screen->h/2);
-                    int interp = vox_ray_tree_intersection
-                        (tree, camera->iface->get_position (camera),
-                         dir, inter, NULL);
-                    if (interp)
+                    const struct vox_node* leaf =
+                        vox_ray_tree_intersection (tree, camera->iface->get_position (camera),
+                                                   dir, inter);
+                    if (leaf != NULL)
                     {
                         if (event.key.keysym.sym == global_controls.insert)
                             amend_box (&tree, inter, 5, 1);
