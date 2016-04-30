@@ -79,34 +79,34 @@ void vox_render (struct vox_rnd_ctx *ctx)
     int p1;
     for (p1 = 0; p1 < n>>2; p1++)
 #endif
-                    {
-                        const struct vox_node *leaf = NULL;
-                        vox_dot dir, inter;
-                        int interp, p2, p;
-                        p = p1 << 2;
-                        for (p2=0; p2<4; p2++)
-                        {
-                            if (p >= n) break;
-                            int i = p/w;
-                            int j = p - i*w;
-                            camera->screen2world (camera->camera, dir, j, i);
+    {
+        const struct vox_node *leaf = NULL;
+        vox_dot dir, inter;
+        int interp, p2, p;
+        p = p1 << 2;
+        for (p2=0; p2<4; p2++)
+        {
+            if (p >= n) break;
+            int i = p/w;
+            int j = p - i*w;
+            camera->screen2world (camera->camera, dir, j, i);
 #if 1
-                            interp = 0;
-                            if ((leaf != NULL) && (leaf != ctx->scene))
-                                interp = vox_ray_tree_intersection (leaf,  origin, dir, inter, NULL);
-                            if (interp == 0)
-                                interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, &leaf);
+            interp = 0;
+            if ((leaf != NULL) && (leaf != ctx->scene))
+                interp = vox_ray_tree_intersection (leaf,  origin, dir, inter, NULL);
+            if (interp == 0)
+                interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, &leaf);
 #else
-                            interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
+            interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
 #endif
-                            if (interp)
-                            {
-                                Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
-                                pixels[p] = color;
-                            }
-                            p++;
-                        }
-                    }
+            if (interp)
+            {
+                Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
+                pixels[p] = color;
+            }
+            p++;
+        }
+    }
 #ifdef USE_GCD
         );
 #endif
