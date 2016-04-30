@@ -88,7 +88,8 @@ void vox_render (struct vox_rnd_ctx *ctx)
         {
             if (p >= n) break;
             int i = p/w;
-            int j = p - i*w;
+            int j = p%w;
+
             camera->screen2world (camera->camera, dir, j, i);
 #if 1
             if ((leaf != NULL) && (leaf != ctx->scene))
