@@ -113,21 +113,15 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 // See C Graphics Gems code for explanation
 int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir, vox_dot res)
 {
-    vox_dot candidate_plane;
     float max_dist, tmp;
     int i, plane_num;
-    int insidep = fit_into_box (box, origin, candidate_plane);
-    if (insidep)
-    {
-        vox_dot_copy (res, origin);
-        return 1;
-    }
+    if (fit_into_box (box, origin, res)) return 1;
 
     plane_num = 0;
     max_dist = -1;
     for (i=0; i<VOX_N; i++)
     {
-        tmp = (candidate_plane[i] - origin[i])/dir[i];
+        tmp = (res[i] - origin[i])/dir[i];
         if (tmp > max_dist)
         {
             plane_num = i;
@@ -138,8 +132,7 @@ int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir,
 
     for (i=0; i<VOX_N; i++)
     {
-        if (i==plane_num) res[i] = candidate_plane[i];
-        else
+        if (i != plane_num)
         {
             tmp = origin[i] + max_dist*dir[i];
             if ((tmp < box->min[i]) || (tmp > box->max[i])) return 0;
