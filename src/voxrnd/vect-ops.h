@@ -1,7 +1,3 @@
-/**
-   @file vect-ops.h
-   @brief Operations with vectors and quaternions
-**/
 #ifndef __VECT_OPS__
 #define __VECT_OPS__
 

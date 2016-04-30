@@ -99,6 +99,8 @@ struct vox_camera_interface
     void (*destroy_camera) (void *obj);
     /**<
        \brief Destroy camera after use.
+
+       This method should be called when camera is no longer needed.
     */
 };
 

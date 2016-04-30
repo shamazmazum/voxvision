@@ -42,6 +42,12 @@ struct vox_node
     } data;
 };
 #else /* VOXTREES_SOURCE */
+/**
+   \brief Voxel tree/node data structure.
+
+   Implementation of this structure is hidden from user. You must use
+   library functions and opaque pointers to operate on this type.
+**/
 struct vox_node;
 #endif /* VOXTREES_SOURCE */
 
@@ -79,7 +85,7 @@ void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 
    You can rebuild a tree completely and destroy the old one with
    vox_destroy_tree(). The new tree can be more balanced. Use this
-   after a big amount of insertions.
+   after a big amount of insertions or deletions.
 **/
 struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
 

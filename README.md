@@ -4,7 +4,7 @@ Voxvision
 What is Voxvision?
 -----------------
 **Voxvision** is a library (two of them to be accurate) for creating and
-operating with voxel octrees and also for visualising sets of voxels. It also
+operating on voxel octrees and also for visualising sets of voxels. It also
 contains a demo application which shows functionality of these libraries.
 
 What is a voxel?
@@ -29,7 +29,7 @@ Is there any API documentation?
 -------------------------------
 You can try to execute `make doc` from building directory (see below) to
 generate an API documentation. But API changes too fast and unpredictable, so no
-guarantees.
+guarantees. Also this documentation contains a basic how-to for these libraries.
 
 What are understandable formats of datasets used in the library?
 ----------------------------------------------------------------
