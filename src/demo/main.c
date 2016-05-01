@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <iniparser.h>
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
@@ -92,6 +92,11 @@ int main (int argc, char *argv[])
 #else
     struct vox_node *tree = NULL;
 #endif
+
+    SDL_Window *window = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Texture *texture = NULL;
+    SDL_Surface *surface = NULL;
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -189,30 +194,50 @@ int main (int argc, char *argv[])
     tree_group = dispatch_group_create ();
 #endif
 
-    sdl_init = 1;
     if (SDL_Init (SDL_INIT_VIDEO) != 0)
     {
         fprintf(stderr, "Cannot init SDL\n");
-        sdl_init = 0;
+        goto end;
+    }
+    sdl_init = 1;
+
+    if (SDL_CreateWindowAndRenderer (global_settings.window_width,
+                                     global_settings.window_height,
+                                     0, &window, &renderer) != 0)
+    {
+        fprintf(stderr, "Cannot init screen\n");
+        goto end;
+    }
+    SDL_SetRenderDrawColor (renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+
+    texture = SDL_CreateTexture (renderer, SDL_PIXELFORMAT_ARGB8888,
+                                 SDL_TEXTUREACCESS_STREAMING,
+                                 global_settings.window_width,
+                                 global_settings.window_height);
+    if (texture == NULL)
+    {
+        fprintf(stderr, "Cannot init texture\n");
         goto end;
     }
 
-    SDL_Surface *screen = SDL_SetVideoMode(global_settings.window_width,
-                                           global_settings.window_height,
-                                           32, SDL_SWSURFACE);
-    if (screen == NULL)
+    int bpp;
+    Uint32 rmask, gmask, bmask, amask;
+    SDL_PixelFormatEnumToMasks (SDL_PIXELFORMAT_ARGB8888,
+                                &bpp, &rmask, &gmask, &bmask, &amask);
+    surface = SDL_CreateRGBSurface (0,
+                                    global_settings.window_width,
+                                    global_settings.window_height,
+                                    bpp, rmask, gmask, bmask, amask);
+
+    if (surface == NULL)
     {
-        fprintf(stderr, "Cannot init screen\n");
+        fprintf(stderr, "Cannot init drawing surface\n");
         goto end;
     }
 
     camera = vox_make_simple_camera (fov, origin);
     camera->iface->set_rot_angles (camera, angles);
-    ctx = vox_make_renderer_context (screen, tree, camera->iface);
-
-    SDL_Rect rect;
-    rect.w = screen->w; rect.h = screen->h;
-    rect.x = 0; rect.y = 0;
+    ctx = vox_make_renderer_context (surface, tree, camera->iface);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
@@ -223,7 +248,7 @@ int main (int argc, char *argv[])
     while (1)
     {
         SDL_Event event;
-        SDL_FillRect (screen, &rect, SDL_MapRGB (screen->format, 0, 0, 0));
+        SDL_FillRect (surface, NULL, 0);
 #if USE_GCD
         /*
           Wait for all synchronous tree operations to complete then
@@ -236,10 +261,13 @@ int main (int argc, char *argv[])
 #else
         vox_render (ctx);
 #endif
+        SDL_UpdateTexture (texture, NULL, surface->pixels, surface->pitch);
+        SDL_RenderCopy (renderer, texture, NULL, NULL);
+        SDL_RenderPresent (renderer);
         vox_dot step = {0,0,0};
         vox_dot rot_delta = {0,0,0};
-        Uint8 *keystate = SDL_GetKeyState (NULL);
         float radius;
+        const Uint8 *keystate = SDL_GetKeyboardState (NULL);
         if (keystate[global_controls.walk_forwards]) step[1] += 5;
         else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
         if (keystate[global_controls.walk_right]) step[0] += 5;
@@ -260,19 +288,19 @@ int main (int argc, char *argv[])
             switch (event.type)
             {
             case SDL_KEYDOWN:
-                if ((event.key.keysym.sym == global_controls.shrink) ||
-                    (event.key.keysym.sym == global_controls.grow))
+                if ((event.key.keysym.scancode == global_controls.shrink) ||
+                    (event.key.keysym.scancode == global_controls.grow))
                 {
                     radius = vox_simple_camera_get_radius (camera);
-                    if (event.key.keysym.sym == global_controls.shrink)
+                    if (event.key.keysym.scancode == global_controls.shrink)
                         radius-=5;
                     else
                         radius+=5;
                     radius = vox_simple_camera_set_radius (camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
                 }
-                else if ((event.key.keysym.sym == global_controls.insert) ||
-                         (event.key.keysym.sym == global_controls.delete))
+                else if ((event.key.keysym.scancode == global_controls.insert) ||
+                         (event.key.keysym.scancode == global_controls.delete))
                 {
 #ifdef USE_GCD
                     /*
@@ -283,13 +311,13 @@ int main (int argc, char *argv[])
 #endif
                     vox_dot inter;
                     vox_dot dir;
-                    camera->iface->screen2world (camera, dir, screen->w/2, screen->h/2);
+                    camera->iface->screen2world (camera, dir, surface->w/2, surface->h/2);
                     const struct vox_node* leaf =
                         vox_ray_tree_intersection (tree, camera->iface->get_position (camera),
                                                    dir, inter);
                     if (leaf != NULL)
                     {
-                        if (event.key.keysym.sym == global_controls.insert)
+                        if (event.key.keysym.scancode == global_controls.insert)
                             amend_box (&tree, inter, 5, 1);
                         else
                             amend_box (&tree, inter, 5, 0);
@@ -299,8 +327,8 @@ int main (int argc, char *argv[])
                     });
 #endif
                 }
-                else if (event.key.keysym.sym == SDLK_q) goto end;
-                else if (event.key.keysym.sym == SDLK_r)
+                else if (event.key.keysym.scancode == SDL_SCANCODE_Q) goto end;
+                else if (event.key.keysym.scancode == SDL_SCANCODE_R)
                 {
 #ifdef USE_GCD
                     /*
@@ -323,8 +351,8 @@ int main (int argc, char *argv[])
                     });});
 #endif
                 }
-                else if (event.key.keysym.sym == SDLK_F11)
-                    SDL_SaveBMP (screen, "screen.bmp");
+                else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
+                    SDL_SaveBMP (surface, "screen.bmp");
                 break;
             case SDL_QUIT:
                 goto end;
@@ -346,6 +374,10 @@ end:
     if (ctx != NULL) free (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);
     if (tree != NULL) vox_destroy_tree (tree);
+    if (surface != NULL) SDL_FreeSurface (surface);
+    if (texture != NULL) SDL_DestroyTexture (texture);
+    if (renderer != NULL) SDL_DestroyRenderer (renderer);
+    if (window != NULL) SDL_DestroyWindow (window);
     if (sdl_init) SDL_Quit();
 #if USE_GCD
     if (tree_queue != NULL) dispatch_release (tree_queue);

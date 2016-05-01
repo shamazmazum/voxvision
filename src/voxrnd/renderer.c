@@ -109,5 +109,4 @@ void vox_render (struct vox_rnd_ctx *ctx)
 #ifdef USE_GCD
         );
 #endif
-    SDL_Flip (surface);
 }

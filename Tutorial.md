@@ -164,15 +164,19 @@ like this:
 
 ~~~~~~~~~~~~~~~~~~~~{.c}
 struct vox_node *tree = vox_make_tree (voxels, n);
-SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
+SDL_Surface surface =
+    SDL_CreateRGBSurface (0, 800, 600, 32,
+                          0x00ff0000, 0x0000ff00,
+                          0x000000ff, 0xff000000);
 vox_dot origin = {0,0,0}; // Camera's origin
 float fov = 1.2; // Camera's field of view
 // Make a default camera
 vox_simple_camera *camera = vox_make_simple_camera (fov, origin);
 struct vox_rnd_ctx *ctx =
      vox_make_renderer_context (surface, tree, camera->iface);
+SDL_FillRect (surface, NULL, 0);
 vox_render (ctx);
-SDL_SaveBMP (screen, "rendering.bmp");
+SDL_SaveBMP (surface, "rendering.bmp");
 free (ctx); // Free context after use
 camera->iface->destroy_camera (camera); // Destroy the camera
 vox_destroy_tree (tree); // Destroy the tree

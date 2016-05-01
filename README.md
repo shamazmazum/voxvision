@@ -47,7 +47,7 @@ configuration file for dataset. TODO: describe global.cfg and control.
 
 Requirements
 ------------
-* SDL
+* SDL2
 * [iniparser](https://github.com/ndevilla/iniparser)
 * CUnit for unit tests
 * [GCD](https://en.wikipedia.org/wiki/Grand_Central_Dispatch) for parallel
