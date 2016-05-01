@@ -1,6 +1,4 @@
-#include <sys/time.h>
 #include <sys/param.h>
-
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -24,13 +22,6 @@
     if (res != 3) { \
     fprintf (stderr, errormsg); \
     exit (1); }} while (0);
-
-static double gettime ()
-{
-    struct timeval tv;
-    gettimeofday (&tv, 0);
-    return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
-}
 
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
@@ -75,13 +66,29 @@ static void amend_box (struct vox_node **tree, vox_dot center, int size, int add
     }
 }
 
+static Uint32 timer_event (Uint32 interval, void *param)
+{
+    SDL_Event event;
+    SDL_UserEvent uevent;
+
+    uevent.type = SDL_USEREVENT;
+    uevent.code = 0;
+    uevent.data1 = NULL;
+    uevent.data2 = NULL;
+
+    event.type = SDL_USEREVENT;
+    event.user = uevent;
+
+    SDL_PushEvent (&event);
+    return interval;
+}
+
 int main (int argc, char *argv[])
 {
     dimension d;
     vox_dot *set;
     dictionary *cfg;
     int fd = -1, sdl_init = 0, ch;
-    double time;
 
     vox_simple_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
@@ -97,6 +104,7 @@ int main (int argc, char *argv[])
     SDL_Renderer *renderer = NULL;
     SDL_Texture *texture = NULL;
     SDL_Surface *surface = NULL;
+    SDL_TimerID timer_id = 0;
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -179,12 +187,19 @@ int main (int argc, char *argv[])
     close (fd);
     fd = -1;
 
+    // Init SDL
+    if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
+    {
+        fprintf(stderr, "Cannot init SDL\n");
+        goto end;
+    }
+    sdl_init = 1;
+
     // Build voxel tree
-    time = gettime ();
+    Uint32 time = SDL_GetTicks();
     tree = vox_make_tree (set, length);
-    time = gettime() - time;
-    printf ("Building tree (%lu voxels) took %f\n",
-            vox_voxels_in_tree (tree), time);
+    printf ("Building tree (%lu voxels) took %u ms\n",
+            vox_voxels_in_tree (tree), SDL_GetTicks() - time);
     free (set);
 
 #if USE_GCD
@@ -193,13 +208,6 @@ int main (int argc, char *argv[])
     if (tree_queue == NULL) goto end;
     tree_group = dispatch_group_create ();
 #endif
-
-    if (SDL_Init (SDL_INIT_VIDEO) != 0)
-    {
-        fprintf(stderr, "Cannot init SDL\n");
-        goto end;
-    }
-    sdl_init = 1;
 
     if (SDL_CreateWindowAndRenderer (global_settings.window_width,
                                      global_settings.window_height,
@@ -244,7 +252,7 @@ int main (int argc, char *argv[])
             "the current directory\n");
 
     int count = 0;
-    time = gettime ();
+    timer_id = SDL_AddTimer (1000, timer_event, NULL);
     while (1)
     {
         SDL_Event event;
@@ -264,25 +272,6 @@ int main (int argc, char *argv[])
         SDL_UpdateTexture (texture, NULL, surface->pixels, surface->pitch);
         SDL_RenderCopy (renderer, texture, NULL, NULL);
         SDL_RenderPresent (renderer);
-        vox_dot step = {0,0,0};
-        vox_dot rot_delta = {0,0,0};
-        float radius;
-        const Uint8 *keystate = SDL_GetKeyboardState (NULL);
-        if (keystate[global_controls.walk_forwards]) step[1] += 5;
-        else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
-        if (keystate[global_controls.walk_right]) step[0] += 5;
-        else if (keystate[global_controls.walk_left]) step[0] -= 5;
-        if (keystate[global_controls.fly_up]) step[2] += 5;
-        else if (keystate[global_controls.fly_down]) step[2] -= 5;
-        if (keystate[global_controls.look_up]) rot_delta[0] -= 0.01;
-        else if (keystate[global_controls.look_down]) rot_delta[0] += 0.01;
-        if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
-        else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
-        if (keystate[global_controls.look_left]) rot_delta[2] += 0.01;
-        else if (keystate[global_controls.look_right]) rot_delta[2] -= 0.01;
-        camera->iface->rotate_camera (camera, rot_delta);
-        camera->iface->move_camera (camera, step);
-
         if (SDL_PollEvent(&event))
         {
             switch (event.type)
@@ -291,6 +280,7 @@ int main (int argc, char *argv[])
                 if ((event.key.keysym.scancode == global_controls.shrink) ||
                     (event.key.keysym.scancode == global_controls.grow))
                 {
+                    float radius;
                     radius = vox_simple_camera_get_radius (camera);
                     if (event.key.keysym.scancode == global_controls.shrink)
                         radius-=5;
@@ -354,19 +344,34 @@ int main (int argc, char *argv[])
                 else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
                     SDL_SaveBMP (surface, "screen.bmp");
                 break;
+            case SDL_USEREVENT:
+                printf ("%i fps\n", count);
+                count = 0;
+                break;
             case SDL_QUIT:
                 goto end;
             }
         }
 
+        vox_dot step = {0,0,0};
+        vox_dot rot_delta = {0,0,0};
+        const Uint8 *keystate = SDL_GetKeyboardState (NULL);
+        if (keystate[global_controls.walk_forwards]) step[1] += 5;
+        else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
+        if (keystate[global_controls.walk_right]) step[0] += 5;
+        else if (keystate[global_controls.walk_left]) step[0] -= 5;
+        if (keystate[global_controls.fly_up]) step[2] += 5;
+        else if (keystate[global_controls.fly_down]) step[2] -= 5;
+        if (keystate[global_controls.look_up]) rot_delta[0] -= 0.01;
+        else if (keystate[global_controls.look_down]) rot_delta[0] += 0.01;
+        if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
+        else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
+        if (keystate[global_controls.look_left]) rot_delta[2] += 0.01;
+        else if (keystate[global_controls.look_right]) rot_delta[2] -= 0.01;
+        camera->iface->rotate_camera (camera, rot_delta);
+        camera->iface->move_camera (camera, step);
+
         count++;
-        double time2 = gettime() - time;
-        if (time2 >= 1.0)
-        {
-            printf ("%i frames in %f seconds\n", count, time2);
-            time = gettime();
-            count = 0;
-        }
     }
 
 end:
@@ -378,6 +383,7 @@ end:
     if (texture != NULL) SDL_DestroyTexture (texture);
     if (renderer != NULL) SDL_DestroyRenderer (renderer);
     if (window != NULL) SDL_DestroyWindow (window);
+    if (timer_id) SDL_RemoveTimer (timer_id);
     if (sdl_init) SDL_Quit();
 #if USE_GCD
     if (tree_queue != NULL) dispatch_release (tree_queue);
