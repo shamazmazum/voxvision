@@ -12,8 +12,14 @@ set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
 find_package (SDL2 REQUIRED)
-find_package (IniParser REQUIRED)
+find_package (IniParser)
 find_package (GCD)
+
+if (NOT GCD_FOUND)
+message (WARNING "Could not find GCD. voxrnd will still be working, but slow.
+   If you are using FreeBSD, consider installing devel/libdispatch
+   and devel/compiler-rt ports.")
+endif (NOT GCD_FOUND)
 
 option (SSE_INTRIN "Enable SSE intrinsic")
 if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")

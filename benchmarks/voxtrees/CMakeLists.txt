@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
 
-include_directories (../../src ..)
 file (GLOB SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.c)
 foreach (SOURCE ${SOURCES})
     get_filename_component (TARGET_NAME ${SOURCE} NAME_WE)

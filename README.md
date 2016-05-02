@@ -48,8 +48,9 @@ configuration file for dataset. TODO: describe global.cfg and control.
 Requirements
 ------------
 * SDL2
-* [iniparser](https://github.com/ndevilla/iniparser)
-* CUnit for unit tests
+* [iniparser](https://github.com/ndevilla/iniparser) for demo application,
+  optional
+* CUnit for unit tests, optional
 * [GCD](https://en.wikipedia.org/wiki/Grand_Central_Dispatch) for parallel
   rendering, optional, but highly recommended.
 * Doxygen for API documentation, optional

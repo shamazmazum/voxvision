@@ -1,7 +1,8 @@
 find_path(SDL2_INCLUDE_DIR SDL.h
           PATH_SUFFIXES SDL2)
-list(APPEND SDL_INCLUDE_DIR /usr/local/include)
-mark_as_advanced(SDL2_INCLUDE_DIR)
+get_filename_component (SDL2_SHORT_INC_DIR ${SDL2_INCLUDE_DIR} DIRECTORY)
+list(APPEND SDL_INCLUDE_DIR ${SDL2_SHORT_INC_DIR})
+mark_as_advanced(SDL2_INCLUDE_DIR SDL2_SHORT_INC_DIR)
 
 find_library(SDL2_LIBRARY NAMES
 sdl2
