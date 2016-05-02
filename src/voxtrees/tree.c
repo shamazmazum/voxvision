@@ -682,6 +682,7 @@ static struct vox_node* __attribute__((noinline))
       May be easily TCO'ed if needed.
     */
     inner->children[0] = delete_from_big_dense (inner->children[0], voxel);
+    vox_destroy_tree (tree);
     return node;
 }
 
