@@ -88,7 +88,7 @@ int main (int argc, char *argv[])
     dimension d;
     vox_dot *set;
     dictionary *cfg;
-    int fd = -1, sdl_init = 0, ch;
+    int fd = -1, ch;
 
     vox_simple_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
@@ -190,10 +190,9 @@ int main (int argc, char *argv[])
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
     {
-        fprintf(stderr, "Cannot init SDL\n");
+        fprintf (stderr, "Cannot init SDL: %s\n", SDL_GetError());
         goto end;
     }
-    sdl_init = 1;
 
     // Build voxel tree
     Uint32 time = SDL_GetTicks();
@@ -213,7 +212,8 @@ int main (int argc, char *argv[])
                                      global_settings.window_height,
                                      0, &window, &renderer) != 0)
     {
-        fprintf(stderr, "Cannot init screen\n");
+        fprintf (stderr, "Cannot create window and renderer: %s\n",
+                 SDL_GetError());
         goto end;
     }
     SDL_SetRenderDrawColor (renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -224,7 +224,7 @@ int main (int argc, char *argv[])
                                  global_settings.window_height);
     if (texture == NULL)
     {
-        fprintf(stderr, "Cannot init texture\n");
+        fprintf (stderr, "Cannot create texture: %s\n", SDL_GetError());
         goto end;
     }
 
@@ -239,7 +239,8 @@ int main (int argc, char *argv[])
 
     if (surface == NULL)
     {
-        fprintf(stderr, "Cannot init drawing surface\n");
+        fprintf (stderr, "Cannot create drawing surface: %s\n",
+                 SDL_GetError());
         goto end;
     }
 
@@ -384,7 +385,7 @@ end:
     if (renderer != NULL) SDL_DestroyRenderer (renderer);
     if (window != NULL) SDL_DestroyWindow (window);
     if (timer_id) SDL_RemoveTimer (timer_id);
-    if (sdl_init) SDL_Quit();
+    if (SDL_WasInit(0)) SDL_Quit();
 #if USE_GCD
     if (tree_queue != NULL) dispatch_release (tree_queue);
     if (tree_group != NULL) dispatch_release (tree_group);
