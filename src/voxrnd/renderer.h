@@ -5,7 +5,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <SDL2/SDL.h>
+#include <SDL/SDL.h>
 #include "../voxtrees/tree.h"
 #include "camera.h"
 
