@@ -15,9 +15,18 @@ int main ()
     time = gettime();
     for (i=0; i<N; i++)
     {
+#ifdef SSE_INTRIN
+        __v4sf d = _mm_set_ps (0,
+                               random() & 0x0fffff,
+                               random() & 0x0fffff,
+                               random() & 0x0fffff);
+        d *= _mm_load_ps (vox_voxel);
+        _mm_store_ps (dot, d);
+#else
         dot[0] = vox_voxel[0]*(random() & 0x0fffff);
         dot[1] = vox_voxel[1]*(random() & 0x0fffff);
         dot[2] = vox_voxel[2]*(random() & 0x0fffff);
+#endif
         vox_insert_voxel (&tree, dot);
     }
     time = gettime() - time;
@@ -29,9 +38,18 @@ int main ()
     time = gettime();
     for (i=0; i<N; i++)
     {
+#ifdef SSE_INTRIN
+        __v4sf d = _mm_set_ps (0,
+                               random() & 0x0fffff,
+                               random() & 0x0fffff,
+                               random() & 0x0fffff);
+        d *= _mm_load_ps (vox_voxel);
+        _mm_store_ps (dot, d);
+#else
         dot[0] = vox_voxel[0]*(random() & 0x0fffff);
         dot[1] = vox_voxel[1]*(random() & 0x0fffff);
         dot[2] = vox_voxel[2]*(random() & 0x0fffff);
+#endif
         vox_delete_voxel (&tree, dot);
     }
     time = gettime() - time;

@@ -6,10 +6,18 @@
 
 int main()
 {
+#ifdef SSE_INTRIN
+    vox_dot dot __attribute__((align(16)));
+    vox_dot origin __attribute__((align(16)));
+    vox_dot dir __attribute__((align(16)));
+    vox_dot inter __attribute__((align(16)));
+    _mm_store_ps (dot, _mm_set_ps (0, 0, 10, 0));
+#else
     vox_dot dot = {0, 10, 0};
     vox_dot origin = {0, 0, 0};
     vox_dot dir = {0, 1, 0};
     vox_dot inter;
+#endif
     int i, j, count = 0;
     struct vox_node *tree = NULL;
     const struct vox_node *leaf;
@@ -20,8 +28,13 @@ int main()
     {
         for (j=0; j<10; j++)
         {
+#ifdef SSE_INTRIN
+            _mm_store_ps (origin, _mm_set_ps (0, 0, 0, j-5));
+            _mm_store_ps (dir, _mm_set_ps (0, 0, 0, (float)(j-5)/10));
+#else
             origin[0] = j-5;
             dir[0] = origin[0]/10;
+#endif
             leaf = vox_ray_tree_intersection (tree, origin, dir, inter);
             if (leaf != NULL) count++;
         }

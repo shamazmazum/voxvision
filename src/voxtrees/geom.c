@@ -1,13 +1,88 @@
 #include <math.h>
 #include "geom.h"
 
-#ifndef SSE_INTRIN
+#ifdef SSE_INTRIN
+int voxel_in_box (const struct vox_box *box, const vox_dot dot)
+{
+    __v4sf d = _mm_load_ps (dot);
+    __v4sf lt_min = d <  _mm_load_ps (box->min);
+    __v4sf be_max = d >= _mm_load_ps (box->max);
+    __v4sf inside = _mm_xor_ps (lt_min, be_max);
+    int mask = _mm_movemask_ps (inside);
+    return !(mask & 7);
+}
+
+static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    __v4sf v = _mm_load_ps (dot);
+    __v4sf fitted = v;
+    fitted = _mm_max_ps (fitted, _mm_load_ps (box->min));
+    fitted = _mm_min_ps (fitted, _mm_load_ps (box->max));
+    v = fitted != v;
+    _mm_store_ps (res, fitted);
+    return !(_mm_movemask_ps(v) & 7);
+}
+
+void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    __v4sf min = _mm_load_ps (box->min);
+    __v4sf max = _mm_load_ps (box->max);
+    __v4sf d = _mm_load_ps (dot);
+    __v4sf mask = d == d;
+    mask = _mm_srli_epi32 (mask, 1);
+    __v4sf d1 = _mm_and_ps (min - d, mask);
+    __v4sf d2 = _mm_and_ps (max - d, mask);
+    __v4sf cmp = d1 < d2;
+    __v4sf r = _mm_blendv_ps (max, min, cmp);
+    _mm_store_ps (res, r);
+}
+
+#else
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
     int i;
     for (i=0; i<VOX_N; i++) res[i] = a[i] + b[i];
 }
-#endif
+
+int voxel_in_box (const struct vox_box *box, const vox_dot dot)
+{
+    int i;
+
+    for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) return 0;}
+    return 1;
+}
+
+static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    int i, the_same = 1;
+    for (i=0; i<VOX_N; i++)
+    {
+        if (dot[i] < box->min[i])
+        {
+            res[i] = box->min[i];
+            the_same = 0;
+        }
+        else if (dot[i] > box->max[i])
+        {
+            res[i] = box->max[i];
+            the_same = 0;
+        }
+        else res[i] = dot[i];
+    }
+    return the_same;
+}
+
+void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
+{
+    int i;
+    for (i=0; i<VOX_N; i++)
+    {
+        float d1 = fabsf (box->min[i] - dot[i]);
+        float d2 = fabsf (box->max[i] - dot[i]);
+        res[i] = (d1 < d2) ? box->min[i] : box->max[i];
+    }
+}
+#endif /* SSE_INTRIN */
 
 int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 {
@@ -33,39 +108,6 @@ float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
     for (i=0; i<VOX_N; i++) res += powf (dot1[i] - dot2[i], 2.0);
     return res;
 }
-
-#ifdef SSE_INTRIN
-static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    __v4sf v = _mm_load_ps (dot);
-    __v4sf fitted = v;
-    fitted = _mm_max_ps (fitted, _mm_load_ps (box->min));
-    fitted = _mm_min_ps (fitted, _mm_load_ps (box->max));
-    v = fitted != v;
-    _mm_store_ps (res, fitted);
-    return !(_mm_movemask_ps(v) & 7);
-}
-#else
-static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    int i, the_same = 1;
-    for (i=0; i<VOX_N; i++)
-    {
-        if (dot[i] < box->min[i])
-        {
-            res[i] = box->min[i];
-            the_same = 0;
-        }
-        else if (dot[i] > box->max[i])
-        {
-            res[i] = box->max[i];
-            the_same = 0;
-        }
-        else res[i] = dot[i];
-    }
-    return the_same;
-}
-#endif
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation
@@ -162,38 +204,6 @@ int dense_set_p (const struct vox_box *box, size_t n)
     bb_volume = size[0]*size[1]*size[2];
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
     return fabsf (n*vox_volume - bb_volume) < vox_volume;
-}
-
-#if 0
-int voxel_in_box (const struct vox_box *box, const vox_dot dot)
-{
-    __v4sf d = _mm_load_ps (dot);
-    __v4sf lt_min = d <  _mm_load_ps (box->min);
-    __v4sf be_max = d >= _mm_load_ps (box->max);
-    // XXX: Will the sign bit be the same in result of this operation?
-    __v4sf inside = lt_min * be_max;
-    int mask = _mm_movemask_ps (inside);
-    return !(mask & 7);
-}
-#else
-int voxel_in_box (const struct vox_box *box, const vox_dot dot)
-{
-    int i;
-
-    for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) return 0;}
-    return 1;
-}
-#endif
-
-void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    int i;
-    for (i=0; i<VOX_N; i++)
-    {
-        float d1 = fabsf (box->min[i] - dot[i]);
-        float d2 = fabsf (box->max[i] - dot[i]);
-        res[i] = (d1 < d2) ? box->min[i] : box->max[i];
-    }
 }
 
 int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx)

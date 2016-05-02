@@ -20,9 +20,15 @@ int main ()
         {
             for (m=0; m<M; m++)
             {
+#ifdef SSE_INTRIN
+                __v4sf d = _mm_set_ps (0, m, l, k);
+                d *= _mm_load_ps (vox_voxel);
+                _mm_store_ps (dot, d);
+#else
                 dot[0] = vox_voxel[0]*k;
                 dot[1] = vox_voxel[1]*l;
                 dot[2] = vox_voxel[2]*m;
+#endif
                 vox_insert_voxel (&tree, dot);
             }
         }
@@ -39,9 +45,15 @@ int main ()
         {
             for (m=0; m<M; m++)
             {
+#ifdef SSE_INTRIN
+                __v4sf d = _mm_set_ps (0, m, l, k);
+                d *= _mm_load_ps (vox_voxel);
+                _mm_store_ps (dot, d);
+#else
                 dot[0] = vox_voxel[0]*k;
                 dot[1] = vox_voxel[1]*l;
                 dot[2] = vox_voxel[2]*m;
+#endif
                 vox_delete_voxel (&tree, dot);
             }
         }

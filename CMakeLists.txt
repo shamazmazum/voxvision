@@ -27,6 +27,9 @@ add_definitions (-DSTATISTICS)
 unset (GCD_FOUND)
 endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 
+if (SSE_INTRIN)
+add_definitions (-msse3 -msse4.1)
+endif (SSE_INTRIN)
 add_subdirectory (src)
 add_subdirectory (benchmarks)
 

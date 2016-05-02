@@ -39,9 +39,9 @@
   0..............128
 */
 
-#include <string.h>
 #if defined(SSE_INTRIN)
 #include <xmmintrin.h>
+#include <smmintrin.h>
 typedef float vox_dot[4] __attribute__ ((aligned (16)));
 typedef float vox_quat[4] __attribute__ ((aligned (16)));
 #define vox_dot_copy(d1, d2) _mm_store_ps (d1, _mm_load_ps (d2))
@@ -61,6 +61,7 @@ struct vox_box
     vox_dot min; /**< \brief minimal coordinate */
     vox_dot max; /**< \brief maximal coordinate */
 };
+#include <string.h>
 #define vox_box_copy(b1, b2) memcpy ((b1), (b2), sizeof (struct vox_box))
 
 #endif
