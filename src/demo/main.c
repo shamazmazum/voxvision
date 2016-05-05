@@ -223,7 +223,12 @@ int main (int argc, char *argv[])
             "the current directory\n");
 
     int count = 0;
+#if 0
     timer_id = SDL_AddTimer (1000, timer_event, NULL);
+#else
+    Uint32 start, end;
+    start = SDL_GetTicks();
+#endif
     while (1)
     {
         SDL_Event event;
@@ -342,6 +347,15 @@ int main (int argc, char *argv[])
         camera->iface->move_camera (camera, step);
 
         count++;
+
+        end = SDL_GetTicks();
+        Uint32 diff = end - start;
+        if (diff > 1000)
+        {
+            printf ("%i frames in %u ms\n", count, diff);
+            start = SDL_GetTicks();
+            count = 0;
+        }
     }
 
 end:
