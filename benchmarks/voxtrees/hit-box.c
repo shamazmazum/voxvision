@@ -7,17 +7,16 @@
 int main()
 {
 #ifdef SSE_INTRIN
-    vox_dot dot __attribute__((align(16)));
-    vox_dot origin __attribute__((align(16)));
-    vox_dot dir __attribute__((align(16)));
-    vox_dot inter __attribute__((align(16)));
+    vox_dot dot;
+    vox_dot origin;
+    vox_dot dir;
     _mm_store_ps (dot, _mm_set_ps (0, 0, 10, 0));
 #else
     vox_dot dot = {0, 10, 0};
     vox_dot origin = {0, 0, 0};
     vox_dot dir = {0, 1, 0};
-    vox_dot inter;
 #endif
+    vox_dot inter;
     int i, j, count = 0;
     struct vox_node *tree = NULL;
     const struct vox_node *leaf;
