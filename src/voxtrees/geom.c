@@ -1,43 +1,7 @@
 #include <math.h>
 #include "geom.h"
 
-#ifdef SSE_INTRIN
-int voxel_in_box (const struct vox_box *box, const vox_dot dot)
-{
-    __v4sf d = _mm_load_ps (dot);
-    __v4sf lt_min = d <  _mm_load_ps (box->min);
-    __v4sf be_max = d >= _mm_load_ps (box->max);
-    __v4sf inside = _mm_xor_ps (lt_min, be_max);
-    int mask = _mm_movemask_ps (inside);
-    return !(mask & 7);
-}
-
-static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    __v4sf v = _mm_load_ps (dot);
-    __v4sf fitted = v;
-    fitted = _mm_max_ps (fitted, _mm_load_ps (box->min));
-    fitted = _mm_min_ps (fitted, _mm_load_ps (box->max));
-    v = fitted != v;
-    _mm_store_ps (res, fitted);
-    return !(_mm_movemask_ps(v) & 7);
-}
-
-void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    __v4sf min = _mm_load_ps (box->min);
-    __v4sf max = _mm_load_ps (box->max);
-    __v4sf d = _mm_load_ps (dot);
-    __v4sf mask = d == d;
-    mask = _mm_srli_epi32 (mask, 1);
-    __v4sf d1 = _mm_and_ps (min - d, mask);
-    __v4sf d2 = _mm_and_ps (max - d, mask);
-    __v4sf cmp = d1 < d2;
-    __v4sf r = _mm_blendv_ps (max, min, cmp);
-    _mm_store_ps (res, r);
-}
-
-#else
+#ifndef SSE_INTRIN
 void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
     int i;
@@ -52,7 +16,7 @@ int voxel_in_box (const struct vox_box *box, const vox_dot dot)
     return 1;
 }
 
-static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
+int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
 {
     int i, the_same = 1;
     for (i=0; i<VOX_N; i++)
@@ -82,7 +46,6 @@ void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
         res[i] = (d1 < d2) ? box->min[i] : box->max[i];
     }
 }
-#endif /* SSE_INTRIN */
 
 int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 {
@@ -90,22 +53,6 @@ int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
     res = 0;
 
     for (i=0; i<VOX_N; i++) res |= ((dot1[i] > dot2[i]) ? 1 : 0) << i;
-    return res;
-}
-
-float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
-{
-    int i;
-    float res = 0;
-    for (i=0; i<VOX_N; i++) res += fabsf (dot1[i] - dot2[i]);
-    return res;
-}
-
-float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
-{
-    int i;
-    float res = 0;
-    for (i=0; i<VOX_N; i++) res += powf (dot1[i] - dot2[i], 2.0);
     return res;
 }
 
@@ -165,6 +112,23 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
         if ((res[i] < box->min[i]) || (res[i] > box->max[i])) return 0;
     }
     return 1;
+}
+#endif /* SSE_INTRIN */
+
+float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
+{
+    int i;
+    float res = 0;
+    for (i=0; i<VOX_N; i++) res += fabsf (dot1[i] - dot2[i]);
+    return res;
+}
+
+float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
+{
+    int i;
+    float res = 0;
+    for (i=0; i<VOX_N; i++) res += powf (dot1[i] - dot2[i], 2.0);
+    return res;
 }
 
 int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius)

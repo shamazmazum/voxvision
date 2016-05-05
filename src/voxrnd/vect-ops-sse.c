@@ -1,11 +1,14 @@
+#include "vect-ops.h"
+#ifdef SSE_INTRIN
 #include <xmmintrin.h>
 #include <pmmintrin.h>
-#include "vect-ops.h"
 
 static __v4sf cross_product_ (__v4sf a, __v4sf b)
 {
-    __v4sf r1 = a * _mm_shuffle_ps (b, b, _MM_SHUFFLE (1, 3, 2, 0));
-    __v4sf r2 = b * _mm_shuffle_ps (a, a, _MM_SHUFFLE (1, 3, 2, 0));
+    __v4sf sh1 = _mm_shuffle_ps (b, b, _MM_SHUFFLE (1, 3, 2, 0));
+    __v4sf sh2 = _mm_shuffle_ps (a, a, _MM_SHUFFLE (1, 3, 2, 0));
+    __v4sf r1 = a * sh1;
+    __v4sf r2 = b * sh2;
     __v4sf r = r1 - r2;
     return _mm_shuffle_ps (r, r, _MM_SHUFFLE (1, 3, 2, 0));
 }
@@ -41,6 +44,11 @@ static __v4sf quat_mul_ (__v4sf q1, __v4sf q2)
     return r4;
 }
 
+/*
+  This function does not work good with current implementation of the camera
+  due to long-read-after-short-write store forwarding stalls on most CPUs,
+  but this code is called relatively infrequently, so just leave it as is now.
+*/
 void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
 {
     __v4sf r = quat_mul_ (_mm_load_ps (q1), _mm_load_ps(q2));
@@ -54,3 +62,4 @@ void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
     r = _mm_srli_si128 (r, 4);
     _mm_store_ps (res, r);
 }
+#endif

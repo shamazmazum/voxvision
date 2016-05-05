@@ -9,17 +9,7 @@ include_directories (${GCD_INCLUDE_DIR})
 add_definitions (-fblocks -DUSE_GCD)
 endif (GCD_FOUND)
 
-if (0)
-set (VOXRND_SOURCES camera.c renderer.c)
-if (SSE_INTRIN)
-set (VOXRND_SOURCES ${VOXRND_SOURCES} vect-ops-sse.c)
-else (SSE_INTRIN)
-set (VOXRND_SOURCES ${VOXRND_SOURCES} vect-ops.c)
-endif (SSE_INTRIN)
-else (0)
-set (VOXRND_SOURCES camera.c renderer.c vect-ops.c)
-endif (0)
-
+set (VOXRND_SOURCES camera.c renderer.c vect-ops.c vect-ops-sse.c)
 add_library (voxrnd SHARED ${VOXRND_SOURCES})
 set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}

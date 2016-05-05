@@ -14,9 +14,14 @@ static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
     float ymul = camera->ymul;
 
     assert (xmul != 0 && ymul != 0);
+#ifdef SSE_INTRIN
+    _mm_store_ps (ray, _mm_set_ps (0, camera->ymul*sy - camera->fov,
+                                   1, camera->xmul*sx - camera->fov));
+#else
     ray[0] = camera->xmul*sx - camera->fov;
     ray[1] = 1.0;
     ray[2] = camera->ymul*sy - camera->fov;
+#endif
 
     vox_rotate_vector (camera->rotation, ray, ray);
 }

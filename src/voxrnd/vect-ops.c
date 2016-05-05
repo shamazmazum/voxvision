@@ -1,4 +1,5 @@
 #include "vect-ops.h"
+#ifndef SSE_INTRIN
 
 #define VOX_N 3
 
@@ -26,3 +27,4 @@ void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
     vox_cross_product ((float*)(base+1), tmp, tmp2);
     for (i=0; i<VOX_N; i++) res[i] = vector[i] + base[0]*tmp[i] + tmp2[i];
 }
+#endif
