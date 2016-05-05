@@ -16,7 +16,7 @@ int voxel_in_box (const struct vox_box *box, const vox_dot dot)
     return 1;
 }
 
-int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
+static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
 {
     int i, the_same = 1;
     for (i=0; i<VOX_N; i++)
@@ -113,7 +113,6 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     }
     return 1;
 }
-#endif /* SSE_INTRIN */
 
 float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
 {
@@ -137,6 +136,7 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
     fit_into_box (box, center, fitted);
     return calc_sqr_metric (fitted, center) < (radius*radius);
 }
+#endif /* SSE_INTRIN */
 
 float fill_ratio (const struct vox_box *box, size_t n)
 {

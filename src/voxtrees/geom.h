@@ -90,7 +90,6 @@ void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res);
 int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx);
 void get_dimensions (const struct vox_box *box, size_t dim[]);
 int stripep (const struct vox_box *box, int *which);
-int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res);
 #endif
 
 #endif
