@@ -33,7 +33,7 @@ struct vox_node *tree = vox_make_tree (array, n);
 free (array);
 ~~~~~~~~~~~~~~~~~~~~
 
-`vox_make_tree()` creates a new voxel tree and also destroys the array as it is
+`vox_make_tree()` creates a new voxel tree and `free()` destroys the array as it is
 probably of no use for you anymore. Note, that if you wish to continue to use
 your array, you must take into account that it is sorted in `vox_make_tree()`,
 so any old indices to that array will no longer point to the same
@@ -48,8 +48,8 @@ due to the library's misdesign, that it's strongly recommended to use values for
 `vox_voxel` is {1,1,1}.
 
 **NB:** If you compile your library with `SSE_INTRIN` option, arrays of
-`vox_dot`s must be 16-byte aligned. You can use `aligned_alloc()` function for
-this.
+`vox_dot`s must be 16-byte aligned. You can use `aligned_alloc()` function from
+standard C library for this.
 
 ### Manipulating and destroying the tree
 You can get a number of voxels in the tree by calling `vox_voxels_in_tree()` or
@@ -83,9 +83,9 @@ vox_insert_voxel (&tree, dot);
 ~~~~~~~~~~~~~~~~~~~~
 
 I do not recommend to use these functions when you create a tree from scratch,
-use vox_make_tree() instead. Many calls to vox_insert_voxel() or
-vox_delete_voxel() can make your tree unbalanced. You can rebuild a tree
-completely with `vox_rbuild_tree()` function.
+use `vox_make_tree()` instead. Many calls to `vox_insert_voxel()` or
+`vox_delete_voxel()` can make your tree unbalanced. You can rebuild a tree
+completely with `vox_rebuild_tree()` function.
 
 There are 2 common patterns which insertion/deletion functions recognise.
 
@@ -122,7 +122,7 @@ function. Trees with no voxels in them need not to be destroyed (remember, they
 are just `NULL`).
 
 ### Searching
-This is the reason why `voxtrees` library exists. It can perform various types
+This is the reason why **voxtrees** library exists. It can perform various types
 of search much faster than if we would try to do it with exhaustive search.
 
 You can check if a ball intersects any voxel in the tree with
@@ -146,8 +146,8 @@ if (leaf != NULL) printf ("There is intersection at <%f, %f, %f>\n",
                           intersection[0], intersection[1], intersection[2]);
 ~~~~~~~~~~~~~~~~~~~~
 In the latter example the leaf node is returned where intersection is found or
-NULL if there is no intersection. Note, that empty nodes (with no voxels in
-them) are also NULL, but there are no intersections with them in any case.
+`NULL` if there is no intersection. Note, that empty nodes (with no voxels in
+them) are also `NULL`, but there are no intersections with them in any case.
 
 Voxrnd
 ------
@@ -157,8 +157,8 @@ function. To do this you must first create a renderer context with function
 `vox_make_renderer_context()`. It accepts three arguments: the surface, the
 scene (your tree) and the camera interface. You can get the interface by
 creating a simple camera with `vox_make_simple_camera()` function. The goal is
-to separate camera implementation (which can be redefined by user in his/her own
-camera class) and camera methods (interface) which is more or less standard and
+to separate camera implementation (methods, which can be redefined by user in his/her
+own camera class) and camera interface which is more or less standard and
 which is used in the library. Putting it all together you will get something
 like this:
 
@@ -180,10 +180,10 @@ vox_destroy_tree (tree); // Destroy the tree
 ~~~~~~~~~~~~~~~~~~~~
 
 This will produce a visualisation of the tree. You can get more info on camera
-methods in `struct vox_camera_interface` documentation. The most common pattern
-to call these methods is
+interface in `struct vox_camera_interface` documentation. The most common pattern
+to call camera methods is
 ~~~~~~~~~~~~~~~~~~~~{.c}
-vox_simple_camera *camera;
+vox_simple_camera *camera; // Or any other user camera.
 // Initialisation skipped
 camera->iface->method_name (camera, arg1, arg2, ...);
 ~~~~~~~~~~~~~~~~~~~~
