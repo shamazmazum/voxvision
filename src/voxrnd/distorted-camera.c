@@ -4,12 +4,12 @@
 #include "distorted-camera.h"
 #include "vect-ops.h"
 
-static struct vox_camera* distorted_construct_camera (void *obj, ...);
-struct vox_camera* distorted_vconstruct_camera (void *obj, va_list args);
+static struct vox_camera* distorted_construct_camera (struct vox_camera *cam, ...);
+struct vox_camera* distorted_vconstruct_camera (struct vox_camera *cam, va_list args);
 
-static void distorted_screen2world (void *obj, vox_dot ray, int sx, int sy)
+static void distorted_screen2world (struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
     float xmul = camera->xmul;
     float ymul = camera->ymul;
 
@@ -31,20 +31,20 @@ static void distorted_screen2world (void *obj, vox_dot ray, int sx, int sy)
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
-static struct vox_camera* distorted_construct_camera (void *obj, ...)
+static struct vox_camera* distorted_construct_camera (struct vox_camera *cam, ...)
 {
     va_list args;
     struct vox_camera *camera;
 
-    va_start (args, obj);
+    va_start (args, cam);
     camera = distorted_vconstruct_camera (NULL, args);
     va_end (args);
     return camera;
 }
 
-struct vox_camera* distorted_vconstruct_camera (void *obj, va_list args)
+struct vox_camera* distorted_vconstruct_camera (struct vox_camera *cam, va_list args)
 {
-    struct vox_camera *camera = vox_simple_camera_get_iface()->vconstruct_camera (obj, args);
+    struct vox_camera *camera = vox_simple_camera_get_iface()->vconstruct_camera (cam, args);
     camera->iface->vconstruct_camera = distorted_vconstruct_camera;
     camera->iface->construct_camera = distorted_construct_camera;
     camera->iface->screen2world = distorted_screen2world;

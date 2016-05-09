@@ -7,9 +7,9 @@
 #include "simple-camera.h"
 #include "renderer.h"
 
-static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
+static void simple_screen2world (struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
     float xmul = camera->xmul;
     float ymul = camera->ymul;
 
@@ -26,23 +26,23 @@ static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
-static float* simple_get_position (void *obj)
+static float* simple_get_position (struct vox_camera *cam)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
     return camera->position;
 }
 
-static int simple_set_position (void *obj, vox_dot pos)
+static int simple_set_position (struct vox_camera *cam, vox_dot pos)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
     int res = vox_tree_ball_collidep (camera->ctx->scene, pos, camera->body_radius);
     if (res == 0) vox_dot_copy (camera->position, pos);
     return res;
 }
 
-static void simple_set_rot_angles (void *obj, vox_dot angles)
+static void simple_set_rot_angles (struct vox_camera *cam, vox_dot angles)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
 
     int i;
     vox_quat r[3], tmp;
@@ -58,9 +58,9 @@ static void simple_set_rot_angles (void *obj, vox_dot angles)
     vox_quat_mul (r[2], tmp, camera->rotation);
 }
 
-static int simple_move_camera (void *obj, vox_dot delta)
+static int simple_move_camera (struct vox_camera *cam, vox_dot delta)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
     vox_rotate_vector (camera->rotation, delta, delta);
     vox_dot new_pos;
     sum_vector (camera->position, delta, new_pos);
@@ -71,9 +71,9 @@ static int simple_move_camera (void *obj, vox_dot delta)
     return res;
 }
 
-static void simple_rotate_camera (void *obj, vox_dot delta)
+static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
 
     int i,j;
     vox_dot ort[3];
@@ -107,23 +107,23 @@ static void simple_rotate_camera (void *obj, vox_dot delta)
     vox_quat_mul (r[2], r[0], camera->rotation);
 }
 
-static void simple_set_window_size (void *obj, int w, int h)
+static void simple_set_window_size (struct vox_camera *cam, int w, int h)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
 
     camera->xmul = 2*camera->fov/w;
     camera->ymul = 2*camera->fov/h;
 }
 
-static void simple_destroy_camera (void *obj)
+static void simple_destroy_camera (struct vox_camera *cam)
 {
-    struct vox_simple_camera *camera = obj;
+    struct vox_simple_camera *camera = (void*)cam;
 
     free (camera->iface);
     free (camera);
 }
 
-struct vox_camera* simple_vconstruct_camera (void *obj, va_list args)
+struct vox_camera* simple_vconstruct_camera (struct vox_camera *cam, va_list args)
 {
     float fov;
     float *position;
@@ -148,12 +148,12 @@ struct vox_camera* simple_vconstruct_camera (void *obj, va_list args)
     return (struct vox_camera*)camera;
 }
 
-static struct vox_camera* simple_construct_camera (void *obj, ...)
+static struct vox_camera* simple_construct_camera (struct vox_camera *cam, ...)
 {
     va_list args;
     struct vox_camera *camera;
 
-    va_start (args, obj);
+    va_start (args, cam);
     camera = simple_vconstruct_camera (NULL, args);
     va_end (args);
     return camera;
