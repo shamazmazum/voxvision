@@ -13,7 +13,7 @@ int main ()
     double time;
     vox_dot pos = {0,0,0};
     vox_dot ray;
-    struct vox_camera *camera = vox_simple_camera_interface.construct_camera (NULL, 1.0, pos);
+    struct vox_camera *camera = vox_simple_camera_get_iface()->construct_camera (NULL, 1.0, pos);
     camera->iface->set_window_size (camera, w, h);
 
     time = gettime();

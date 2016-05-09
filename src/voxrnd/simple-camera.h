@@ -24,12 +24,12 @@ struct vox_simple_camera
 };
 
 /**
-   \brief A simple camera interface.
+   \brief Get a simple camera interface.
 
-   Constructor takes 2 arguments. double 'fov' (field of view)
+   Its constructor takes 2 arguments. double 'fov' (field of view)
    and vox_dot pos (camera position).
 **/
-extern struct vox_camera_interface vox_simple_camera_interface;
+struct vox_camera_interface* vox_simple_camera_get_iface ();
 
 /**
    \brief Set body radius of a simple camera.
