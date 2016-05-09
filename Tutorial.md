@@ -155,12 +155,28 @@ Voxrnd
 library. You can render a tree to a `SDL_Surface` with `vox_render()`
 function. To do this you must first create a renderer context with function
 `vox_make_renderer_context()`. It accepts three arguments: the surface, the
-scene (your tree) and the camera interface. You can get the interface by
-creating a simple camera with `vox_make_simple_camera()` function. The goal is
-to separate camera implementation (methods, which can be redefined by user in his/her
-own camera class) and camera interface which is more or less standard and
-which is used in the library. Putting it all together you will get something
-like this:
+scene (your tree) and the camera. You can create the camera using constructor from a
+structure called camera interface. **voxrnd** currently provides 2 camera classes,
+and therefore 2 implementations of camera interface. You can get an implementation of
+camera interface by calling camera interface getter. One is
+`vox_simple_camera_iface()` and the other is vox_distorted_camera_iface()`. The first
+camera class features a simple camera with 6 degrees of freedom and simple collision
+detection, and the second is like the first, but produces distorted projection like
+one produced by circular fish-eye camera.
+
+To create a simple camera you must write something like this:
+~~~~~~~~~~~~~~~~~~~~{.c}
+vox_dot position = {0,0,0};
+float fov = 1.2;
+struct vox_camera* camera = vox_simple_camera_iface()->
+                                construct_camera (NULL, fov, origin);
+~~~~~~~~~~~~~~~~~~~~
+`construct_camera()` here is a constructor. For the simple camera class it accepts 3
+arguments: the first must be just NULL now, the secons is a field of view and the
+third is a the camera's position. You can see in `struct vox_camera_interface`
+documentation, that this is a variadic function, it's up to camera class to give a
+meaning to arguments of its constructor. Putting it all together you will get
+something like this:
 
 ~~~~~~~~~~~~~~~~~~~~{.c}
 struct vox_node *tree = vox_make_tree (voxels, n);
@@ -168,9 +184,9 @@ SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
 vox_dot origin = {0,0,0}; // Camera's origin
 float fov = 1.2; // Camera's field of view
 // Make a default camera
-vox_simple_camera *camera = vox_make_simple_camera (fov, origin);
+struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (fov, origin);
 struct vox_rnd_ctx *ctx =
-     vox_make_renderer_context (surface, tree, camera->iface);
+     vox_make_renderer_context (surface, tree, camera);
 vox_render (ctx);
 SDL_SaveBMP (screen, "rendering.bmp");
 free (ctx); // Free context after use
@@ -178,20 +194,41 @@ camera->iface->destroy_camera (camera); // Destroy the camera
 vox_destroy_tree (tree); // Destroy the tree
 // And so on
 ~~~~~~~~~~~~~~~~~~~~
+This will produce a visualisation of the tree.
 
-This will produce a visualisation of the tree. You can get more info on camera
-interface in `struct vox_camera_interface` documentation. The most common pattern
-to call camera methods is
+Let's talk more about cameras and their interfaces. There are few structures to work
+with cameras. The first is `struct vox_camera`. It is a generic camera class. All
+interface functions accept objects of this class as their first
+argument. Constructors also return objects of this type. There are more specified
+camera classes as `struct vox_simple_camera` or `struct vox_distorted_camera`. There
+is also `struct vox_camera_interface` structure. It contains a camera interface, in
+other words, a set of functions, visible both to the library and to the user and
+which any camera class must implement to define a working camera.
+
+There are two types of methods in camera interface. The first is class methods, like
+a camera constructor. The common pattern to call them is using camera interface
+getter:
 ~~~~~~~~~~~~~~~~~~~~{.c}
-vox_simple_camera *camera; // Or any other user camera.
-// Initialisation skipped
-camera->iface->method_name (camera, arg1, arg2, ...);
+camera_interface_getter()->class_method (args); // The pattern
+vox_simple_camera_iface()->construct_camera (NULL, 1, pos); // An example
 ~~~~~~~~~~~~~~~~~~~~
-So the first argument to any method is a camera object itself, followed by other
-arguments. 
+The second is instance methods. The pattern for them is:
+~~~~~~~~~~~~~~~~~~~~{.c}
+vox_camera *camera;
+// Initialization skipped
+camera->iface->instance_method (camera, args); // The pattern
+camera->iface->destroy_camera (camera); // An example
+~~~~~~~~~~~~~~~~~~~~
 
-The current "simple camera" implementation supports collision detection and 6
-degrees of freedom (full translation and rotation in 3-dimensional
-space). Currently, if you want to implement your own camera class, you must
-re-implement all of those methods by yourself. It's possible, but very
-unpractical, so the whole design is a subject to refactoring. 
+As you can see, each camera object contains a copy of `struct vox_camera_interface`
+structure where an implementation of camera interface is stored. To call an instance
+method you must always use `camera->iface` to refer to the camera's methods. To call
+a class method you can use both `camera->iface` (if you already have an instance of
+that class) or camera interface getter.
+
+The goal which is achieved by keeping camera interface and camera implementation
+apart is to make it possible for user to define his/her own camera classes. You can
+see how this can be done by seeing source code for 2 camera classes which are
+available in **voxrnd** library. I'll try to make a guide for that later.
+You can get more info on camera interface in `struct vox_camera_interface`
+documentation.
