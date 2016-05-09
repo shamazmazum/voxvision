@@ -1,6 +1,6 @@
 VOXRND_@voxvision_VERSION@ {
-    global: vox_simple_camera_get_iface;
-            vox_distorted_camera_get_iface;
+    global: vox_simple_camera_iface;
+            vox_distorted_camera_iface;
             vox_simple_camera_set_radius;
             vox_simple_camera_get_radius;
             vox_make_renderer_context;

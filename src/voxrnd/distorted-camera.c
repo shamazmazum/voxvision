@@ -44,7 +44,7 @@ static struct vox_camera* distorted_construct_camera (struct vox_camera *cam, ..
 
 struct vox_camera* distorted_vconstruct_camera (struct vox_camera *cam, va_list args)
 {
-    struct vox_camera *camera = vox_simple_camera_get_iface()->vconstruct_camera (cam, args);
+    struct vox_camera *camera = vox_simple_camera_iface()->vconstruct_camera (cam, args);
     camera->iface->vconstruct_camera = distorted_vconstruct_camera;
     camera->iface->construct_camera = distorted_construct_camera;
     camera->iface->screen2world = distorted_screen2world;
@@ -52,14 +52,14 @@ struct vox_camera* distorted_vconstruct_camera (struct vox_camera *cam, va_list 
     return camera;
 }
 
-static struct vox_camera_interface vox_distorted_camera_iface =
+static struct vox_camera_interface vox_distorted_camera_interface =
 {
     .screen2world = distorted_screen2world,
     .vconstruct_camera = distorted_vconstruct_camera,
     .construct_camera = distorted_construct_camera
 };
 
-struct vox_camera_interface* vox_distorted_camera_get_iface ()
+struct vox_camera_interface* vox_distorted_camera_iface ()
 {
-    return &vox_distorted_camera_iface;
+    return &vox_distorted_camera_interface;
 }

@@ -144,7 +144,7 @@ struct vox_camera* simple_vconstruct_camera (struct vox_camera *cam, va_list arg
     camera->rotation[3] = 1;
     camera->xmul = 0; camera->ymul = 0;
 
-    memcpy (iface, vox_simple_camera_get_iface(), sizeof (struct vox_camera_interface));
+    memcpy (iface, vox_simple_camera_iface(), sizeof (struct vox_camera_interface));
     return (struct vox_camera*)camera;
 }
 
@@ -159,7 +159,7 @@ static struct vox_camera* simple_construct_camera (struct vox_camera *cam, ...)
     return camera;
 }
 
-static struct vox_camera_interface vox_simple_camera_iface =
+static struct vox_camera_interface vox_simple_camera_interface =
 {
     .screen2world = simple_screen2world,
     .get_position = simple_get_position,
@@ -173,9 +173,9 @@ static struct vox_camera_interface vox_simple_camera_iface =
     .destroy_camera = simple_destroy_camera
 };
 
-struct vox_camera_interface* vox_simple_camera_get_iface ()
+struct vox_camera_interface* vox_simple_camera_iface ()
 {
-    return &vox_simple_camera_iface;
+    return &vox_simple_camera_interface;
 }
 
 float vox_simple_camera_set_radius (struct vox_simple_camera *camera, float radius)
