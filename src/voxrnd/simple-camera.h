@@ -1,15 +1,20 @@
 /**
-   @file camera.h
+   @file simple-camera.h
    @brief Simple camera structure and functions.
+
+   Interface getter for simple camera and simple-camera-specific functions.
 **/
 #ifndef SIMPLE_CAMERA_H
 #define SIMPLE_CAMERA_H
 
 #include "camera.h"
 
+/**
+   \brief The simple camera class.
+**/
 struct vox_simple_camera
 {
-    struct vox_camera_interface *iface;
+    struct vox_camera_interface *iface; /**< \brief Simple camera methods **/
 #ifdef VOXRND_SOURCE
     struct vox_rnd_ctx *ctx;
 
@@ -24,7 +29,7 @@ struct vox_simple_camera
 };
 
 /**
-   \brief Get a simple camera interface.
+   \brief Get methods of the simple camera
 
    Its constructor takes 2 arguments. double 'fov' (field of view)
    and vox_dot pos (camera position).

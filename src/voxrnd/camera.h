@@ -97,7 +97,7 @@ struct vox_camera_interface
 
     struct vox_camera* (*vconstruct_camera) (struct vox_camera *camera, va_list args);
     /**<
-       \brief Create a new camera object (va_args flavor).
+       \brief Create a new camera object (va_list flavor).
 
        \param camera is currently ignored and may be NULL.
        \param args parameters passed to constructor
@@ -114,11 +114,11 @@ struct vox_camera_interface
 /**
    \brief A generic camera class.
 
-   User is only allowed to access its interface.
+   User is only allowed to access its methods.
 **/
 struct vox_camera
 {
-    struct vox_camera_interface *iface;
+    struct vox_camera_interface *iface; /**< \brief camera methods **/
 #ifdef VOXRND_SOURCE
     struct vox_rnd_ctx *ctx;
 #endif

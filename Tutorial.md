@@ -159,7 +159,7 @@ scene (your tree) and the camera. You can create the camera using constructor fr
 structure called camera interface. **voxrnd** currently provides 2 camera classes,
 and therefore 2 implementations of camera interface. You can get an implementation of
 camera interface by calling camera interface getter. One is
-`vox_simple_camera_iface()` and the other is vox_distorted_camera_iface()`. The first
+`vox_simple_camera_iface()` and the other is `vox_distorted_camera_iface()`. The first
 camera class features a simple camera with 6 degrees of freedom and simple collision
 detection, and the second is like the first, but produces distorted projection like
 one produced by circular fish-eye camera.
@@ -173,7 +173,7 @@ struct vox_camera* camera = vox_simple_camera_iface()->
 ~~~~~~~~~~~~~~~~~~~~
 `construct_camera()` here is a constructor. For the simple camera class it accepts 3
 arguments: the first must be just NULL now, the secons is a field of view and the
-third is a the camera's position. You can see in `struct vox_camera_interface`
+third is the camera's position. You can see in `struct vox_camera_interface`
 documentation, that this is a variadic function, it's up to camera class to give a
 meaning to arguments of its constructor. Putting it all together you will get
 something like this:
@@ -184,7 +184,7 @@ SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
 vox_dot origin = {0,0,0}; // Camera's origin
 float fov = 1.2; // Camera's field of view
 // Make a default camera
-struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (fov, origin);
+struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, fov, origin);
 struct vox_rnd_ctx *ctx =
      vox_make_renderer_context (surface, tree, camera);
 vox_render (ctx);
