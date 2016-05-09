@@ -123,6 +123,18 @@ static void simple_destroy_camera (void *obj)
     free (camera);
 }
 
+struct vox_camera_interface vox_simple_camera_interface =
+{
+    .screen2world = simple_screen2world,
+    .get_position = simple_get_position,
+    .set_position = simple_set_position,
+    .set_rot_angles = simple_set_rot_angles,
+    .move_camera = simple_move_camera,
+    .rotate_camera = simple_rotate_camera,
+    .set_window_size = simple_set_window_size,
+    .destroy_camera = simple_destroy_camera
+};
+
 struct vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
 {
     struct vox_simple_camera *camera;
@@ -137,14 +149,7 @@ struct vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position)
     camera->rotation[3] = 1;
     camera->xmul = 0; camera->ymul = 0;
 
-    iface->screen2world = simple_screen2world;
-    iface->get_position = simple_get_position;
-    iface->set_position = simple_set_position;
-    iface->set_rot_angles = simple_set_rot_angles;
-    iface->move_camera = simple_move_camera;
-    iface->rotate_camera = simple_rotate_camera;
-    iface->set_window_size = simple_set_window_size;
-    iface->destroy_camera = simple_destroy_camera;
+    memcpy (iface, &vox_simple_camera_interface, sizeof (struct vox_camera_interface));
     return camera;
 }
 

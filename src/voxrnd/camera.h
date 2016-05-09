@@ -127,6 +127,11 @@ struct vox_simple_camera
 };
 
 /**
+   \brief A simple camera interface.
+**/
+extern struct vox_camera_interface vox_simple_camera_interface;
+
+/**
    \brief Create and initialize a simple camera
 
    Camera can be freed after use with destroy_camera() method.
