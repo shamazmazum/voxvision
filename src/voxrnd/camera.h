@@ -8,6 +8,7 @@
 #define CAMERA_H
 
 #include <voxvision.h>
+#include <stdarg.h>
 
 /**
    \brief A camera user interface
@@ -87,14 +88,30 @@ struct vox_camera_interface
        \param h height of the window
     */
 
+    struct vox_camera* (*construct_camera) (void *obj, ...);
+    /**<
+       \brief Create a new camera object.
+
+       \param obj is ignored and may be NULL.
+       \param ... parameters passed to constructor
+    **/
+
+    // 64 byte border. Rarely used methods are below this line.
+
+    struct vox_camera* (*vconstruct_camera) (void *obj, va_list args);
+    /**<
+       \brief Create a new camera object (va_args flavor).
+
+       \param obj is ignored and may be NULL.
+       \param args parameters passed to constructor
+    **/
+
     void (*destroy_camera) (void *obj);
     /**<
        \brief Destroy camera after use.
 
        This method should be called when camera is no longer needed.
     */
-
-    // 64 byte border. Rarely used methods are below this line.
 };
 
 /**
@@ -128,18 +145,11 @@ struct vox_simple_camera
 
 /**
    \brief A simple camera interface.
+
+   Constructor takes 2 arguments. double 'fov' (field of view)
+   and vox_dot pos (camera position).
 **/
 extern struct vox_camera_interface vox_simple_camera_interface;
-
-/**
-   \brief Create and initialize a simple camera
-
-   Camera can be freed after use with destroy_camera() method.
-
-   \param fov field of view
-   \param position position of the camera
-**/
-struct vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
 
 /**
    \brief Set body radius of a simple camera.

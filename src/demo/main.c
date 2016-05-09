@@ -90,7 +90,7 @@ int main (int argc, char *argv[])
     dictionary *cfg;
     int fd = -1, ch;
 
-    struct vox_simple_camera *camera = NULL;
+    struct vox_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
 #ifdef USE_GCD
     __block struct vox_node *tree = NULL;
@@ -214,9 +214,9 @@ int main (int argc, char *argv[])
         goto end;
     }
 
-    camera = vox_make_simple_camera (fov, origin);
+    camera = vox_simple_camera_interface.construct_camera (NULL, fov, origin);
     camera->iface->set_rot_angles (camera, angles);
-    ctx = vox_make_renderer_context (screen, tree, (struct vox_camera*)camera);
+    ctx = vox_make_renderer_context (screen, tree, camera);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
@@ -256,12 +256,12 @@ int main (int argc, char *argv[])
                     (event.key.keysym.sym == global_controls.grow))
                 {
                     float radius;
-                    radius = vox_simple_camera_get_radius (camera);
+                    radius = vox_simple_camera_get_radius ((struct vox_simple_camera*)camera);
                     if (event.key.keysym.sym == global_controls.shrink)
                         radius-=5;
                     else
                         radius+=5;
-                    radius = vox_simple_camera_set_radius (camera, radius);
+                    radius = vox_simple_camera_set_radius ((struct vox_simple_camera*)camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
                 }
                 else if ((event.key.keysym.sym == global_controls.insert) ||
