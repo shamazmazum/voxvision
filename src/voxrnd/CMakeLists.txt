@@ -24,7 +24,7 @@ target_link_libraries (voxrnd BlocksRuntime)
 endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif (GCD_FOUND)
 
-install (FILES camera.h renderer.h
+install (FILES camera.h renderer.h simple-camera.h distorted-camera.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)
