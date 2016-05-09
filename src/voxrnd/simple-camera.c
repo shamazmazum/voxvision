@@ -4,7 +4,7 @@
 #include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
-#include "camera.h"
+#include "simple-camera.h"
 #include "renderer.h"
 
 static void simple_screen2world (void *obj, vox_dot ray, int sx, int sy)
@@ -152,7 +152,7 @@ static struct vox_camera* simple_construct_camera (void *obj, ...)
 {
     va_list args;
     struct vox_camera *camera;
-    
+
     va_start (args, obj);
     camera = simple_vconstruct_camera (NULL, args);
     va_end (args);

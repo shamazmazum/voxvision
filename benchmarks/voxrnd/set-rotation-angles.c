@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <voxtrees.h>
-#include <voxrnd/camera.h>
+#include <voxrnd/simple-camera.h>
 #include <gettime.h>
 
 #define N 10000000
