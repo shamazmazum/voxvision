@@ -655,6 +655,10 @@ static void test_simp_camera ()
 
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
+    vox_dot world_coord_expected2 = {0, 1, 0};
+
+    camera->iface->screen2world (camera, world_coord, 50, 50);
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected2));
 
     angles[0] = M_PI/4; angles[1] = 0; angles[2] = 0;
     camera->iface->set_rot_angles (camera, angles);

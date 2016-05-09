@@ -141,7 +141,7 @@ struct vox_camera* simple_vconstruct_camera (struct vox_camera *cam, va_list arg
     camera->fov = fov;
     camera->body_radius = 50;
     bzero (camera->rotation, 3*sizeof(float));
-    camera->rotation[3] = 1;
+    camera->rotation[0] = 1;
     camera->xmul = 0; camera->ymul = 0;
 
     memcpy (iface, vox_simple_camera_iface(), sizeof (struct vox_camera_interface));
