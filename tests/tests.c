@@ -646,10 +646,10 @@ static void test_simp_camera ()
 {
     vox_dot pos = {0,0,0};
     vox_dot angles;
-    vox_simple_camera *camera = vox_make_simple_camera (1.2, pos);
+    struct vox_simple_camera *camera = vox_make_simple_camera (1.2, pos);
     struct vox_rnd_ctx *ctx = vox_make_renderer_context (NULL, NULL, NULL);
     camera->iface->set_window_size (camera, 100, 100);
-    camera->iface->ctx = ctx;
+    camera->ctx = ctx;
 
     CU_ASSERT (vect_eq (pos, camera->iface->get_position (camera)));
 

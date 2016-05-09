@@ -90,7 +90,7 @@ int main (int argc, char *argv[])
     dictionary *cfg;
     int fd = -1, ch;
 
-    vox_simple_camera *camera = NULL;
+    struct vox_simple_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
 #ifdef USE_GCD
     __block struct vox_node *tree = NULL;
@@ -216,7 +216,7 @@ int main (int argc, char *argv[])
 
     camera = vox_make_simple_camera (fov, origin);
     camera->iface->set_rot_angles (camera, angles);
-    ctx = vox_make_renderer_context (screen, tree, camera->iface);
+    ctx = vox_make_renderer_context (screen, tree, (struct vox_camera*)camera);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "

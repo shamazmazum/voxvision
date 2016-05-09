@@ -14,13 +14,6 @@
 **/
 struct vox_camera_interface
 {
-    #ifdef VOXRND_SOURCE
-    void *camera; /**< \brief A reference to camera. Supply it as the first argument to camera methods */
-    struct vox_rnd_ctx *ctx;
-    #else
-    void *padding[2];
-    #endif
-
     void (*screen2world) (void* obj, vox_dot ray, int sx, int sy);
     /**<
        \brief Translate screen coordinated to a direction vector.
@@ -82,8 +75,6 @@ struct vox_camera_interface
               contain 3 elements 
     */
 
-    // 64 byte border. Rarely used methods below.
-
     void (*set_window_size) (void* obj, int w, int h);
     /**<
        \brief Set screen/window size for a camera.
@@ -102,33 +93,38 @@ struct vox_camera_interface
 
        This method should be called when camera is no longer needed.
     */
+
+    // 64 byte border. Rarely used methods are below this line.
 };
 
 /**
    \brief A camera class.
 
-   User must not touch it. Use vox_camera_interface instead.
+   User is only allowed to access its interface.
 **/
-#ifdef VOXRND_SOURCE
-typedef struct
+struct vox_camera
 {
     struct vox_camera_interface *iface;
+#ifdef VOXRND_SOURCE
+    struct vox_rnd_ctx *ctx;
+#endif
+};
+
+struct vox_simple_camera
+{
+    struct vox_camera_interface *iface;
+#ifdef VOXRND_SOURCE
+    struct vox_rnd_ctx *ctx;
+
+    vox_dot position;
+    vox_quat rotation;
 
     float fov;
     float body_radius;
-    vox_dot position;
-
-    vox_quat rotation;
-
     float xmul, ymul;
     // 64-byte border (SSE)
-} vox_simple_camera;
-#else
-typedef struct
-{
-    struct vox_camera_interface *iface; /**< \brief camera interface */
-} vox_simple_camera;
 #endif
+};
 
 /**
    \brief Create and initialize a simple camera
@@ -138,7 +134,7 @@ typedef struct
    \param fov field of view
    \param position position of the camera
 **/
-vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
+struct vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
 
 /**
    \brief Set body radius of a simple camera.
@@ -151,13 +147,13 @@ vox_simple_camera* vox_make_simple_camera (float fov, vox_dot position);
    \return A new body radius.
    If supplied radius is lesser than zero, zero is returned
 **/
-float vox_simple_camera_set_radius (vox_simple_camera *camera, float radius);
+float vox_simple_camera_set_radius (struct vox_simple_camera *camera, float radius);
 
 /**
    \brief Get body radius of a simple camera.
 
    See vox_simple_camera_set_radius() for details.
 **/
-float vox_simple_camera_get_radius (vox_simple_camera *camera);
+float vox_simple_camera_get_radius (struct vox_simple_camera *camera);
 
 #endif
