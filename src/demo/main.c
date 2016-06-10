@@ -171,7 +171,6 @@ int main (int argc, char *argv[])
     }
 
     printf ("Reading raw data\n");
-    mul[0] = x; mul[1] = y; mul[2] = z;
     vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
     int length = read_data (fd, &set, &d, samplesize, threshold);
     if (length == -1)

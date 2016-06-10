@@ -9,8 +9,6 @@ typedef struct
     int x,y,z;
 } dimension;
 
-extern vox_dot mul;
-
 int read_data (int, vox_dot**, dimension*, int, int);
 
 #endif

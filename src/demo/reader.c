@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "reader.h"
 
-vox_dot mul = {1,1,1};
-
 int read_data (int fd, vox_dot **dots, dimension *d, int bytes, int threshold)
 {
 #define BUFSIZE 4096
@@ -39,9 +37,9 @@ int read_data (int fd, vox_dot **dots, dimension *d, int bytes, int threshold)
                 }
                 if (val > threshold)
                 {
-                    array[counter][0] = i*mul[0];
-                    array[counter][1] = j*mul[1];
-                    array[counter][2] = k*mul[2];
+                    array[counter][0] = i*vox_voxel[0];
+                    array[counter][1] = j*vox_voxel[1];
+                    array[counter][2] = k*vox_voxel[2];
                     counter++;
                 }
             }
