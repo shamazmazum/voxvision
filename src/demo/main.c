@@ -17,12 +17,6 @@
 #include "reader.h"
 #include "config.h"
 
-#define read_vector_or_quit(str, ctrl, x, y, z, errormsg) do {   \
-    int res = sscanf (str, ctrl, x, y, z); \
-    if (res != 3) { \
-    fprintf (stderr, errormsg); \
-    exit (1); }} while (0);
-
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
 {
@@ -85,10 +79,10 @@ static Uint32 timer_event (Uint32 interval, void *param)
 
 int main (int argc, char *argv[])
 {
-    dimension d;
+    int dim[3];
     vox_dot *set;
-    dictionary *cfg;
-    int fd = -1, ch;
+    dictionary *cfg = NULL;
+    int fd = -1, ch, res;
 
     struct vox_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
@@ -130,32 +124,32 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    read_vector_or_quit (iniparser_getstring (cfg, "Scene:Geometry", ""),
-                         "<%i,%i,%i>", &(d.x), &(d.y), &(d.z),
-                         "Specify correct geometry\n");
+    res = _iniparser_getvector3_int (cfg, "Scene:Geometry", dim);
+    if (!res)
+    {
+        fprintf (stderr, "You must specify correct geometry\n");
+        goto end;
+    }
 
-    float x,y,z;
-    read_vector_or_quit (iniparser_getstring (cfg, "Scene:Voxsize", "<1,1,1>"),
-                         "<%f,%f,%f>", &x, &y, &z,
-                         "Specify correct voxsize\n");
+    _iniparser_getvector3_float (cfg, "Scene:Voxsize", vox_voxel);
 
-    const char *datasetname = iniparser_getstring (cfg, "Scene:DataSet", "");
+    const char *datasetname = iniparser_getstring (cfg, "Scene:DataSet", NULL);
+    if (datasetname == NULL)
+    {
+        fprintf (stderr, "You must specify dataset\n");
+        goto end;
+    }
     int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
     int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
 
-    vox_dot origin;
-    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Position", "<0,-100,0>"),
-                         "<%f,%f,%f>", &origin[0], &origin[1], &origin[2],
-                         "Specify correct camera position\n");
+    vox_dot origin = {0,-100,0};
+    _iniparser_getvector3_float (cfg, "Camera:Position", origin);
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
 
-
-    vox_dot angles;
-    read_vector_or_quit (iniparser_getstring (cfg, "Camera:Rot", "<0,0,0>"),
-                         "<%f,%f,%f>", &(angles[0]), &(angles[1]), &(angles[2]),
-                         "Specify correct rotation angles\n");
+    vox_dot angles = {0,0,0};
+    _iniparser_getvector3_float (cfg, "Camera:Rot", angles);
     iniparser_freedict (cfg);
-
+    cfg = NULL;
 
     // Read dataset
     char dataset_path[MAXPATHLEN];
@@ -171,8 +165,7 @@ int main (int argc, char *argv[])
     }
 
     printf ("Reading raw data\n");
-    vox_voxel[0] = x; vox_voxel[1] = y; vox_voxel[2] = z;
-    int length = read_data (fd, &set, &d, samplesize, threshold);
+    int length = read_data (fd, &set, dim, samplesize, threshold);
     if (length == -1)
     {
         fprintf (stderr, "Cannot read dataset\n");
@@ -358,6 +351,7 @@ int main (int argc, char *argv[])
     }
 
 end:
+    if (cfg != NULL) iniparser_freedict (cfg);
     if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "reader.h"
 
-int read_data (int fd, vox_dot **dots, dimension *d, int bytes, int threshold)
+int read_data (int fd, vox_dot **dots, int dim[], int bytes, int threshold)
 {
 #define BUFSIZE 4096
     unsigned char buf[BUFSIZE];
@@ -13,14 +13,14 @@ int read_data (int fd, vox_dot **dots, dimension *d, int bytes, int threshold)
 
     int val;
     int counter = 0;
-    vox_dot *array = aligned_alloc (16, d->x*d->y*d->z*sizeof(vox_dot));
+    vox_dot *array = aligned_alloc (16, dim[0]*dim[1]*dim[2]*sizeof(vox_dot));
     if (array == NULL) return -1;
     
-    for (i=0; i<d->x; i++)
+    for (i=0; i<dim[0]; i++)
     {
-        for (j=0; j<d->y; j++)
+        for (j=0; j<dim[1]; j++)
         {
-            for (k=0; k<d->z; k++)
+            for (k=0; k<dim[2]; k++)
             {
                 val = 0;
                 for (l=0; l<bytes; l++)

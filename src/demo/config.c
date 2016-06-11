@@ -71,3 +71,35 @@ int load_configuration (const char *filename)
     iniparser_freedict (dict);
     return 0;
 }
+
+int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[])
+{
+    char *value;
+    int a[3];
+    int n;
+
+    value = iniparser_getstring (dict, entry, NULL);
+    if (value == NULL) return 0;
+
+    n = sscanf (value, "<%i, %i, %i>", &(a[0]), &(a[1]), &(a[2]));
+    if (n != 3) return 0;
+
+    memcpy (result, a, sizeof(int)*3);
+    return 1;
+}
+
+int _iniparser_getvector3_float (dictionary *dict, const char *entry, float result[])
+{
+    char *value;
+    float a[3];
+    int n;
+
+    value = iniparser_getstring (dict, entry, NULL);
+    if (value == NULL) return 0;
+
+    n = sscanf (value, "<%f, %f, %f>", &(a[0]), &(a[1]), &(a[2]));
+    if (n != 3) return 0;
+
+    memcpy (result, a, sizeof(float)*3);
+    return 1;
+}

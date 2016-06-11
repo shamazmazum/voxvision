@@ -4,11 +4,6 @@
 #include <sys/types.h>
 #include <voxtrees.h>
 
-typedef struct
-{
-    int x,y,z;
-} dimension;
-
-int read_data (int, vox_dot**, dimension*, int, int);
+int read_data (int fd, vox_dot **dots, int dim[], int bytes, int threshold);
 
 #endif
