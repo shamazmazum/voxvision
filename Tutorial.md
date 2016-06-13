@@ -248,18 +248,18 @@ Here is default keys for basic controls:
 | Look down      | Down arrow  |
 | Look right     | Right arrow |
 | Look left      | Left arrow  |
-| Tilt left      | Z           |
-| Tilt right     | X           |
-| Walk left      | A           |
-| Walk right     | D           |
-| Walk forwards  | W           |
-| Walk backwards | S           |
-| Fly up         | 1           |
-| Fly down       | 2           |
-| Shrink in size | H           |
-| Grow in size   | G           |
-| Insert cube    | I           |
-| Delete cube    | O           |
+| Tilt left      | `Z`         |
+| Tilt right     | `X`         |
+| Walk left      | `A`         |
+| Walk right     | `D`         |
+| Walk forwards  | `W`         |
+| Walk backwards | `S`         |
+| Fly up         | `1`         |
+| Fly down       | `2`         |
+| Shrink in size | `H`         |
+| Grow in size   | `G`         |
+| Insert cube    | `I`         |
+| Delete cube    | `O`         |
 
 ### Scene configuration files
 Configuration files are just old Windows `ini` files inside. There are 3 types
@@ -269,16 +269,16 @@ format `<x,y,z>` or `<x,y>`, i.e. enclosed in angle brackets and separated by
 commas. Strings are enclosed in doublequotes (`"`). Here is a table for each
 possible key and its meaning in scene configuration file:
 
-| Section:Key      | Type     | Defaults to  | Comment                         |
-| -------------    | ------   | -----------  | --------                        |
-| Scene:DataSet    | string   | N/A          | Dataset's file name, mandatory  |
-| Scene:Voxsize    | vector   | <1,1,1>      | Size of a voxel                 |
-| Scene:Geometry   | vector   | N/A          | Dimensions of dataset           |
-| Scene:Threshold | number | 30 | Samples with value bigger than that are loaded |
-| Scene:SampleSize | number   | 1            | Size of sample (in bytes)       |
-| Camera:Position  | vector   | <0,-100,0>   | Start with that camera position |
-| Camera:Fov       | number   | 1            | Camera's field of view          |
-| Camera:Rot       | vector   | <0,0,0>      | Start with that camera rotation |
+| Section:Key        | Type     | Defaults to  | Comment                          |
+| -------------      | ------   | -----------  | --------                         |
+| `Scene:DataSet`    | string   | N/A          | Dataset's file name, mandatory   |
+| `Scene:Voxsize`    | vector   | `<1,1,1>`    | Size of a voxel                  |
+| `Scene:Geometry`   | vector   | N/A          | Dimensions of dataset, mandatory |
+| `Scene:Threshold`  | number | `30` | Samples with value bigger than that are loaded |
+| `Scene:SampleSize` | number   | `1`          | Size of sample (in bytes)        |
+| `Camera:Position`  | vector   | `<0,-100,0>` | Start with that camera position  |
+| `Camera:Fov`       | number   | `1`          | Camera's field of view           |
+| `Camera:Rot`       | vector   | `<0,0,0>`    | Start with that camera rotation  |
 
 Dataset is just a 3d array of little-endian binary coded samples, beginning with
 the first sample, immediately followed by another and so on, all having one
@@ -289,5 +289,5 @@ Here you can remap controls and set window properties. Look at the table:
 
 | Section:Key      | Type     | Defaults to  | Comment         |
 | -------------    | ------   | -----------  | --------        |
-| Window:Width     | number   | 800          | Window's width  |
-| Window:Height    | number   | 600          | Window's height |
+| `Window:Width`   | number   | `800`        | Window's width  |
+| `Window:Height`  | number   | `600`        | Window's height |
