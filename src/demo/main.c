@@ -1,6 +1,8 @@
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,6 +34,23 @@ static int get_file_directory (const char *path, char *dir)
     }
     *(cursor+1) = '\0';
     return 1;
+}
+
+static void suitable_shot_name (char *name)
+{
+    static int i = 0;
+    int res;
+    struct stat sb;
+
+again:
+    do
+    {
+        sprintf (name, "screen%i.bmp", i);
+        res = stat (name, &sb);
+        i++;
+    } while (res == 0);
+
+    if (errno != ENOENT) goto again;
 }
 
 static void usage ()
@@ -95,6 +114,7 @@ int main (int argc, char *argv[])
 #endif
     SDL_TimerID timer_id = 0;
     SDL_Surface *screen = NULL;
+    char shot_name[MAXPATHLEN];
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -309,7 +329,10 @@ int main (int argc, char *argv[])
 #endif
                 }
                 else if (event.key.keysym.sym == SDLK_F11)
-                    SDL_SaveBMP (screen, "screen.bmp");
+                {
+                    suitable_shot_name (shot_name);
+                    SDL_SaveBMP (screen, shot_name);
+                }
                 break;
             case SDL_USEREVENT:
                 printf ("%i fps\n", count);
