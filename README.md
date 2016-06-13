@@ -29,7 +29,8 @@ Is there any API documentation?
 -------------------------------
 You can try to execute `make doc` from building directory (see below) to
 generate an API documentation. But API changes too fast and unpredictable, so no
-guarantees. Also this documentation contains a basic how-to for these libraries.
+guarantees. Also this documentation contains a basic tutorial for these
+libraries.
 
 What are understandable formats of datasets used in the library?
 ----------------------------------------------------------------
@@ -37,13 +38,15 @@ There is no special format the library can work with for now, it understands
 only arrays of voxels. The demo application provides an example of how a dataset
 can be loaded in memory. All datasets are simple raw binary files. For example,
 you can visit http://www.volvis.org/ to get some of datasets. Also you need to
-write a simple configuration file to work with dataset. See `.cfg` files in
-`example` directory for info.
+write a simple configuration file to work with dataset. Few datasets and
+configuration (`.cfg`) files present in `example` directory.
 
 Demo application
 ----------------
-Usage: `voxvision-demo [-c global.cfg] dataset.cfg` where dataset.cfg is a
-configuration file for dataset. TODO: describe global.cfg and control.
+Usage: `voxvision-demo [-c <global_config>] <dataset_config>` where
+`dataset_config` is a configuration file for dataset and `global_config` is an
+optional global configuration file. These files are in `ini` format (as in
+Microsoft Windows). See tutorial for more info.
 
 Requirements
 ------------

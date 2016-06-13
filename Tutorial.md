@@ -3,7 +3,6 @@ Voxvision How To        {#mainpage}
 
 Voxtrees
 --------
-
 ### Defining a voxel
 Each voxel in the **voxtrees** library is represented by the type `vox_dot`,
 which is just an array of 3 single float numbers. This dot type declares a
@@ -151,6 +150,7 @@ them) are also `NULL`, but there are no intersections with them in any case.
 
 Voxrnd
 ------
+### Rendering
 **voxrnd** is a rendering library which works in conjunction with **voxtrees**
 library. You can render a tree to a `SDL_Surface` with `vox_render()`
 function. To do this you must first create a renderer context with function
@@ -196,6 +196,7 @@ vox_destroy_tree (tree); // Destroy the tree
 ~~~~~~~~~~~~~~~~~~~~
 This will produce a visualisation of the tree.
 
+### Cameras
 Let's talk more about cameras and their interfaces. There are few structures to work
 with cameras. The first is `struct vox_camera`. It is a generic camera class. All
 interface functions accept objects of this class as their first
@@ -232,3 +233,61 @@ see how this can be done by seeing source code for 2 camera classes which are
 available in **voxrnd** library. I'll try to make a guide for that later.
 You can get more info on camera interface in `struct vox_camera_interface`
 documentation.
+
+Demo application
+----------------
+This application is ment as a demonstration of **voxvision** libraries and as a
+developer's playground. I'll provide information on it here too.
+
+### Controls
+Here is default keys for basic controls:
+
+| Action         | Key         |
+| ---            | ----------- |
+| Look up        | Up arrow    |
+| Look down      | Down arrow  |
+| Look right     | Right arrow |
+| Look left      | Left arrow  |
+| Tilt left      | Z           |
+| Tilt right     | X           |
+| Walk left      | A           |
+| Walk right     | D           |
+| Walk forwards  | W           |
+| Walk backwards | S           |
+| Fly up         | 1           |
+| Fly down       | 2           |
+| Shrink in size | H           |
+| Grow in size   | G           |
+| Insert cube    | I           |
+| Delete cube    | O           |
+
+### Scene configuration files
+Configuration files are just old Windows `ini` files inside. There are 3 types
+of values there: numbers, vectors and strings. Numbers are any numbers: integers
+or floats, does not matter. A vector is triplet or (maybe) pair of numbers in
+format `<x,y,z>` or `<x,y>`, i.e. enclosed in angle brackets and separated by
+commas. Strings are enclosed in doublequotes (`"`). Here is a table for each
+possible key and its meaning in scene configuration file:
+
+| Section:Key      | Type     | Defaults to  | Comment                         |
+| -------------    | ------   | -----------  | --------                        |
+| Scene:DataSet    | string   | N/A          | Dataset's file name, mandatory  |
+| Scene:Voxsize    | vector   | <1,1,1>      | Size of a voxel                 |
+| Scene:Geometry   | vector   | N/A          | Dimensions of dataset           |
+| Scene:Threshold | number | 30 | Samples with value bigger than that are loaded |
+| Scene:SampleSize | number   | 1            | Size of sample (in bytes)       |
+| Camera:Position  | vector   | <0,-100,0>   | Start with that camera position |
+| Camera:Fov       | number   | 1            | Camera's field of view          |
+| Camera:Rot       | vector   | <0,0,0>      | Start with that camera rotation |
+
+Dataset is just a 3d array of little-endian binary coded samples, beginning with
+the first sample, immediately followed by another and so on, all having one
+sample size.
+
+### Global configuration file
+Here you can remap controls and set window properties. Look at the table:
+
+| Section:Key      | Type     | Defaults to  | Comment         |
+| -------------    | ------   | -----------  | --------        |
+| Window:Width     | number   | 800          | Window's width  |
+| Window:Height    | number   | 600          | Window's height |
