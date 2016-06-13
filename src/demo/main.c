@@ -18,6 +18,7 @@
 #include <voxrnd.h>
 #include "reader.h"
 #include "config.h"
+#include "error.h"
 
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
@@ -150,6 +151,22 @@ int main (int argc, char *argv[])
         fprintf (stderr, "You must specify correct geometry\n");
         goto end;
     }
+    /*
+      Sanity check dimensions.
+      Although this is not dangerous to have negative dimensions (read_data()
+      will capture this error anyway, it's probably good idea to inform about
+      malformed entry in .cfg file.
+    */
+    for (res=0; res<3; res++)
+    {
+        if (dim[res] < 0)
+        {
+            fprintf (stderr, "You must specify correct geometry\n");
+            fprintf (stderr, "geometry element n.%i is invalid: %i\n",
+                     res, dim[res]);
+            goto end;
+        }
+    }
 
     _iniparser_getvector3_float (cfg, "Scene:Voxsize", vox_voxel);
 
@@ -162,9 +179,26 @@ int main (int argc, char *argv[])
     int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
     int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
 
+    // Sanity check on the last two
+    if ((samplesize <= 0) || (samplesize > 3))
+    {
+        fprintf (stderr, "Invalid samplesize: %i. It can be 1, 2 or 3\n", samplesize);
+        goto end;
+    }
+    if ((threshold < 0) || (threshold > (1 << 8*samplesize) - 1))
+    {
+        fprintf (stderr, "Invalid threshold: %i\n", threshold);
+        goto end;
+    }
+
     vox_dot origin = {0,-100,0};
     _iniparser_getvector3_float (cfg, "Camera:Position", origin);
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
+    if (fov < 0)
+    {
+        fprintf (stderr, "Field of view cannot be negative: %f", fov);
+        goto end;
+    }
 
     vox_dot angles = {0,0,0};
     _iniparser_getvector3_float (cfg, "Camera:Rot", angles);
@@ -180,15 +214,15 @@ int main (int argc, char *argv[])
     fd = open (dataset_path, O_RDONLY);
     if (fd == -1)
     {
-        fprintf (stderr, "Cannot open dataset\n");
+        perror ("Cannot open dataset");
         goto end;
     }
 
     printf ("Reading raw data\n");
-    int length = read_data (fd, &set, dim, samplesize, threshold);
+    int length = read_data (fd, &set, (unsigned int*)dim, samplesize, threshold);
     if (length == -1)
     {
-        fprintf (stderr, "Cannot read dataset\n");
+        fprintf (stderr, "Cannot read dataset: %s\n", get_error_string (gerror));
         goto end;
     }
 

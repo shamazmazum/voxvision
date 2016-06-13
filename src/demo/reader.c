@@ -1,20 +1,30 @@
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "error.h"
 #include "reader.h"
 
-int read_data (int fd, vox_dot **dots, int dim[], int bytes, int threshold)
+int read_data (int fd, vox_dot **dots, unsigned int dim[],
+               unsigned int bytes, unsigned int threshold)
 {
 #define BUFSIZE 4096
     unsigned char buf[BUFSIZE];
     ssize_t end = 0;
     ssize_t pos = 0;
 
-    int i,j,k,l;
+    int i,j,k,l,n = dim[0]*dim[1]*dim[2];
 
     int val;
     int counter = 0;
-    vox_dot *array = aligned_alloc (16, dim[0]*dim[1]*dim[2]*sizeof(vox_dot));
-    if (array == NULL) return -1;
+    struct stat sb;
+
+    val = fstat (fd, &sb);
+    if (val == -1) {gerror = ERRNOACC; return -1;}
+    if (n*bytes != sb.st_size) {gerror = ERRWRONGSIZE; return -1;}
+
+    vox_dot *array = aligned_alloc (16, n*sizeof(vox_dot));
+    if (array == NULL) {gerror = ERRNOMEM; return -1;}
     
     for (i=0; i<dim[0]; i++)
     {
@@ -28,7 +38,7 @@ int read_data (int fd, vox_dot **dots, int dim[], int bytes, int threshold)
                     if (pos==end)
                     {
                         ssize_t res = read (fd, buf, BUFSIZE);
-                        if (res <= 0) return -1;
+                        if (res <= 0) {gerror = ERRNOACC; return -1;}
                         end = res;
                         pos = 0;
                     }

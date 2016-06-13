@@ -6,7 +6,7 @@ include_directories (${GCD_INCLUDE_DIR})
 add_definitions (-fblocks -DUSE_GCD)
 endif (GCD_FOUND)
 
-add_executable (voxvision-demo main.c reader.c config.c)
+add_executable (voxvision-demo main.c reader.c config.c error.c)
 target_link_libraries (voxvision-demo voxrnd voxtrees ${INIPARSER_LIBRARY})
 install (TARGETS voxvision-demo RUNTIME
          DESTINATION bin)
