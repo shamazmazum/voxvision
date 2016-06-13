@@ -27,7 +27,7 @@ static __v4sf rotate_vector_ (__v4sf base, __v4sf vect)
 
 static __v4sf quat_mul_ (__v4sf q1, __v4sf q2)
 {
-    __v4sf re_q1, re_q2, im_q1, im_q2, r1, r2, r3, r4;
+    __v4sf re_q1, re_q2, r1, r2, r3, r4;
     __v4sf sign = _mm_set_epi32 (0x80000000, 0x80000000, 0x80000000, 0);
     __v4sf re = q1*q2;
     re = _mm_xor_ps (re, sign);

@@ -79,6 +79,7 @@ static void amend_box (struct vox_node **tree, vox_dot center, int size, int add
     }
 }
 
+#if 0
 static Uint32 timer_event (Uint32 interval, void *param)
 {
     SDL_Event event;
@@ -95,6 +96,7 @@ static Uint32 timer_event (Uint32 interval, void *param)
     SDL_PushEvent (&event);
     return interval;
 }
+#endif
 
 int main (int argc, char *argv[])
 {
@@ -241,7 +243,7 @@ int main (int argc, char *argv[])
     // Build voxel tree
     Uint32 time = SDL_GetTicks();
     tree = vox_make_tree (set, length);
-    printf ("Building tree (%lu voxels) took %u ms\n",
+    printf ("Building tree (%zu voxels) took %u ms\n",
             vox_voxels_in_tree (tree), SDL_GetTicks() - time);
     free (set);
 

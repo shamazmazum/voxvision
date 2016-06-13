@@ -101,7 +101,6 @@ int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir,
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
                           int planenum, vox_dot res, const struct vox_box *box)
 {
-    int i;
     float k;
     k = planedot[planenum] - origin[planenum];
     /*

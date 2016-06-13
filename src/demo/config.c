@@ -36,8 +36,8 @@ struct settings global_settings =
 
 static void set_control (dictionary *dict, const char *control, unsigned short *place)
 {
-    const char *value = iniparser_getstring (dict, control, "default");
-    if (strcmp (value, "default"))
+    const char *value = iniparser_getstring (dict, control, NULL);
+    if (value != NULL)
     {
         if (strcmp (value, "LeftArrow") == 0) *place = SDLK_LEFT;
         else if (strcmp (value, "RightArrow") == 0) *place = SDLK_RIGHT;
@@ -74,7 +74,7 @@ int load_configuration (const char *filename)
 
 int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[])
 {
-    char *value;
+    const char *value;
     int a[3];
     int n;
 
@@ -90,7 +90,7 @@ int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[]
 
 int _iniparser_getvector3_float (dictionary *dict, const char *entry, float result[])
 {
-    char *value;
+    const char *value;
     float a[3];
     int n;
 

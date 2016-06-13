@@ -15,14 +15,13 @@
    \param base rotation quaternion \f$q\f$
    \param vector a vector to rotate
    \param res a vector to store the result
-   \return pointer to res
 **/
-void vox_rotate_vector (const vox_quat, const vox_dot, vox_dot);
+void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res);
 
 /**
    \brief Return multiplication of 2 quaternions
 **/
-void vox_quat_mul (const vox_quat, const vox_quat, vox_quat);
+void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res);
 
 #endif
 #endif

@@ -408,7 +408,6 @@ static struct vox_node* __attribute__((noinline)) // always inserts
       (especially when compiled with SSE_INTRIN).
     */
     int idx1, idx2;
-    int i;
     struct vox_node *node;
     vox_inner_data *inner;
 
@@ -429,6 +428,7 @@ static struct vox_node* __attribute__((noinline)) // always inserts
     idx1 = get_subspace_idx_simd (center, inner_vector);
     idx2 = get_subspace_idx_simd (center, _mm_load_ps(voxel));
 #else
+    int i;
     vox_dot inner_dot;
     for (i=0; i<VOX_N; i++)
         inner_dot[i] = (tree->bounding_box.min[i]+tree->bounding_box.max[i]) / 2;
@@ -511,7 +511,6 @@ again:
     }
     else if (tree->flags & LEAF)
     {
-        int i;
         WITH_STAT (gstats.leaf_insertions++);
         // We have enough space to add a voxel
         if (tree->dots_num < VOX_MAX_DOTS)
@@ -651,7 +650,7 @@ static struct vox_node* __attribute__((noinline))
 
         for (i=0; i<VOX_NS-1; i++)
         {
-            int success = divide_box (&(tree->bounding_box), other_side, &bb, i);
+            success = divide_box (&(tree->bounding_box), other_side, &bb, i);
             if (!success) continue;
             inner->children[i] = make_dense_leaf (&bb);
         }
@@ -670,7 +669,7 @@ static struct vox_node* __attribute__((noinline))
 
     for (i=0; i<VOX_NS; i++)
     {
-        int success = divide_box (&(tree->bounding_box), voxel, &bb, i);
+        success = divide_box (&(tree->bounding_box), voxel, &bb, i);
         if (!success) continue;
         inner->children[i] = make_dense_leaf (&bb);
     }

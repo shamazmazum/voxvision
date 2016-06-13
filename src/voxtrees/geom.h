@@ -32,14 +32,14 @@ void sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
-int get_subspace_idx (const vox_dot, const vox_dot);
+int get_subspace_idx (const vox_dot dot1, const vox_dot dot2);
 
 /**
    \brief Calc metric between two dots.
    
    A formula used is \f$\rho(x,y) = \Sigma_{i=1}^N \vert x_i - y_i \vert\f$
 **/
-float calc_abs_metric (const vox_dot, const vox_dot);
+float calc_abs_metric (const vox_dot dot1, const vox_dot dot2);
 
 /**
    \brief Calc metric between two dots (variant 2).
@@ -47,7 +47,7 @@ float calc_abs_metric (const vox_dot, const vox_dot);
    A formula used is \f$\rho (x,y) = \Sigma_{i=1}^N (x_i-y_i)^2\f$
    A square of usual euclid metric.
 **/
-float calc_sqr_metric (const vox_dot, const vox_dot);
+float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2);
 
 /**
    \brief Find intersection of a ray and an axis-aligned box.
