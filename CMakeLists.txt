@@ -10,7 +10,12 @@ set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
-set (CMAKE_C_FLAGS "-Wall")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+
+# Dances with linux
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 find_package (SDL REQUIRED)
 find_package (IniParser)
