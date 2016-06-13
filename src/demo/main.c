@@ -23,10 +23,9 @@
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
 {
-    int res, len;
+    ptrdiff_t len;
     char *cursor;
-    strcpy (dir, path);
-    len = strlen (path);
+    len = stpncpy (dir, path, MAXPATHLEN) - dir;
     cursor = dir + len;
     while (*cursor != '/')
     {
@@ -116,6 +115,8 @@ int main (int argc, char *argv[])
     SDL_TimerID timer_id = 0;
     SDL_Surface *screen = NULL;
     char shot_name[MAXPATHLEN];
+    char dataset_path[MAXPATHLEN];
+    char dataset_name[MAXPATHLEN];
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -170,12 +171,14 @@ int main (int argc, char *argv[])
 
     _iniparser_getvector3_float (cfg, "Scene:Voxsize", vox_voxel);
 
-    const char *datasetname = iniparser_getstring (cfg, "Scene:DataSet", NULL);
-    if (datasetname == NULL)
+    const char *tmp_set_name = iniparser_getstring (cfg, "Scene:DataSet", NULL);
+    if (tmp_set_name == NULL)
     {
         fprintf (stderr, "You must specify dataset\n");
         goto end;
     }
+    strncpy (dataset_name, tmp_set_name, MAXPATHLEN);
+
     int threshold = iniparser_getint (cfg, "Scene:Threshold", 30);
     int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
 
@@ -206,10 +209,9 @@ int main (int argc, char *argv[])
     cfg = NULL;
 
     // Read dataset
-    char dataset_path[MAXPATHLEN];
     if (!get_file_directory (datacfgname, dataset_path))
-        strcpy (dataset_path, "./");
-    strcat (dataset_path, datasetname);
+        strncpy (dataset_path, "./", MAXPATHLEN);
+    strncat (dataset_path, dataset_name, MAXPATHLEN);
 
     fd = open (dataset_path, O_RDONLY);
     if (fd == -1)
