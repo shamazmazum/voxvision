@@ -647,9 +647,7 @@ static void test_simp_camera ()
     vox_dot pos = {0,0,0}, newpos;
     vox_dot angles;
     struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, 1.2, pos);
-    struct vox_rnd_ctx *ctx = vox_make_renderer_context (NULL, NULL, NULL);
     camera->iface->set_window_size (camera, 100, 100);
-    camera->ctx = ctx;
 
     camera->iface->get_position (camera, newpos);
     CU_ASSERT (vect_eq (pos, newpos));
@@ -676,7 +674,6 @@ static void test_simp_camera ()
     CU_ASSERT (vect_eq (world_coord, newpos));
 
     camera->iface->destroy_camera (camera);
-    free (ctx);
 }
 
 int main ()

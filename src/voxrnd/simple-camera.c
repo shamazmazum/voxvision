@@ -35,7 +35,9 @@ static void simple_get_position (struct vox_camera *cam, vox_dot res)
 static int simple_set_position (struct vox_camera *cam, vox_dot pos)
 {
     struct vox_simple_camera *camera = (void*)cam;
-    int res = vox_tree_ball_collidep (camera->ctx->scene, pos, camera->body_radius);
+    int res = 0;
+    if (camera->ctx != NULL)
+        res = vox_tree_ball_collidep (camera->ctx->scene, pos, camera->body_radius);
     if (res == 0) vox_dot_copy (camera->position, pos);
     return res;
 }
@@ -65,8 +67,9 @@ static int simple_move_camera (struct vox_camera *cam, vox_dot delta)
     vox_dot new_pos;
     sum_vector (camera->position, delta, new_pos);
 
-    assert (camera->ctx);
-    int res = vox_tree_ball_collidep (camera->ctx->scene, new_pos, camera->body_radius);
+    int res = 0;
+    if (camera->ctx != NULL)
+        res = vox_tree_ball_collidep (camera->ctx->scene, new_pos, camera->body_radius);
     if (res == 0) vox_dot_copy (camera->position, new_pos);
     return res;
 }
