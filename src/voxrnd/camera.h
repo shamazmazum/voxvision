@@ -26,11 +26,13 @@ struct vox_camera_interface
        \param sy screen y coordinate
      */
 
-    float* (*get_position) (struct vox_camera *camera);
+    void (*get_position) (struct vox_camera *camera, vox_dot res);
     /**<
        \brief Get camera position.
 
-       \return a pointer to camera position vector
+       Camera position is copied to function's argument.
+
+       \param res where result is stored
     */
 
     int (*set_position) (struct vox_camera *camera, vox_dot pos);

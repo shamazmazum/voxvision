@@ -64,7 +64,6 @@ void vox_render (struct vox_rnd_ctx *ctx)
     int h = surface->h;
     struct vox_camera *camera = ctx->camera;
     int n = w*h;
-    float *origin = camera->iface->get_position (camera);
 
     /*
       Render the scene running multiple tasks in parallel.
@@ -81,9 +80,10 @@ void vox_render (struct vox_rnd_ctx *ctx)
 #endif
     {
         const struct vox_node *leaf = NULL;
-        vox_dot dir, inter;
+        vox_dot dir, inter, origin;
         int p2, p;
         p = p1 << 2;
+        camera->iface->get_position (camera, origin);
         for (p2=0; p2<4; p2++)
         {
             if (p >= n) break;

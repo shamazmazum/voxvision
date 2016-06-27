@@ -26,10 +26,10 @@ static void simple_screen2world (struct vox_camera *cam, vox_dot ray, int sx, in
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
-static float* simple_get_position (struct vox_camera *cam)
+static void simple_get_position (struct vox_camera *cam, vox_dot res)
 {
     struct vox_simple_camera *camera = (void*)cam;
-    return camera->position;
+    vox_dot_copy (res, camera->position);
 }
 
 static int simple_set_position (struct vox_camera *cam, vox_dot pos)

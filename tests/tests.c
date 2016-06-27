@@ -644,14 +644,15 @@ static void test_tree_C676d50c2 ()
 
 static void test_simp_camera ()
 {
-    vox_dot pos = {0,0,0};
+    vox_dot pos = {0,0,0}, newpos;
     vox_dot angles;
     struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, 1.2, pos);
     struct vox_rnd_ctx *ctx = vox_make_renderer_context (NULL, NULL, NULL);
     camera->iface->set_window_size (camera, 100, 100);
     camera->ctx = ctx;
 
-    CU_ASSERT (vect_eq (pos, camera->iface->get_position (camera)));
+    camera->iface->get_position (camera, newpos);
+    CU_ASSERT (vect_eq (pos, newpos));
 
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
@@ -671,7 +672,8 @@ static void test_simp_camera ()
     CU_ASSERT (vect_eq (world_coord, world_coord_expected)); // fixed point
 
     camera->iface->move_camera (camera, world_coord);
-    CU_ASSERT (vect_eq (world_coord, camera->iface->get_position (camera)));
+    camera->iface->get_position (camera, newpos);
+    CU_ASSERT (vect_eq (world_coord, newpos));
 
     camera->iface->destroy_camera (camera);
     free (ctx);
