@@ -24,6 +24,8 @@ struct controls
 
     unsigned short insert;
     unsigned short delete;
+
+    unsigned short toggle_camera;
 };
 extern struct controls global_controls;
 

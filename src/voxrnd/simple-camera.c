@@ -129,20 +129,35 @@ static void simple_destroy_camera (struct vox_camera *cam)
 static struct vox_camera* simple_construct_camera (struct vox_camera *cam)
 {
     struct vox_simple_camera *camera;
+    struct vox_simple_camera *old_camera = (void*)cam;
     struct vox_camera_interface *iface;
 
     camera = aligned_alloc (16, sizeof (struct vox_simple_camera));
     iface = malloc (sizeof (struct vox_camera_interface));
     camera->iface = iface;
-    camera->ctx = NULL;
-    bzero (camera->position, sizeof (vox_dot));
-    camera->fov = 1.0;
-    camera->body_radius = 50;
-    bzero (camera->rotation, 3*sizeof(float));
-    camera->rotation[0] = 1;
-    camera->xmul = 0; camera->ymul = 0;
-
     memcpy (iface, vox_simple_camera_iface(), sizeof (struct vox_camera_interface));
+
+    if (old_camera != NULL)
+    {
+        camera->ctx = old_camera->ctx;
+        vox_dot_copy (camera->position, old_camera->position);
+        camera->fov = old_camera->fov;
+        camera->body_radius = old_camera->body_radius;
+        vox_quat_copy (camera->rotation, old_camera->rotation);
+        camera->xmul = old_camera->xmul;
+        camera->ymul = old_camera->ymul;
+    }
+    else
+    {
+        camera->ctx = NULL;
+        bzero (camera->position, sizeof (vox_dot));
+        camera->fov = 1.0;
+        camera->body_radius = 50;
+        bzero (camera->rotation, 3*sizeof(float));
+        camera->rotation[0] = 1;
+        camera->xmul = 0; camera->ymul = 0;
+    }
+
     return (struct vox_camera*)camera;
 }
 

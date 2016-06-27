@@ -46,11 +46,13 @@ typedef float vox_dot[4] __attribute__ ((aligned (16)));
 typedef float vox_quat[4] __attribute__ ((aligned (16)));
 #define vox_dot_copy(d1, d2) _mm_store_ps (d1, _mm_load_ps (d2))
 #define vox_dot_equalp(d1, d2) !(_mm_movemask_ps (_mm_load_ps (d1) != _mm_load_ps(d2)) & 7)
+#define vox_quat_copy(q1, q2) _mm_store_ps (q1, _mm_load_ps (q2))
 #else
 typedef float vox_dot[3];
 typedef float vox_quat[4];
 #define vox_dot_copy(d1, d2) memcpy (d1, d2, sizeof (vox_dot))
-#define vox_dot_equalp(d1, d2) (memcmp (d1, d2, sizeof (float) * 3) == 0)
+#define vox_quat_copy(q1, q2) memcpy (q1, q2, sizeof (vox_quat))
+#define vox_dot_equalp(d1, d2) (memcmp (d1, d2, sizeof (vox_dot)) == 0)
 #endif
 
 /**

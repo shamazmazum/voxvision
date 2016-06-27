@@ -169,9 +169,12 @@ To create a simple camera you must write something like this:
 struct vox_camera* camera = vox_simple_camera_iface()->construct_camera (NULL);
 ~~~~~~~~~~~~~~~~~~~~
 `construct_camera()` here is a constructor. It's argument is another camera instance
-or `NULL` and is currently ignored. You can also set the camera's field of view and
-position (otherwise they will remain at their default values, depending on camera's
-implementation):
+or `NULL`. If it is not `NULL`, a newly created camera will inherit all internal
+fields (as rotation angles, position, etc.) from supplied camera. The supplied camera
+must be of the same class as the newly created or from a related class with the same
+data layout. Behaviour is undefined if this condition does not hold.You can also set
+the camera's field of view and position (otherwise they will remain at their default
+values, depending on camera's implementation):
 ~~~~~~~~~~~~~~~~~~~~{.c}
 camera->iface->set_fov (camera, 1.2);
 vox_dot position = {-10, 10, 100};

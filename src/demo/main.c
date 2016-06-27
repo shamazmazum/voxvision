@@ -268,6 +268,7 @@ int main (int argc, char *argv[])
     camera->iface->set_position (camera, origin);
     camera->iface->set_fov (camera, fov);
     camera->iface->set_rot_angles (camera, angles);
+    int camera_type = 0;
     ctx = vox_make_renderer_context (screen, tree, camera);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
@@ -371,6 +372,24 @@ int main (int argc, char *argv[])
                 {
                     suitable_shot_name (shot_name);
                     SDL_SaveBMP (screen, shot_name);
+                }
+                else if (event.key.keysym.sym == global_controls.toggle_camera)
+                {
+                    struct vox_camera *new_camera;
+                    switch (camera_type)
+                    {
+                    case 0:
+                        camera_type = 1;
+                        new_camera = vox_distorted_camera_iface()->construct_camera (camera);
+                        break;
+                    case 1:
+                        camera_type = 0;
+                        new_camera = vox_simple_camera_iface()->construct_camera (camera);
+                        break;
+                    }
+                    vox_rc_set_camera (ctx, new_camera);
+                    camera->iface->destroy_camera (camera);
+                    camera = new_camera;
                 }
                 break;
             case SDL_USEREVENT:

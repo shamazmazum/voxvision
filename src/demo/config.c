@@ -24,7 +24,9 @@ struct controls global_controls =
     .grow           = SDLK_g,
 
     .insert         = SDLK_i,
-    .delete         = SDLK_o
+    .delete         = SDLK_o,
+
+    .toggle_camera  = SDLK_t
 };
 
 // And the same for the settings.
@@ -65,6 +67,14 @@ int load_configuration (const char *filename)
     set_control (dict, "Controls:WalkBackwards", &global_controls.walk_backwards);
     set_control (dict, "Controls:FlyUp", &global_controls.fly_up);
     set_control (dict, "Controls:FlyDown", &global_controls.fly_down);
+
+    set_control (dict, "Controls:Shrink", &global_controls.shrink);
+    set_control (dict, "Controls:Grow", &global_controls.grow);
+
+    set_control (dict, "Controls:Insert", &global_controls.insert);
+    set_control (dict, "Controls:Delete", &global_controls.delete);
+
+    set_control (dict, "Controls:ToggleCamera", &global_controls.toggle_camera);
 
     global_settings.window_width = iniparser_getint (dict, "Window:Width", global_settings.window_width);
     global_settings.window_height = iniparser_getint (dict, "Window:Height", global_settings.window_height);

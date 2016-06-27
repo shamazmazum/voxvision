@@ -51,7 +51,7 @@ struct vox_camera_interface
        with any object on scene to which camera is attached.
 
        \param delta a vector with deltas of camera position coordinates. Must
-              contain 3 elements 
+              contain 3 elements.
     */
 
     /*
@@ -64,7 +64,7 @@ struct vox_camera_interface
 
          Rotation angles are in the world coordinate system
      */
-    
+
     void (*get_position) (struct vox_camera *camera, vox_dot res);
     /**<
        \brief Get camera position.

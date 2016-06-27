@@ -677,6 +677,20 @@ static void test_simp_camera ()
     camera->iface->destroy_camera (camera);
 }
 
+static void test_camera_class_coercion ()
+{
+    vox_dot pos = {10,110,1110}, newpos;
+    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    camera->iface->set_position (camera, pos);
+    camera->iface->set_window_size (camera, 100, 100);
+    camera->iface->set_fov (camera, 16);
+
+    struct vox_camera *camera2 = vox_distorted_camera_iface()->construct_camera (camera);
+    camera2->iface->get_position (camera2, newpos);
+    CU_ASSERT (vect_eq (pos, newpos));
+    CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
+}
+
 int main ()
 {
     CU_pTest test;
@@ -748,7 +762,10 @@ int main ()
     CU_pSuite rnd_suite = CU_add_suite ("voxrnd", NULL, NULL);
     if (vox_suite == NULL) PROC_SUIT_ERROR;
 
-    test = CU_add_test (rnd_suite, "Camera class", test_simp_camera);
+    test = CU_add_test (rnd_suite, "Simple camera", test_simp_camera);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (rnd_suite, "Camera class coercion", test_camera_class_coercion);
     if (test == NULL) PROC_TEST_ERROR;
     
 
