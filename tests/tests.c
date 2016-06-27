@@ -646,7 +646,8 @@ static void test_simp_camera ()
 {
     vox_dot pos = {0,0,0}, newpos;
     vox_dot angles;
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, 1.2, pos);
+    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    camera->iface->set_position (camera, pos);
     camera->iface->set_window_size (camera, 100, 100);
 
     camera->iface->get_position (camera, newpos);

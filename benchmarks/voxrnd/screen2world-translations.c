@@ -11,9 +11,8 @@ int main ()
     int h = 600;
     int i,sx,sy;
     double time;
-    vox_dot pos = {0,0,0};
     vox_dot ray;
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, 1.0, pos);
+    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
     camera->iface->set_window_size (camera, w, h);
 
     time = gettime();

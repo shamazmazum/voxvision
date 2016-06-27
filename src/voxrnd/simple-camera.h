@@ -30,9 +30,6 @@ struct vox_simple_camera
 
 /**
    \brief Get methods of the simple camera
-
-   Its constructor takes 2 arguments. double 'fov' (field of view)
-   and vox_dot pos (camera position).
 **/
 struct vox_camera_interface* vox_simple_camera_iface ();
 

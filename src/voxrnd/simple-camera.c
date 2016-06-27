@@ -126,22 +126,17 @@ static void simple_destroy_camera (struct vox_camera *cam)
     free (camera);
 }
 
-struct vox_camera* simple_vconstruct_camera (struct vox_camera *cam, va_list args)
+static struct vox_camera* simple_construct_camera (struct vox_camera *cam)
 {
-    float fov;
-    float *position;
     struct vox_simple_camera *camera;
     struct vox_camera_interface *iface;
-
-    fov = va_arg (args, double);
-    position = va_arg (args, float*);
 
     camera = aligned_alloc (16, sizeof (struct vox_simple_camera));
     iface = malloc (sizeof (struct vox_camera_interface));
     camera->iface = iface;
     camera->ctx = NULL;
-    vox_dot_copy (camera->position, position);
-    camera->fov = fov;
+    bzero (camera->position, sizeof (vox_dot));
+    camera->fov = 1.0;
     camera->body_radius = 50;
     bzero (camera->rotation, 3*sizeof(float));
     camera->rotation[0] = 1;
@@ -151,15 +146,18 @@ struct vox_camera* simple_vconstruct_camera (struct vox_camera *cam, va_list arg
     return (struct vox_camera*)camera;
 }
 
-static struct vox_camera* simple_construct_camera (struct vox_camera *cam, ...)
+static void simple_set_fov (struct vox_camera *cam, float fov)
 {
-    va_list args;
-    struct vox_camera *camera;
+    struct vox_simple_camera *camera = (void*)cam;
 
-    va_start (args, cam);
-    camera = simple_vconstruct_camera (NULL, args);
-    va_end (args);
-    return camera;
+    camera->fov = fov;
+}
+
+static float simple_get_fov (struct vox_camera *cam)
+{
+    struct vox_simple_camera *camera = (void*)cam;
+
+    return camera->fov;
 }
 
 static struct vox_camera_interface vox_simple_camera_interface =
@@ -172,8 +170,9 @@ static struct vox_camera_interface vox_simple_camera_interface =
     .rotate_camera = simple_rotate_camera,
     .set_window_size = simple_set_window_size,
     .construct_camera = simple_construct_camera,
-    .vconstruct_camera = simple_vconstruct_camera,
-    .destroy_camera = simple_destroy_camera
+    .destroy_camera = simple_destroy_camera,
+    .get_fov = simple_get_fov,
+    .set_fov = simple_set_fov
 };
 
 struct vox_camera_interface* vox_simple_camera_iface ()

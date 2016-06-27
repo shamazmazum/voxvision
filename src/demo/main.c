@@ -264,7 +264,9 @@ int main (int argc, char *argv[])
         goto end;
     }
 
-    camera = vox_simple_camera_iface()->construct_camera (NULL, fov, origin);
+    camera = vox_simple_camera_iface()->construct_camera (NULL);
+    camera->iface->set_position (camera, origin);
+    camera->iface->set_fov (camera, fov);
     camera->iface->set_rot_angles (camera, angles);
     ctx = vox_make_renderer_context (screen, tree, camera);
 

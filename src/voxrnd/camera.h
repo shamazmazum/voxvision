@@ -17,6 +17,11 @@ struct vox_camera;
 **/
 struct vox_camera_interface
 {
+    /*
+     * -------
+     * Methods
+     * -------
+    */
     void (*screen2world) (struct vox_camera *camera, vox_dot ray, int sx, int sy);
     /**<
        \brief Translate screen coordinated to a direction vector.
@@ -24,32 +29,6 @@ struct vox_camera_interface
        \param ray the result is stored in this vector
        \param sx screen x coordinate
        \param sy screen y coordinate
-     */
-
-    void (*get_position) (struct vox_camera *camera, vox_dot res);
-    /**<
-       \brief Get camera position.
-
-       Camera position is copied to function's argument.
-
-       \param res where result is stored
-    */
-
-    int (*set_position) (struct vox_camera *camera, vox_dot pos);
-    /**<
-       \brief Set camera position.
-
-       Depending on implementation, camera may not move if there is a collision
-       with any object on scene to which camera is attached.
-
-       \param pos a new position
-       \return 0 on success (if no collisions is found)
-    */
-
-    void (*set_rot_angles) (struct vox_camera *camera, vox_dot angles);
-    /**< \brief set camera rotation angles
-
-         Rotation angles are in the world coordinate system
      */
 
     void (*rotate_camera) (struct vox_camera *camera, vox_dot delta);
@@ -75,6 +54,51 @@ struct vox_camera_interface
               contain 3 elements 
     */
 
+    /*
+     * --------------
+     * Setters/getters
+     * ---------------
+     */
+    void (*set_rot_angles) (struct vox_camera *camera, vox_dot angles);
+    /**< \brief set camera rotation angles
+
+         Rotation angles are in the world coordinate system
+     */
+    
+    void (*get_position) (struct vox_camera *camera, vox_dot res);
+    /**<
+       \brief Get camera position.
+
+       Camera position is copied to function's argument.
+
+       \param res where result is stored
+    */
+
+    int (*set_position) (struct vox_camera *camera, vox_dot pos);
+    /**<
+       \brief Set camera position.
+
+       Depending on implementation, camera may not move if there is a collision
+       with any object on scene to which camera is attached.
+
+       \param pos a new position
+       \return 0 on success (if no collisions is found)
+    */
+
+    float (*get_fov) (struct vox_camera *camera);
+    /**<
+       \brief Get field of view.
+    **/
+
+    void (*set_fov) (struct vox_camera *camera, float fov);
+    /**<
+       \brief Set field of view.
+    **/
+
+    /*
+     * 64 byte border. Rarely used methods are below this line.
+     */
+
     void (*set_window_size) (struct vox_camera *camera, int w, int h);
     /**<
        \brief Set screen/window size for a camera.
@@ -87,22 +111,16 @@ struct vox_camera_interface
        \param h height of the window
     */
 
-    struct vox_camera* (*construct_camera) (struct vox_camera *camera, ...);
+    /*
+     * ----------------------
+     * Constructor/destructor
+     * ----------------------
+     */
+    struct vox_camera* (*construct_camera) (struct vox_camera *camera);
     /**<
        \brief Create a new camera object.
 
        \param camera is currently ignored and may be NULL.
-       \param ... parameters passed to constructor
-    **/
-
-    // 64 byte border. Rarely used methods are below this line.
-
-    struct vox_camera* (*vconstruct_camera) (struct vox_camera *camera, va_list args);
-    /**<
-       \brief Create a new camera object (va_list flavor).
-
-       \param camera is currently ignored and may be NULL.
-       \param args parameters passed to constructor
     **/
 
     void (*destroy_camera) (struct vox_camera *camera);

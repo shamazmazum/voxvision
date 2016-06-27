@@ -17,9 +17,6 @@ struct vox_distorted_camera
 
 /**
    \brief Get methods of the distorted camera.
-
-   Its constructor is like the simple camera's constructor,
-   see vox_simple_camera_iface()
 **/
 struct vox_camera_interface* vox_distorted_camera_iface ();
 

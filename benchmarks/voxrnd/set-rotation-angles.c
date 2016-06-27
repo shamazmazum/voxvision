@@ -9,9 +9,8 @@ int main ()
 {
     int i;
     double time;
-    vox_dot pos = {0,0,0};
     vox_dot angles = {1.57, 1.57, 1.57};
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, 1.0, pos);
+    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
 
     time = gettime();
     for (i=0; i<N; i++) camera->iface->set_rot_angles (camera, angles);

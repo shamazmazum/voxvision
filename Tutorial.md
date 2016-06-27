@@ -166,17 +166,20 @@ one produced by circular fish-eye camera.
 
 To create a simple camera you must write something like this:
 ~~~~~~~~~~~~~~~~~~~~{.c}
-vox_dot position = {0,0,0};
-float fov = 1.2;
-struct vox_camera* camera = vox_simple_camera_iface()->
-                                construct_camera (NULL, fov, origin);
+struct vox_camera* camera = vox_simple_camera_iface()->construct_camera (NULL);
 ~~~~~~~~~~~~~~~~~~~~
-`construct_camera()` here is a constructor. For the simple camera class it accepts 3
-arguments: the first must be just NULL now, the secons is a field of view and the
-third is the camera's position. You can see in `struct vox_camera_interface`
-documentation, that this is a variadic function, it's up to camera class to give a
-meaning to arguments of its constructor. Putting it all together you will get
-something like this:
+`construct_camera()` here is a constructor. It's argument is another camera instance
+or `NULL` and is currently ignored. You can also set the camera's field of view and
+position (otherwise they will remain at their default values, depending on camera's
+implementation):
+~~~~~~~~~~~~~~~~~~~~{.c}
+camera->iface->set_fov (camera, 1.2);
+vox_dot position = {-10, 10, 100};
+camera->iface->set_position (camera, position); // Here argument is copied.
+
+~~~~~~~~~~~~~~~~~~~~
+Putting it all together you will get something
+like this:
 
 ~~~~~~~~~~~~~~~~~~~~{.c}
 struct vox_node *tree = vox_make_tree (voxels, n);
@@ -184,7 +187,9 @@ SDL_Surface *screen = SDL_SetVideoMode(800, 600, 32, SDL_SWSURFACE);
 vox_dot origin = {0,0,0}; // Camera's origin
 float fov = 1.2; // Camera's field of view
 // Make a default camera
-struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL, fov, origin);
+struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+camera->iface->set_position (camera, origin);
+cmaera->iface->set_fov (camera, fov);
 struct vox_rnd_ctx *ctx =
      vox_make_renderer_context (surface, tree, camera);
 vox_render (ctx);
@@ -211,7 +216,7 @@ a camera constructor. The common pattern to call them is using camera interface
 getter:
 ~~~~~~~~~~~~~~~~~~~~{.c}
 camera_interface_getter()->class_method (args); // The pattern
-vox_simple_camera_iface()->construct_camera (NULL, 1, pos); // An example
+vox_simple_camera_iface()->construct_camera (NULL); // An example
 ~~~~~~~~~~~~~~~~~~~~
 The second is instance methods. The pattern for them is:
 ~~~~~~~~~~~~~~~~~~~~{.c}
