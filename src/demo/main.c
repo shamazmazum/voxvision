@@ -375,21 +375,17 @@ int main (int argc, char *argv[])
                 }
                 else if (event.key.keysym.sym == global_controls.toggle_camera)
                 {
-                    struct vox_camera *new_camera;
                     switch (camera_type)
                     {
                     case 0:
                         camera_type = 1;
-                        new_camera = vox_distorted_camera_iface()->construct_camera (camera);
+                        vox_distorted_camera_iface()->coerce_class (camera);
                         break;
                     case 1:
                         camera_type = 0;
-                        new_camera = vox_simple_camera_iface()->construct_camera (camera);
+                        vox_simple_camera_iface()->coerce_class (camera);
                         break;
                     }
-                    vox_rc_set_camera (ctx, new_camera);
-                    camera->iface->destroy_camera (camera);
-                    camera = new_camera;
                 }
                 break;
             case SDL_USEREVENT:

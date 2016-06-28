@@ -30,11 +30,17 @@ static void distorted_screen2world (struct vox_camera *cam, vox_dot ray, int sx,
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
+static void distorted_coerce_class (struct vox_camera *camera)
+{
+    camera->iface->construct_camera = distorted_construct_camera;
+    camera->iface->screen2world = distorted_screen2world;
+    camera->iface->coerce_class = distorted_coerce_class;
+}
+
 static struct vox_camera* distorted_construct_camera (struct vox_camera *cam)
 {
     struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (cam);
-    camera->iface->construct_camera = distorted_construct_camera;
-    camera->iface->screen2world = distorted_screen2world;
+    vox_distorted_camera_iface()->coerce_class (camera);
 
     return camera;
 }
@@ -42,7 +48,8 @@ static struct vox_camera* distorted_construct_camera (struct vox_camera *cam)
 static struct vox_camera_interface vox_distorted_camera_interface =
 {
     .screen2world = distorted_screen2world,
-    .construct_camera = distorted_construct_camera
+    .construct_camera = distorted_construct_camera,
+    .coerce_class = distorted_coerce_class
 };
 
 struct vox_camera_interface* vox_distorted_camera_iface ()

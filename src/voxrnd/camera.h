@@ -120,7 +120,19 @@ struct vox_camera_interface
     /**<
        \brief Create a new camera object.
 
-       \param camera is currently ignored and may be NULL.
+       If camera is supplied, its internal fields will be copied to a newly
+       created camera. If data layout of the supplied camera is different from
+       one being created (i.e. their classes are not related to each other),
+       expect undefined behaviour. This is a class method.
+
+       \param camera can be NULL or another camera instance.
+    **/
+    void (*coerce_class) (struct vox_camera *camera);
+    /**<
+       \brief Change class of an existing camera instance.
+
+       If the camera's class and a new class are not related, expect undefined
+       behaviour. This is a class method.
     **/
 
     void (*destroy_camera) (struct vox_camera *camera);
