@@ -4,11 +4,11 @@
 #include "distorted-camera.h"
 #include "vect-ops.h"
 
-static struct vox_camera* distorted_construct_camera (struct vox_camera *cam);
+static struct vox_camera* distorted_construct_camera (const struct vox_camera *cam);
 
-static void distorted_screen2world (struct vox_camera *cam, vox_dot ray, int sx, int sy)
+static void distorted_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
-    struct vox_simple_camera *camera = (void*)cam;
+    const struct vox_simple_camera *camera = (void*)cam;
     float xmul = camera->xmul;
     float ymul = camera->ymul;
 
@@ -37,7 +37,7 @@ static void distorted_coerce_class (struct vox_camera *camera)
     camera->iface->coerce_class = distorted_coerce_class;
 }
 
-static struct vox_camera* distorted_construct_camera (struct vox_camera *cam)
+static struct vox_camera* distorted_construct_camera (const struct vox_camera *cam)
 {
     struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (cam);
     vox_distorted_camera_iface()->coerce_class (camera);

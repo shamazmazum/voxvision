@@ -22,7 +22,7 @@ struct vox_camera_interface
      * Methods
      * -------
     */
-    void (*screen2world) (struct vox_camera *camera, vox_dot ray, int sx, int sy);
+    void (*screen2world) (const struct vox_camera *camera, vox_dot ray, int sx, int sy);
     /**<
        \brief Translate screen coordinated to a direction vector.
 
@@ -65,7 +65,7 @@ struct vox_camera_interface
          Rotation angles are in the world coordinate system
      */
 
-    void (*get_position) (struct vox_camera *camera, vox_dot res);
+    void (*get_position) (const struct vox_camera *camera, vox_dot res);
     /**<
        \brief Get camera position.
 
@@ -85,7 +85,7 @@ struct vox_camera_interface
        \return 0 on success (if no collisions is found)
     */
 
-    float (*get_fov) (struct vox_camera *camera);
+    float (*get_fov) (const struct vox_camera *camera);
     /**<
        \brief Get field of view.
     **/
@@ -116,7 +116,7 @@ struct vox_camera_interface
      * Constructor/destructor
      * ----------------------
      */
-    struct vox_camera* (*construct_camera) (struct vox_camera *camera);
+    struct vox_camera* (*construct_camera) (const struct vox_camera *camera);
     /**<
        \brief Create a new camera object.
 

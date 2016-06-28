@@ -7,9 +7,9 @@
 #include "simple-camera.h"
 #include "renderer.h"
 
-static void simple_screen2world (struct vox_camera *cam, vox_dot ray, int sx, int sy)
+static void simple_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
-    struct vox_simple_camera *camera = (void*)cam;
+    const struct vox_simple_camera *camera = (void*)cam;
     float xmul = camera->xmul;
     float ymul = camera->ymul;
 
@@ -26,9 +26,9 @@ static void simple_screen2world (struct vox_camera *cam, vox_dot ray, int sx, in
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
-static void simple_get_position (struct vox_camera *cam, vox_dot res)
+static void simple_get_position (const struct vox_camera *cam, vox_dot res)
 {
-    struct vox_simple_camera *camera = (void*)cam;
+    const struct vox_simple_camera *camera = (void*)cam;
     vox_dot_copy (res, camera->position);
 }
 
@@ -131,10 +131,10 @@ static void simple_coerce_class (struct vox_camera *cam)
     memcpy (cam->iface, vox_simple_camera_iface(), sizeof (struct vox_camera_interface));
 }
 
-static struct vox_camera* simple_construct_camera (struct vox_camera *cam)
+static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
 {
     struct vox_simple_camera *camera;
-    struct vox_simple_camera *old_camera = (void*)cam;
+    const struct vox_simple_camera *old_camera = (void*)cam;
     struct vox_camera_interface *iface;
 
     camera = aligned_alloc (16, sizeof (struct vox_simple_camera));
@@ -173,9 +173,9 @@ static void simple_set_fov (struct vox_camera *cam, float fov)
     camera->fov = fov;
 }
 
-static float simple_get_fov (struct vox_camera *cam)
+static float simple_get_fov (const struct vox_camera *cam)
 {
-    struct vox_simple_camera *camera = (void*)cam;
+    const struct vox_simple_camera *camera = (void*)cam;
 
     return camera->fov;
 }
