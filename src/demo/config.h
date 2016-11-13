@@ -5,27 +5,27 @@
 struct controls
 {
     // Head movement
-    unsigned short look_up;
-    unsigned short look_down;
-    unsigned short look_left;
-    unsigned short look_right;
-    unsigned short tilt_left;
-    unsigned short tilt_right;
+    int look_up;
+    int look_down;
+    int look_left;
+    int look_right;
+    int tilt_left;
+    int tilt_right;
 
-    unsigned short walk_left;
-    unsigned short walk_right;
-    unsigned short walk_forwards;
-    unsigned short walk_backwards;
-    unsigned short fly_up;
-    unsigned short fly_down;
+    int walk_left;
+    int walk_right;
+    int walk_forwards;
+    int walk_backwards;
+    int fly_up;
+    int fly_down;
 
-    unsigned short shrink;
-    unsigned short grow;
+    int shrink;
+    int grow;
 
-    unsigned short insert;
-    unsigned short delete;
+    int insert;
+    int delete;
 
-    unsigned short toggle_camera;
+    int toggle_camera;
 };
 extern struct controls global_controls;
 

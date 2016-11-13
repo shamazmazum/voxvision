@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-include_directories (${SDL_INCLUDE_DIR} ${INIPARSER_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
+include_directories (${SDL2_INCLUDE_DIR} ${INIPARSER_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..)
 if (GCD_FOUND)
 include_directories (${GCD_INCLUDE_DIR})
 add_definitions (-DUSE_GCD)

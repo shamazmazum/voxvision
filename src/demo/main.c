@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <iniparser.h>
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
@@ -113,7 +113,10 @@ int main (int argc, char *argv[])
     dispatch_queue_t tree_queue = NULL;
     dispatch_group_t tree_group = NULL;
     SDL_TimerID timer_id = 0;
-    SDL_Surface *screen = NULL;
+    SDL_Window *screen = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Texture *texture = NULL;
+    SDL_Surface *surface = NULL;
     char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
@@ -254,12 +257,37 @@ int main (int argc, char *argv[])
     tree_group = dispatch_group_create ();
 #endif
 
-    screen = SDL_SetVideoMode(global_settings.window_width,
-                              global_settings.window_height,
-                              32, SDL_SWSURFACE);
-    if (screen == NULL)
+    if (SDL_CreateWindowAndRenderer (global_settings.window_width,
+                                     global_settings.window_height,
+                                     0,
+                                     &screen, &renderer))
     {
         fprintf (stderr, "Cannot set video mode: %s\n",
+                 SDL_GetError());
+        goto end;
+    }
+
+    texture = SDL_CreateTexture (renderer, SDL_PIXELFORMAT_ARGB8888,
+                                 SDL_TEXTUREACCESS_STREAMING,
+                                 global_settings.window_width,
+                                 global_settings.window_height);
+    if (texture == NULL)
+    {
+        fprintf (stderr, "Cannot create texture: %s\n",
+                 SDL_GetError());
+        goto end;
+    }
+
+    int bpp;
+    Uint32 Rmask, Gmask, Bmask, Amask;
+    SDL_PixelFormatEnumToMasks (SDL_PIXELFORMAT_ARGB8888, &bpp, &Rmask, &Gmask, &Bmask, &Amask);
+    surface = SDL_CreateRGBSurface (0,
+                                    global_settings.window_width,
+                                    global_settings.window_height,
+                                    bpp, Rmask, Gmask, Bmask, Amask);
+    if (surface == NULL)
+    {
+        fprintf (stderr, "Cannot create surface: %s\n",
                  SDL_GetError());
         goto end;
     }
@@ -269,7 +297,7 @@ int main (int argc, char *argv[])
     camera->iface->set_fov (camera, fov);
     camera->iface->set_rot_angles (camera, angles);
     int camera_type = 0;
-    ctx = vox_make_renderer_context (screen, tree, camera);
+    ctx = vox_make_renderer_context (surface, tree, camera);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
@@ -285,7 +313,6 @@ int main (int argc, char *argv[])
     while (1)
     {
         SDL_Event event;
-        SDL_FillRect (screen, NULL, 0);
         /*
           Wait for all synchronous tree operations to complete then
           render a frame and again wait for renderer to complete.
@@ -294,27 +321,30 @@ int main (int argc, char *argv[])
           a tree still may be executed in parallel on other queues.
         */
         dispatch_sync (tree_queue, ^{vox_render (ctx);});
-        SDL_Flip (screen);
+        SDL_UpdateTexture (texture, NULL, surface->pixels, surface->pitch);
+        SDL_FillRect (surface, NULL, 0);
+        SDL_RenderCopy (renderer, texture, NULL, NULL);
+        SDL_RenderPresent (renderer);
 
         if (SDL_PollEvent(&event))
         {
             switch (event.type)
             {
             case SDL_KEYDOWN:
-                if ((event.key.keysym.sym == global_controls.shrink) ||
-                    (event.key.keysym.sym == global_controls.grow))
+                if ((event.key.keysym.scancode == global_controls.shrink) ||
+                    (event.key.keysym.scancode == global_controls.grow))
                 {
                     float radius;
                     radius = vox_simple_camera_get_radius ((struct vox_simple_camera*)camera);
-                    if (event.key.keysym.sym == global_controls.shrink)
+                    if (event.key.keysym.scancode == global_controls.shrink)
                         radius-=5;
                     else
                         radius+=5;
                     radius = vox_simple_camera_set_radius ((struct vox_simple_camera*)camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
                 }
-                else if ((event.key.keysym.sym == global_controls.insert) ||
-                         (event.key.keysym.sym == global_controls.delete))
+                else if ((event.key.keysym.scancode == global_controls.insert) ||
+                         (event.key.keysym.scancode == global_controls.delete))
                 {
                     /*
                       Tree modification will be performed when there
@@ -323,12 +353,12 @@ int main (int argc, char *argv[])
                     dispatch_group_notify (tree_group, tree_queue, ^{
                             vox_dot inter, dir, origin;
                             camera->iface->get_position (camera, origin);
-                            camera->iface->screen2world (camera, dir, screen->w/2, screen->h/2);
+                            camera->iface->screen2world (camera, dir, surface->w/2, surface->h/2);
                             const struct vox_node* leaf =
                                 vox_ray_tree_intersection (tree, origin, dir, inter);
                             if (leaf != NULL)
                             {
-                                if (event.key.keysym.sym == global_controls.insert)
+                                if (event.key.keysym.scancode == global_controls.insert)
                                     amend_box (&tree, inter, 5, 1);
                                 else
                                     amend_box (&tree, inter, 5, 0);
@@ -336,8 +366,8 @@ int main (int argc, char *argv[])
                             }
                         });
                 }
-                else if (event.key.keysym.sym == SDLK_q) goto end;
-                else if (event.key.keysym.sym == SDLK_r)
+                else if (event.key.keysym.scancode == SDL_SCANCODE_Q) goto end;
+                else if (event.key.keysym.scancode == SDL_SCANCODE_R)
                 {
                     /*
                       Rebuild the tree asynchronously and then
@@ -355,12 +385,12 @@ int main (int argc, char *argv[])
                                                   });
                                           });
                 }
-                else if (event.key.keysym.sym == SDLK_F11)
+                else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
                 {
                     suitable_shot_name (shot_name);
-                    SDL_SaveBMP (screen, shot_name);
+                    SDL_SaveBMP (surface, shot_name);
                 }
-                else if (event.key.keysym.sym == global_controls.toggle_camera)
+                else if (event.key.keysym.scancode == global_controls.toggle_camera)
                 {
                     switch (camera_type)
                     {
@@ -386,7 +416,7 @@ int main (int argc, char *argv[])
 
         vox_dot step = {0,0,0};
         vox_dot rot_delta = {0,0,0};
-        const Uint8 *keystate = SDL_GetKeyState (NULL);
+        const Uint8 *keystate = SDL_GetKeyboardState (NULL);
         if (keystate[global_controls.walk_forwards]) step[1] += 5;
         else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
         if (keystate[global_controls.walk_right]) step[0] += 5;
@@ -420,7 +450,10 @@ end:
     if (ctx != NULL) free (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);
     if (tree != NULL) vox_destroy_tree (tree);
-    if (screen != NULL) SDL_FreeSurface (screen);
+    if (surface != NULL) SDL_FreeSurface(surface);
+    if (texture != NULL) SDL_DestroyTexture (texture);
+    if (renderer != NULL) SDL_DestroyRenderer (renderer);
+    if (screen != NULL) SDL_DestroyWindow (screen);
     if (timer_id) SDL_RemoveTimer (timer_id);
     if (SDL_WasInit(0)) SDL_Quit();
 #if USE_GCD

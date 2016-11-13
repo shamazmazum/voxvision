@@ -17,7 +17,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-find_package (SDL REQUIRED)
+find_package (SDL2 REQUIRED)
 find_package (IniParser)
 find_package (GCD)
 

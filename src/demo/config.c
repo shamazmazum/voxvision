@@ -1,4 +1,4 @@
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <iniparser.h>
 #include <string.h>
 #include "config.h"
@@ -6,27 +6,27 @@
 // Initialize global controls with defaults.
 struct controls global_controls =
 {
-    .look_up        = SDLK_UP,
-    .look_down      = SDLK_DOWN,
-    .look_left      = SDLK_LEFT,
-    .look_right     = SDLK_RIGHT,
-    .tilt_left      = SDLK_z,
-    .tilt_right     = SDLK_x,
+    .look_up        = SDL_SCANCODE_UP,
+    .look_down      = SDL_SCANCODE_DOWN,
+    .look_left      = SDL_SCANCODE_LEFT,
+    .look_right     = SDL_SCANCODE_RIGHT,
+    .tilt_left      = SDL_SCANCODE_Z,
+    .tilt_right     = SDL_SCANCODE_X,
 
-    .walk_left      = SDLK_a,
-    .walk_right     = SDLK_d,
-    .walk_forwards  = SDLK_w,
-    .walk_backwards = SDLK_s,
-    .fly_up         = SDLK_1,
-    .fly_down       = SDLK_2,
+    .walk_left      = SDL_SCANCODE_A,
+    .walk_right     = SDL_SCANCODE_D,
+    .walk_forwards  = SDL_SCANCODE_W,
+    .walk_backwards = SDL_SCANCODE_S,
+    .fly_up         = SDL_SCANCODE_1,
+    .fly_down       = SDL_SCANCODE_2,
 
-    .shrink         = SDLK_h,
-    .grow           = SDLK_g,
+    .shrink         = SDL_SCANCODE_H,
+    .grow           = SDL_SCANCODE_G,
 
-    .insert         = SDLK_i,
-    .delete         = SDLK_o,
+    .insert         = SDL_SCANCODE_I,
+    .delete         = SDL_SCANCODE_O,
 
-    .toggle_camera  = SDLK_t
+    .toggle_camera  = SDL_SCANCODE_T
 };
 
 // And the same for the settings.
@@ -36,17 +36,10 @@ struct settings global_settings =
     .window_height = 600
 };
 
-static void set_control (dictionary *dict, const char *control, unsigned short *place)
+static void set_control (dictionary *dict, const char *control, int *place)
 {
-    const char *value = iniparser_getstring (dict, control, NULL);
-    if (value != NULL)
-    {
-        if (strcmp (value, "LeftArrow") == 0) *place = SDLK_LEFT;
-        else if (strcmp (value, "RightArrow") == 0) *place = SDLK_RIGHT;
-        else if (strcmp (value, "UpArrow") == 0) *place = SDLK_UP;
-        else if (strcmp (value, "DownArrow") == 0) *place = SDLK_DOWN;
-        else if (strlen (value) == 1) *place = value[0];
-    }
+    const char *name = iniparser_getstring (dict, control, NULL);
+    if (name != NULL) *place = SDL_GetScancodeFromName (name);
 }
 
 int load_configuration (const char *filename)
