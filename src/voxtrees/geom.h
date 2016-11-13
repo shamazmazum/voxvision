@@ -83,7 +83,6 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
    The box and the ball are solid
 **/
 int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius);
-float fill_ratio (const struct vox_box *box, size_t n);
 int dense_set_p (const struct vox_box *box, size_t n);
 int voxel_in_box (const struct vox_box *box, const vox_dot dot);
 void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res);

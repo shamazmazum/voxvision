@@ -223,42 +223,33 @@ static struct vox_node* make_dense_leaf (const struct vox_box *box)
 */
 struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 {
-    struct vox_node *res  = NULL;
+    struct vox_node *node  = NULL;
+    int leafp, densep;
     WITH_STAT (recursion++);
 
     if (n > 0)
     {
         struct vox_box box;
         calc_bounding_box (set, n, &box);
-        int densep = (dense_set_p (&box, n)) ? DENSE_LEAF : 0;
-        int leafp = (n <= VOX_MAX_DOTS) ? LEAF : 0;
-        res = node_alloc (leafp | densep);
-        res->dots_num = n;
-        res->flags = 0;
-        vox_box_copy (&(res->bounding_box), &box);
-        if (densep)
-        {
-            res->flags |= DENSE_LEAF;
-            WITH_STAT (gstats.dense_leafs++);
-            WITH_STAT (gstats.dense_dots+=n);
-        }
+        densep = (dense_set_p (&box, n)) ? DENSE_LEAF : 0;
+        leafp = (n <= VOX_MAX_DOTS) ? LEAF : 0;
+        node = node_alloc (densep | leafp);
+        node->dots_num = n;
+        vox_box_copy (&(node->bounding_box), &box);
+        if (densep) node->flags = DENSE_LEAF;
         else if (leafp)
         {
-            WITH_STAT (gstats.leaf_nodes++);
-            WITH_STAT (gstats.depth_hist[recursion]++);
-            res->data.dots = aligned_alloc (16, VOX_MAX_DOTS*sizeof(vox_dot));
-            memcpy (res->data.dots, set, n*sizeof(vox_dot));
-            res->flags |= LEAF;
-            WITH_STAT (float ratio = fill_ratio (&(res->bounding_box), n));
-            WITH_STAT (update_fill_ratio_hist (ratio));
-            WITH_STAT (gstats.empty_volume += get_empty_volume (ratio, n));
+            node->data.dots = aligned_alloc (16, VOX_MAX_DOTS*sizeof(vox_dot));
+            memcpy (node->data.dots, set, n*sizeof(vox_dot));
+            node->flags = LEAF;
         }
         else
         {
             int idx;
-            vox_inner_data *inner = &(res->data.inner);
+            vox_inner_data *inner = &(node->data.inner);
             size_t new_offset, offset = 0;
 
+            node->flags = 0;
             find_center (set, n, inner->center);
             for (idx=0; idx<VOX_NS; idx++)
             {
@@ -273,9 +264,32 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
         }
     }
-    WITH_STAT (else gstats.empty_nodes++);
+#ifdef STATISTICS
+    if (!(VOX_FULLP (node)))
+    {
+        /* Empty nodes are leafs too */
+        gstats.empty_nodes++;
+        gstats.leaf_nodes++;
+        gstats.depth_hist[recursion]++;
+    }
+    else
+    {
+        if (node->flags & LEAF_MASK)
+        {
+            if (node->flags & DENSE_LEAF)
+            {
+                gstats.dense_leafs++;
+                gstats.dense_dots+=n;
+            }
+            else update_fill_ratio_hist (&(node->bounding_box), n);
+            gstats.leaf_nodes++;
+            gstats.depth_hist[recursion]++;
+        }
+        else gstats.inner_nodes++;
+    }
+#endif
     WITH_STAT (recursion--);
-    return res;
+    return node;
 }
 
 size_t vox_voxels_in_tree (const struct vox_node *tree)

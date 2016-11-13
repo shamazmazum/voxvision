@@ -4,34 +4,36 @@
 #define WITH_STAT(expr) expr
 #define DEPTH_MAX 20
 #define FILL_RATIO_LEN 10
+#include <stdint.h>
 
+struct vox_box box;
 struct statistics
 {
-    unsigned long leaf_nodes;
-    unsigned long depth_hist[DEPTH_MAX];
-    unsigned long empty_nodes;
+    uint64_t leaf_nodes;
+    uint64_t inner_nodes;
+    uint64_t depth_hist[DEPTH_MAX];
+    uint64_t empty_nodes;
 
-    unsigned long rti_calls;
-    unsigned long rti_early_exits;
-    unsigned long rti_first_subspace;
-    unsigned long rti_worst_cases;
+    uint64_t rti_calls;
+    uint64_t rti_early_exits;
+    uint64_t rti_first_subspace;
+    uint64_t rti_worst_cases;
 
     float empty_volume;
-    unsigned long fill_ratio_hist[FILL_RATIO_LEN];
+    uint64_t fill_ratio_hist[FILL_RATIO_LEN];
 
-    unsigned long dense_leafs;
-    unsigned long dense_dots;
+    uint64_t dense_leafs;
+    uint64_t dense_dots;
 
-    unsigned long dense_insertions;
-    unsigned long dense_deletions;
-    unsigned long leaf_insertions;
-    unsigned long leaf_deletions;
+    uint64_t dense_insertions;
+    uint64_t dense_deletions;
+    uint64_t leaf_insertions;
+    uint64_t leaf_deletions;
 };
 
 extern struct statistics gstats;
 
-void update_fill_ratio_hist (float ratio);
-float get_empty_volume (float ratio, size_t n);
+void update_fill_ratio_hist (const struct vox_box *box, size_t n);
 
 #else
 #define WITH_STAT(expr) 
