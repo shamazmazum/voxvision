@@ -1,7 +1,6 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <strings.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -102,7 +101,7 @@ static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 static void find_center (const vox_dot set[], size_t n, vox_dot res)
 {
     size_t i;
-    bzero (res, sizeof(vox_dot));
+    memset (res, 0, sizeof(vox_dot));
 
     for (i=0; i<n; i++) sum_vector (set[i], res, res);
     for (i=0; i<VOX_N; i++) res[i] = ceilf (res[i]/n/vox_voxel[i])*vox_voxel[i];
@@ -427,7 +426,7 @@ static struct vox_node* __attribute__((noinline)) // always inserts
 
     node = node_alloc (0);
     inner = &(node->data.inner);
-    bzero (inner, sizeof (vox_inner_data));
+    memset (inner, 0, sizeof (vox_inner_data));
     vox_box_copy (&(node->bounding_box), &(tree->bounding_box));
     update_bounding_box (&(node->bounding_box), voxel);
     node->flags = 0;
@@ -617,7 +616,7 @@ delete_from_dense_stripe (struct vox_node *tree, const vox_dot voxel)
     node->flags = 0;
     node->dots_num = tree->dots_num - 1;
     vox_dot_copy (inner->center, voxel);
-    bzero (inner->children, sizeof (inner->children));
+    memset (inner->children, 0, sizeof (inner->children));
 
     success = divide_box (&(tree->bounding_box), voxel, &bb, 1<<idx);
     assert (success);
@@ -660,7 +659,7 @@ static struct vox_node* __attribute__((noinline))
         node->flags = 0;
         node->dots_num = tree->dots_num - 1;
         vox_dot_copy (inner->center, other_side);
-        bzero (inner->children, sizeof (inner->children));
+        memset (inner->children, 0, sizeof (inner->children));
 
         for (i=0; i<VOX_NS-1; i++)
         {
@@ -679,7 +678,7 @@ static struct vox_node* __attribute__((noinline))
     node->flags = 0;
     node->dots_num = tree->dots_num - 1;
     vox_dot_copy (inner->center, voxel);
-    bzero (inner->children, sizeof (inner->children));
+    memset (inner->children, 0, sizeof (inner->children));
 
     for (i=0; i<VOX_NS; i++)
     {
