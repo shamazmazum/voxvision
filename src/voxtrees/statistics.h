@@ -1,3 +1,9 @@
+/**
+   @file statistics.h
+   @brief Internal statistics for voxtrees library
+
+   Functions for internal statistics printing.
+**/
 #ifndef _STATISTICS_H_
 #define _STATISTICS_H_
 #ifdef VOXTREES_SOURCE

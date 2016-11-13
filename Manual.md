@@ -1,4 +1,4 @@
-Voxvision How To        {#mainpage}
+Voxvision Manual        {#mainpage}
 ===============
 
 Voxtrees
