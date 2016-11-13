@@ -7,5 +7,6 @@
 
 #include "voxtrees/tree.h"
 #include "voxtrees/search.h"
+#include "voxtrees/statistics.h"
 
 #endif

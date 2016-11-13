@@ -246,6 +246,8 @@ int main (int argc, char *argv[])
     printf ("Building tree (%zu voxels) took %u ms\n",
             vox_voxels_in_tree (tree), SDL_GetTicks() - time);
     free (set);
+    voxtrees_print_statistics ();
+    voxtrees_clear_statistics ();
 
 #if USE_GCD
     // Synchronous tree operations queue and group
@@ -440,6 +442,7 @@ end:
     if (tree_queue != NULL) dispatch_release (tree_queue);
     if (tree_group != NULL) dispatch_release (tree_group);
 #endif
+    voxtrees_print_statistics ();
 
     return 0;
 }

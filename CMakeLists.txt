@@ -5,7 +5,7 @@ project (voxvision)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules")
 
 set (voxvision_VERSION_MAJOR 0)
-set (voxvision_VERSION_MINOR 9)
+set (voxvision_VERSION_MINOR 10)
 set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")

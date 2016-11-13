@@ -1,13 +1,18 @@
 #ifdef STATISTICS
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include "statistics.h"
 #include "tree.h"
 
-static void print_statistics() __attribute__((destructor));
 struct statistics gstats; // Initialized with zeros
 
-static void print_statistics()
+void voxtrees_clear_statistics ()
+{
+    memset (&gstats, 0, sizeof (gstats));
+}
+
+void voxtrees_print_statistics()
 {
     int i;
     printf (
@@ -74,4 +79,14 @@ void update_fill_ratio_hist (const struct vox_box *box, size_t n)
     gstats.fill_ratio_hist[idx]++;
 }
 
+#else
+void voxtrees_print_statistics()
+{
+    /* Do nothing */
+}
+
+void voxtrees_clear_statistics()
+{
+    /* Do nothing */
+}
 #endif

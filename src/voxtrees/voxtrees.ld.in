@@ -10,6 +10,8 @@ VOXTREES_@voxvision_VERSION@ {
             vox_voxel;
             vox_voxels_in_tree;
             vox_bounding_box;
+            voxtrees_print_statistics;
+            voxtrees_clear_statistics;
             sum_vector;
 # FIXME: Used only for tests:
             get_subspace_idx;

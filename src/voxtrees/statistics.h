@@ -1,5 +1,6 @@
 #ifndef _STATISTICS_H_
 #define _STATISTICS_H_
+#ifdef VOXTREES_SOURCE
 #ifdef STATISTICS
 #define WITH_STAT(expr) expr
 #define DEPTH_MAX 20
@@ -38,4 +39,21 @@ void update_fill_ratio_hist (const struct vox_box *box, size_t n);
 #else
 #define WITH_STAT(expr) 
 #endif
+#endif
+/**
+   \brief Print internal statistics.
+
+   Print internal statistics (such as nodes constructed, ray-tree intersection
+   calls etc.) if the library was built with statistics collection, otherwise
+   do nothing.
+**/
+void voxtrees_print_statistics();
+
+/**
+   \brief Clear internal statistics.
+
+   Clear internal statistics if the library was built with statistics collection,
+   otherwise do nothing.
+**/
+void voxtrees_clear_statistics();
 #endif
