@@ -1,5 +1,7 @@
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
+#else
+#include "../gcd-stubs.c"
 #endif
 #include <stdlib.h>
 #include "renderer.h"
@@ -71,43 +73,34 @@ void vox_render (struct vox_rnd_ctx *ctx)
       Inside each task we try to render the next pixel using previous leaf node,
       not root scene node, if possible
     */
-#ifdef USE_GCD
     dispatch_apply (n>>2, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-                    ^(size_t p1)
-#else
-    int p1;
-    for (p1 = 0; p1 < n>>2; p1++)
-#endif
-    {
-        const struct vox_node *leaf = NULL;
-        vox_dot dir, inter, origin;
-        int p2, p;
-        p = p1 << 2;
-        camera->iface->get_position (camera, origin);
-        for (p2=0; p2<4; p2++)
-        {
-            if (p >= n) break;
-            int i = p/w;
-            int j = p%w;
+                    ^(size_t p1) {
+                        const struct vox_node *leaf = NULL;
+                        vox_dot dir, inter, origin;
+                        int p2, p;
+                        p = p1 << 2;
+                        camera->iface->get_position (camera, origin);
+                        for (p2=0; p2<4; p2++)
+                        {
+                            if (p >= n) break;
+                            int i = p/w;
+                            int j = p%w;
 
-            camera->iface->screen2world (camera, dir, j, i);
+                            camera->iface->screen2world (camera, dir, j, i);
 #if 1
-            if ((leaf != NULL) && (leaf != ctx->scene))
-                leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
-            if (leaf == NULL)
-                leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
+                            if ((leaf != NULL) && (leaf != ctx->scene))
+                                leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
+                            if (leaf == NULL)
+                                leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
 #else
-            interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
+                            interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
 #endif
-            if (leaf != NULL)
-            {
-                Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
-                pixels[p] = color;
-            }
-            p++;
-        }
-    }
-#ifdef USE_GCD
-        );
-#endif
+                            if (leaf != NULL)
+                            {
+                                Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
+                                pixels[p] = color;
+                            }
+                            p++;
+                        }
+                    });
 }

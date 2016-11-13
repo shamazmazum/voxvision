@@ -12,6 +12,8 @@
 #include <iniparser.h>
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
+#else
+#include "../gcd-stubs.c"
 #endif
 
 #include <voxtrees.h>
@@ -107,13 +109,9 @@ int main (int argc, char *argv[])
 
     struct vox_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
-#ifdef USE_GCD
     __block struct vox_node *tree = NULL;
     dispatch_queue_t tree_queue = NULL;
     dispatch_group_t tree_group = NULL;
-#else
-    struct vox_node *tree = NULL;
-#endif
     SDL_TimerID timer_id = 0;
     SDL_Surface *screen = NULL;
     char shot_name[MAXPATHLEN];
@@ -288,7 +286,6 @@ int main (int argc, char *argv[])
     {
         SDL_Event event;
         SDL_FillRect (screen, NULL, 0);
-#if USE_GCD
         /*
           Wait for all synchronous tree operations to complete then
           render a frame and again wait for renderer to complete.
@@ -297,9 +294,6 @@ int main (int argc, char *argv[])
           a tree still may be executed in parallel on other queues.
         */
         dispatch_sync (tree_queue, ^{vox_render (ctx);});
-#else
-        vox_render (ctx);
-#endif
         SDL_Flip (screen);
 
         if (SDL_PollEvent(&event))
@@ -322,34 +316,29 @@ int main (int argc, char *argv[])
                 else if ((event.key.keysym.sym == global_controls.insert) ||
                          (event.key.keysym.sym == global_controls.delete))
                 {
-#ifdef USE_GCD
                     /*
                       Tree modification will be performed when there
                       are no other operations in the group.
                     */
                     dispatch_group_notify (tree_group, tree_queue, ^{
-#endif
-                    vox_dot inter, dir, origin;
-                    camera->iface->get_position (camera, origin);
-                    camera->iface->screen2world (camera, dir, screen->w/2, screen->h/2);
-                    const struct vox_node* leaf =
-                        vox_ray_tree_intersection (tree, origin, dir, inter);
-                    if (leaf != NULL)
-                    {
-                        if (event.key.keysym.sym == global_controls.insert)
-                            amend_box (&tree, inter, 5, 1);
-                        else
-                            amend_box (&tree, inter, 5, 0);
-                        vox_rc_set_scene (ctx, tree);
-                    }
-#ifdef USE_GCD
-                    });
-#endif
+                            vox_dot inter, dir, origin;
+                            camera->iface->get_position (camera, origin);
+                            camera->iface->screen2world (camera, dir, screen->w/2, screen->h/2);
+                            const struct vox_node* leaf =
+                                vox_ray_tree_intersection (tree, origin, dir, inter);
+                            if (leaf != NULL)
+                            {
+                                if (event.key.keysym.sym == global_controls.insert)
+                                    amend_box (&tree, inter, 5, 1);
+                                else
+                                    amend_box (&tree, inter, 5, 0);
+                                vox_rc_set_scene (ctx, tree);
+                            }
+                        });
                 }
                 else if (event.key.keysym.sym == SDLK_q) goto end;
                 else if (event.key.keysym.sym == SDLK_r)
                 {
-#ifdef USE_GCD
                     /*
                       Rebuild the tree asynchronously and then
                       update the context.
@@ -357,18 +346,14 @@ int main (int argc, char *argv[])
                     dispatch_group_async (tree_group,
                                           dispatch_get_global_queue
                                           (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-#endif
-                    struct vox_node *new_tree = vox_rebuild_tree (tree);
-#ifdef USE_GCD
-                    dispatch_sync (tree_queue, ^{
-#endif
-                    vox_destroy_tree (tree);
-                    tree = new_tree;
-                    vox_rc_set_scene (ctx, tree);
-                    printf ("Tree rebuilt\n");
-#ifdef USE_GCD
-                    });});
-#endif
+                                              struct vox_node *new_tree = vox_rebuild_tree (tree);
+                                              dispatch_sync (tree_queue, ^{
+                                                      vox_destroy_tree (tree);
+                                                      tree = new_tree;
+                                                      vox_rc_set_scene (ctx, tree);
+                                                      printf ("Tree rebuilt\n");
+                                                  });
+                                          });
                 }
                 else if (event.key.keysym.sym == SDLK_F11)
                 {
