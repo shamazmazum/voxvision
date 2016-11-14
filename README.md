@@ -50,7 +50,7 @@ Microsoft Windows). See tutorial for more info.
 
 Requirements
 ------------
-* SDL
+* SDL2
 * [iniparser](https://github.com/ndevilla/iniparser) for demo application,
   optional
 * CUnit for unit tests
