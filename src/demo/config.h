@@ -33,6 +33,7 @@ struct settings
 {
     int window_width;
     int window_height;
+    int fps;
 };
 extern struct settings global_settings;
 

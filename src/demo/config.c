@@ -33,7 +33,8 @@ struct controls global_controls =
 struct settings global_settings =
 {
     .window_width  = 800,
-    .window_height = 600
+    .window_height = 600,
+    .fps = 30
 };
 
 static void set_control (dictionary *dict, const char *control, int *place)
@@ -71,6 +72,7 @@ int load_configuration (const char *filename)
 
     global_settings.window_width = iniparser_getint (dict, "Window:Width", global_settings.window_width);
     global_settings.window_height = iniparser_getint (dict, "Window:Height", global_settings.window_height);
+    global_settings.fps = iniparser_getint (dict, "Renderer:FPS", global_settings.fps);
     iniparser_freedict (dict);
     return 0;
 }

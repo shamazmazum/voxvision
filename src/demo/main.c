@@ -21,6 +21,7 @@
 #include "reader.h"
 #include "config.h"
 #include "error.h"
+#include "fps-control.h"
 
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
@@ -81,25 +82,6 @@ static void amend_box (struct vox_node **tree, vox_dot center, int size, int add
     }
 }
 
-#if 0
-static Uint32 timer_event (Uint32 interval, void *param)
-{
-    SDL_Event event;
-    SDL_UserEvent uevent;
-
-    uevent.type = SDL_USEREVENT;
-    uevent.code = 0;
-    uevent.data1 = NULL;
-    uevent.data2 = NULL;
-
-    event.type = SDL_USEREVENT;
-    event.user = uevent;
-
-    SDL_PushEvent (&event);
-    return interval;
-}
-#endif
-
 int main (int argc, char *argv[])
 {
     int dim[3];
@@ -112,11 +94,11 @@ int main (int argc, char *argv[])
     __block struct vox_node *tree = NULL;
     dispatch_queue_t tree_queue = NULL;
     dispatch_group_t tree_group = NULL;
-    SDL_TimerID timer_id = 0;
     SDL_Window *screen = NULL;
     SDL_Renderer *renderer = NULL;
     SDL_Texture *texture = NULL;
     SDL_Surface *surface = NULL;
+    fps_controller_t fps_controller = NULL;
     char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
@@ -303,13 +285,7 @@ int main (int argc, char *argv[])
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
             "the current directory\n");
 
-    int count = 0;
-#if 0
-    timer_id = SDL_AddTimer (1000, timer_event, NULL);
-#else
-    Uint32 start, end;
-    start = SDL_GetTicks();
-#endif
+    fps_controller = make_fps_controller (global_settings.fps);
     while (1)
     {
         SDL_Event event;
@@ -405,10 +381,6 @@ int main (int argc, char *argv[])
                     }
                 }
                 break;
-            case SDL_USEREVENT:
-                printf ("%i fps\n", count);
-                count = 0;
-                break;
             case SDL_QUIT:
                 goto end;
             }
@@ -432,16 +404,8 @@ int main (int argc, char *argv[])
         camera->iface->rotate_camera (camera, rot_delta);
         camera->iface->move_camera (camera, step);
 
-        count++;
-
-        end = SDL_GetTicks();
-        Uint32 diff = end - start;
-        if (diff > 1000)
-        {
-            printf ("%i frames in %u ms\n", count, diff);
-            start = SDL_GetTicks();
-            count = 0;
-        }
+        int fps = fps_controller();
+        if (fps) printf ("Frames per second: %i\n", fps);
     }
 
 end:
@@ -454,12 +418,12 @@ end:
     if (texture != NULL) SDL_DestroyTexture (texture);
     if (renderer != NULL) SDL_DestroyRenderer (renderer);
     if (screen != NULL) SDL_DestroyWindow (screen);
-    if (timer_id) SDL_RemoveTimer (timer_id);
     if (SDL_WasInit(0)) SDL_Quit();
 #if USE_GCD
     if (tree_queue != NULL) dispatch_release (tree_queue);
     if (tree_group != NULL) dispatch_release (tree_group);
 #endif
+    if (fps_controller != NULL) destroy_fps_controller (fps_controller);
     voxtrees_print_statistics ();
 
     return 0;

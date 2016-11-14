@@ -7,7 +7,7 @@ add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 add_definitions (-fblocks)
 
-add_executable (voxvision-demo main.c reader.c config.c error.c)
+add_executable (voxvision-demo main.c reader.c config.c error.c fps-control.c)
 target_link_libraries (voxvision-demo voxrnd voxtrees ${INIPARSER_LIBRARY})
 install (TARGETS voxvision-demo RUNTIME
          DESTINATION bin)
