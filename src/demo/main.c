@@ -102,6 +102,7 @@ int main (int argc, char *argv[])
     char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
+    char caption[MAXPATHLEN+20];
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -244,10 +245,12 @@ int main (int argc, char *argv[])
                                      0,
                                      &screen, &renderer))
     {
-        fprintf (stderr, "Cannot set video mode: %s\n",
+        fprintf (stderr, "Cannot create a window: %s\n",
                  SDL_GetError());
         goto end;
     }
+    sprintf (caption, "voxvision-demo: %s", datacfgname);
+    SDL_SetWindowTitle (screen, caption);
 
     texture = SDL_CreateTexture (renderer, SDL_PIXELFORMAT_ARGB8888,
                                  SDL_TEXTUREACCESS_STREAMING,
