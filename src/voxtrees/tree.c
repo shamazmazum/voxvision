@@ -200,7 +200,7 @@ static void* node_alloc (int flavor)
 
 WITH_STAT (static int recursion = -1;)
 
-static struct vox_node* make_dense_leaf (const struct vox_box *box)
+struct vox_node* vox_make_dense_leaf (const struct vox_box *box)
 {
     struct vox_node *res = node_alloc (DENSE_LEAF);
     size_t dim[3];
@@ -482,7 +482,7 @@ again:
             if (tree->flags & DENSE_LEAF) tree->dots_num++;
             else
             {
-                node = make_dense_leaf (&(tree->bounding_box));
+                node = vox_make_dense_leaf (&(tree->bounding_box));
                 assert (node->dots_num == tree->dots_num+1);
                 vox_destroy_tree (tree);
             }
@@ -620,12 +620,12 @@ delete_from_dense_stripe (struct vox_node *tree, const vox_dot voxel)
 
     success = divide_box (&(tree->bounding_box), voxel, &bb, 1<<idx);
     assert (success);
-    child = make_dense_leaf (&bb);
+    child = vox_make_dense_leaf (&bb);
     inner->children[1<<idx] = child;
 
     success = divide_box (&(tree->bounding_box), voxel, &bb, 0);
     assert (success);
-    child = make_dense_leaf (&bb);
+    child = vox_make_dense_leaf (&bb);
     inner->children[0] = child;
     assert (inner->children[0]->dots_num + inner->children[1<<idx]->dots_num ==
             tree->dots_num);
@@ -665,7 +665,7 @@ static struct vox_node* __attribute__((noinline))
         {
             success = divide_box (&(tree->bounding_box), other_side, &bb, i);
             if (!success) continue;
-            inner->children[i] = make_dense_leaf (&bb);
+            inner->children[i] = vox_make_dense_leaf (&bb);
         }
         vox_destroy_tree (tree);
         return node;
@@ -684,7 +684,7 @@ static struct vox_node* __attribute__((noinline))
     {
         success = divide_box (&(tree->bounding_box), voxel, &bb, i);
         if (!success) continue;
-        inner->children[i] = make_dense_leaf (&bb);
+        inner->children[i] = vox_make_dense_leaf (&bb);
     }
 
     /*

@@ -117,4 +117,14 @@ int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 **/
 void vox_dump_tree (const struct vox_node *tree);
 
+/**
+   \brief Create a cuboid tree.
+
+   Create a tree consisting of one big box. The name "dense leaf"
+   comes from the library's internals. It means that the library has a
+   special way for dealing with tree nodes which consist only from one
+   big box. This function is a user interface to that mechanism.
+**/
+struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
+
 #endif

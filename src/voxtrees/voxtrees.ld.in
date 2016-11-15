@@ -1,6 +1,7 @@
 VOXTREES_@voxvision_VERSION@ {
     global: vox_destroy_tree;
             vox_make_tree;
+            vox_make_dense_leaf;
             vox_rebuild_tree;
             vox_dump_tree;
             vox_insert_voxel;
