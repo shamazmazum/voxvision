@@ -11,13 +11,13 @@
  * frame will be rendered slower, and, on the other side, if it was
  * rendered slower than desired, the next will be rendered faster.
  */
-fps_controller_t make_fps_controller (int fps)
+vox_fps_controller_t vox_make_fps_controller (int fps)
 {
     __block Uint32 total_time = SDL_GetTicks();
     __block Uint32 frame_time = total_time;
     __block int counter = 0;
     __block int delay = 0;
-    fps_controller_t controller = ^{
+    vox_fps_controller_t controller = ^{
         /*
          * Call this block in a loop in the main thread.
          * It will put a rendering loop to sleep when needed
@@ -56,7 +56,7 @@ fps_controller_t make_fps_controller (int fps)
     return Block_copy (controller);
 }
 
-void destroy_fps_controller (fps_controller_t controller)
+void vox_destroy_fps_controller (vox_fps_controller_t controller)
 {
     Block_release (controller);
 }

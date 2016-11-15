@@ -7,6 +7,8 @@ VOXRND_@voxvision_VERSION@ {
             vox_rc_set_camera;
             vox_rc_set_scene;
             vox_render;
+            vox_make_fps_controller;
+            vox_destroy_fps_controller;
 # For the tests
             vox_quat_mul;
             vox_rotate_vector;

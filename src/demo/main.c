@@ -21,7 +21,6 @@
 #include "reader.h"
 #include "config.h"
 #include "error.h"
-#include "fps-control.h"
 
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
@@ -98,7 +97,7 @@ int main (int argc, char *argv[])
     SDL_Renderer *renderer = NULL;
     SDL_Texture *texture = NULL;
     SDL_Surface *surface = NULL;
-    fps_controller_t fps_controller = NULL;
+    vox_fps_controller_t fps_controller = NULL;
     char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
@@ -288,7 +287,7 @@ int main (int argc, char *argv[])
     printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
             "the current directory\n");
 
-    fps_controller = make_fps_controller (global_settings.fps);
+    fps_controller = vox_make_fps_controller (global_settings.fps);
     while (1)
     {
         SDL_Event event;
@@ -426,7 +425,7 @@ end:
     if (tree_queue != NULL) dispatch_release (tree_queue);
     if (tree_group != NULL) dispatch_release (tree_group);
 #endif
-    if (fps_controller != NULL) destroy_fps_controller (fps_controller);
+    if (fps_controller != NULL) vox_destroy_fps_controller (fps_controller);
     voxtrees_print_statistics ();
 
     return 0;

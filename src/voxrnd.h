@@ -8,5 +8,5 @@
 #include "voxrnd/simple-camera.h"
 #include "voxrnd/distorted-camera.h"
 #include "voxrnd/renderer.h"
-
+#include "voxrnd/fps-control.h"
 #endif
