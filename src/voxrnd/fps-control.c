@@ -24,7 +24,7 @@ vox_fps_controller_t vox_make_fps_controller (int fps)
          * and also return fps count each second.
          */
         int actual_fps = 0;
-        long delta, mul;
+        long delta, tmp;
         Uint32 new_time;
 
         counter++;
@@ -35,9 +35,11 @@ vox_fps_controller_t vox_make_fps_controller (int fps)
         {
             frame_time = new_time - frame_time;
             delta = frame_time - delay;
-            mul = (1<<16) - (fps<<16)*(long)frame_time/1000;
-            delta *= mul;
-            delta >>= 16;
+            tmp = (1<<16) - (fps<<16)*(long)frame_time/1000;
+            delta *= tmp;
+            tmp = delta >> 16;
+            if (tmp == 0) delta >>= 15;
+            else delta = tmp;
             delay += (int)delta;
             if (delay < 0) delay = 0;
         }
