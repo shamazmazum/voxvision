@@ -6,7 +6,11 @@
 #ifndef _PARAMS_H_
 #define _PARAMS_H_
 
+#ifdef VOXVISION_BUILDING
 #include <voxvision.h>
+#else
+#include "../voxvision.h"
+#endif
 
 // Macros
 #ifdef VOXTREES_SOURCE

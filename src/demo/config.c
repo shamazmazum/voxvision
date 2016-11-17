@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <iniparser.h>
 #include <string.h>
 #include "config.h"

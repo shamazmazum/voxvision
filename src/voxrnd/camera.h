@@ -7,8 +7,12 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <voxvision.h>
 #include <stdarg.h>
+#ifdef VOXVISION_BUILDING
+#include <voxvision.h>
+#else
+#include "../voxvision.h"
+#endif
 
 struct vox_camera;
 

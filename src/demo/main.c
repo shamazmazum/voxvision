@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <iniparser.h>
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
