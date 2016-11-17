@@ -17,21 +17,20 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-find_package (SDL2 REQUIRED)
-find_package (IniParser)
-find_package (GCD)
+option (SSE_INTRIN "Enable SSE intrinsic" ON)
+option (WITH_GCD "Enable GCD" ON)
 
-if (NOT GCD_FOUND)
-message (WARNING "Could not find GCD. voxrnd will still be working, but slow.
-   If you are using FreeBSD, consider installing devel/libdispatch
-   and devel/compiler-rt ports.")
-endif (NOT GCD_FOUND)
-
-option (SSE_INTRIN "Enable SSE intrinsic")
 if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 add_definitions (-DSTATISTICS)
-unset (GCD_FOUND)
+unset (WITH_GCD)
 endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+
+find_package (SDL2 REQUIRED)
+find_package (IniParser)
+if (WITH_GCD)
+message (STATUS "Compiling with GCD. If configuration is unsuccessful, try -DWITH_GCD=OFF")
+find_package (GCD REQUIRED)
+endif (WITH_GCD)
 
 if (SSE_INTRIN)
 add_definitions (-msse3 -msse4.1)
