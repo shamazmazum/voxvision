@@ -8,7 +8,9 @@
 #include <string.h>
 #include <math.h>
 
-#include <voxrnd.h>
+#include <voxrnd/camera.h>
+#include <voxrnd/simple-camera.h>
+#include <voxrnd/distorted-camera.h>
 #include <voxrnd/vect-ops.h>
 #include <voxtrees.h>
 #include <voxtrees/geom.h>
