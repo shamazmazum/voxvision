@@ -73,14 +73,14 @@ void vox_render (struct vox_rnd_ctx *ctx)
       Inside each task we try to render the next pixel using previous leaf node,
       not root scene node, if possible
     */
-    dispatch_apply (n>>2, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+    dispatch_apply (n>>4, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                     ^(size_t p1) {
-                        const struct vox_node *leaf = NULL;
+                        const struct vox_node *leaf;
                         vox_dot dir, inter, origin;
                         int p2, p;
-                        p = p1 << 2;
+                        p = p1 << 4;
                         camera->iface->get_position (camera, origin);
-                        for (p2=0; p2<4; p2++)
+                        for (p2=0; p2<16; p2++)
                         {
                             if (p >= n) break;
                             int i = p/w;
@@ -88,12 +88,13 @@ void vox_render (struct vox_rnd_ctx *ctx)
 
                             camera->iface->screen2world (camera, dir, j, i);
 #if 1
-                            if ((leaf != NULL) && (leaf != ctx->scene))
+                            if ((p2&3) == 0) leaf = NULL;
+                            else if ((leaf != NULL) && (leaf != ctx->scene))
                                 leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
                             if (leaf == NULL)
                                 leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
 #else
-                            interp = vox_ray_tree_intersection (ctx->scene, origin, dir, inter, NULL);
+                            leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
 #endif
                             if (leaf != NULL)
                             {
