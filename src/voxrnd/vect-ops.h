@@ -1,11 +1,7 @@
 #ifndef __VECT_OPS__
 #define __VECT_OPS__
 
-#ifdef VOXVISION_BUILDING
-#include <voxvision.h>
-#else
 #include "../voxvision.h"
-#endif
 
 #ifdef VOXRND_SOURCE
 /**

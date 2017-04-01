@@ -11,7 +11,7 @@ set_target_properties (voxtrees PROPERTIES VERSION ${voxvision_VERSION}
                                            LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld")
 
 target_link_libraries (voxtrees m)
-install (FILES params.h tree.h search.h
+install (FILES params.h tree.h search.h statistics.h
          DESTINATION include/voxvision/voxtrees)
 install (TARGETS voxtrees LIBRARY
          DESTINATION lib)

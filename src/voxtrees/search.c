@@ -3,6 +3,7 @@
 #include "tree.h"
 #include "geom.h"
 #include "search.h"
+#include "statistics.h"
 
 WITH_STAT (static int recursion = -1;)
 
