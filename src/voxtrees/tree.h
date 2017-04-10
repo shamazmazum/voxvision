@@ -100,6 +100,14 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
 int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 /**
+   \brief Insert a voxel in the tree on the fly.
+
+   This is like vox_insert_voxel(), but voxel coordinates are given
+   instead of vox_dot value.
+**/
+int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
+
+/**
    \brief Delete a voxel from the tree on the fly.
 
    You can call vox_rebuild_tree() after many applications of this
@@ -108,6 +116,14 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
    \return 1 on success, 0 if there was no such voxel in the tree.
 **/
 int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+
+/**
+   \brief Delete a voxel from the tree on the fly.
+
+   This is like vox_delete_voxel(), but voxel coordinates are given
+   instead of vox_dot value.
+**/
+int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 
 /**
    \brief Dump a tree to standard output stream.

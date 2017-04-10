@@ -575,6 +575,17 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
     return res;
 }
 
+int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z)
+{
+    vox_dot dot;
+#ifdef SSE_INTRIN
+    _mm_store_ps (dot, _mm_set_ps (0, z, y, x));
+#else
+    dot[0] = x; dot[1] = y; dot[2] = z;
+#endif
+    return vox_insert_voxel (tree_ptr, dot);
+}
+
 /*
   Helper function for deletion from dense stripes.
   It always deletes if dense leaf is a stripe
@@ -796,6 +807,17 @@ int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel)
     res = voxel_in_tree (*tree_ptr, voxel);
     if (res) vox_delete_voxel_ (tree_ptr, voxel);
     return res;
+}
+
+int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z)
+{
+    vox_dot dot;
+#ifdef SSE_INTRIN
+    _mm_store_ps (dot, _mm_set_ps (0, z, y, x));
+#else
+    dot[0] = x; dot[1] = y; dot[2] = z;
+#endif
+    return vox_delete_voxel (tree_ptr, dot);
 }
 
 void vox_dump_tree (const struct vox_node *tree)

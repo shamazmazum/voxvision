@@ -6,6 +6,8 @@ VOXTREES_@voxvision_VERSION@ {
             vox_dump_tree;
             vox_insert_voxel;
             vox_delete_voxel;
+            vox_insert_voxel_coord;
+            vox_delete_voxel_coord;
             vox_ray_tree_intersection;
             vox_tree_ball_collidep;
             vox_voxel;
