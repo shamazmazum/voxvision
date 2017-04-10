@@ -2,7 +2,7 @@
 #include "geom.h"
 
 #ifndef SSE_INTRIN
-void sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
+void vox_sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
 {
     int i;
     for (i=0; i<VOX_N; i++) res[i] = a[i] + b[i];
@@ -114,7 +114,7 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     return 1;
 }
 
-float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
+float vox_abs_metric (const vox_dot dot1, const vox_dot dot2)
 {
     int i;
     float res = 0;
@@ -122,7 +122,7 @@ float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
     return res;
 }
 
-float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
+float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 {
     int i;
     float res = 0;
@@ -134,7 +134,7 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
 {
     vox_dot fitted;
     fit_into_box (box, center, fitted);
-    return calc_sqr_metric (fitted, center) < (radius*radius);
+    return vox_sqr_metric (fitted, center) < (radius*radius);
 }
 #endif /* SSE_INTRIN */
 

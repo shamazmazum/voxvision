@@ -1,7 +1,7 @@
 #include "geom.h"
 
 #ifdef SSE_INTRIN
-static float calc_abs_metric_ (__v4sf dot1, __v4sf dot2)
+static float vox_abs_metric_ (__v4sf dot1, __v4sf dot2)
 {
     __v4sf diff = dot1 - dot2;
     diff = _mm_and_ps (diff, _mm_set_epi32 (0,          0x7fffffff,
@@ -9,7 +9,7 @@ static float calc_abs_metric_ (__v4sf dot1, __v4sf dot2)
     return diff[0] + diff[1] + diff[2];
 }
 
-static float calc_sqr_metric_ (__v4sf dot1, __v4sf dot2)
+static float vox_sqr_metric_ (__v4sf dot1, __v4sf dot2)
 {
     __v4sf diff = dot1 - dot2;
     diff *= diff;
@@ -128,16 +128,16 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
 {
     __v4sf c = _mm_load_ps (center);
     __v4sf fit = fit_into_box (box, c);
-    return calc_sqr_metric_ (fit, c) < (radius*radius);
+    return vox_sqr_metric_ (fit, c) < (radius*radius);
 }
 
-float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2)
+float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 {
-    return calc_sqr_metric_ (_mm_load_ps (dot1), _mm_load_ps (dot2));
+    return vox_sqr_metric_ (_mm_load_ps (dot1), _mm_load_ps (dot2));
 }
 
-float calc_abs_metric (const vox_dot dot1, const vox_dot dot2)
+float vox_abs_metric (const vox_dot dot1, const vox_dot dot2)
 {
-    return calc_abs_metric_ (_mm_load_ps (dot1), _mm_load_ps (dot2));
+    return vox_abs_metric_ (_mm_load_ps (dot1), _mm_load_ps (dot2));
 }
 #endif

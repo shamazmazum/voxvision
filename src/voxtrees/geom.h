@@ -10,16 +10,28 @@
 
 /**
    \brief Take sum of two vectors.
-
-   \param a
-   \param b
-   \param res an array where the result is stored
 **/
 #ifdef SSE_INTRIN
-#define sum_vector(a,b,res) _mm_store_ps ((res), _mm_load_ps (a) + _mm_load_ps (b))
+#define vox_sum_vector(a,b,res) _mm_store_ps ((res), _mm_load_ps (a) + _mm_load_ps (b))
 #else
-void sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
+void vox_sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
 #endif
+
+/**
+   \brief Calculate fast metric between two dots.
+
+   This is a fast metric on R^3 calculacted as sum of absolute values of
+   by-coordinate differences between two dots.
+**/
+float vox_abs_metric (const vox_dot dot1, const vox_dot dot2);
+
+/**
+   \brief Calculate metric between two dots.
+   
+   This is a square of standard Euclidian metric on R^3
+**/
+float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2);
+
 
 #ifdef VOXTREES_SOURCE
 /**
@@ -33,21 +45,6 @@ void sum_vector (const vox_dot a, const vox_dot b, vox_dot res);
    \return The subspace index in the range [0,2^N-1]
 **/
 int get_subspace_idx (const vox_dot dot1, const vox_dot dot2);
-
-/**
-   \brief Calc metric between two dots.
-   
-   A formula used is \f$\rho(x,y) = \Sigma_{i=1}^N \vert x_i - y_i \vert\f$
-**/
-float calc_abs_metric (const vox_dot dot1, const vox_dot dot2);
-
-/**
-   \brief Calc metric between two dots (variant 2).
-   
-   A formula used is \f$\rho (x,y) = \Sigma_{i=1}^N (x_i-y_i)^2\f$
-   A square of usual euclid metric.
-**/
-float calc_sqr_metric (const vox_dot dot1, const vox_dot dot2);
 
 /**
    \brief Find intersection of a ray and an axis-aligned box.

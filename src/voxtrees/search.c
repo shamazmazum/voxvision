@@ -47,10 +47,10 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         for (i=0; i<tree->dots_num; i++)
         {
             vox_dot_copy (voxel->min, dots[i]);
-            sum_vector (voxel->min, vox_voxel, voxel->max);
+            vox_sum_vector (voxel->min, vox_voxel, voxel->max);
             if (hit_box (voxel, origin, dir, tmp))
             {
-                dist_far = calc_abs_metric (origin, tmp);
+                dist_far = vox_abs_metric (origin, tmp);
                 if ((leaf && (dist_far < dist_closest)) || (!leaf))
                 {
                     dist_closest = dist_far;
@@ -111,7 +111,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         int j;
         for (j=i+1; j<plane_counter; j++)
         {
-            if (calc_abs_metric (origin, plane_inter[j]) < calc_abs_metric (origin, plane_inter[i]))
+            if (vox_abs_metric (origin, plane_inter[j]) < vox_abs_metric (origin, plane_inter[i]))
             {
                 vox_dot_copy (tmp, plane_inter[j]);
                 vox_dot_copy (plane_inter[j], plane_inter[i]);
@@ -153,7 +153,7 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
             for (i=0; i<tree->dots_num; i++)
             {
                 vox_dot_copy (voxel->min, dots[i]);
-                sum_vector (voxel->min, vox_voxel, voxel->max);
+                vox_sum_vector (voxel->min, vox_voxel, voxel->max);
                 if (box_ball_interp (voxel, center, radius)) return 1;
             }
         }

@@ -241,7 +241,7 @@ static void check_tree (struct vox_node *tree)
             // Check that all voxels are covered by bounding box
             for (i=0; i<tree->dots_num; i++)
             {
-                sum_vector (dots[i], vox_voxel, tmp);
+                vox_sum_vector (dots[i], vox_voxel, tmp);
                 CU_ASSERT (dot_betweenp (&(tree->bounding_box), dots[i]));
                 CU_ASSERT (dot_betweenp (&(tree->bounding_box), tmp));
             }
@@ -265,9 +265,9 @@ static void check_tree (struct vox_node *tree)
                       to bounding box corners because faces of bounding box may belong to
                       another subspace. What is inside may not.
                     */
-                    sum_vector (child->bounding_box.min, half_voxel, tmp);
+                    vox_sum_vector (child->bounding_box.min, half_voxel, tmp);
                     CU_ASSERT (get_subspace_idx (inner.center, tmp) == i);
-                    sum_vector (child->bounding_box.max, neg_half_voxel, tmp);
+                    vox_sum_vector (child->bounding_box.max, neg_half_voxel, tmp);
                     CU_ASSERT (get_subspace_idx (inner.center, tmp) == i);
                 }
                 // Test a child recursively

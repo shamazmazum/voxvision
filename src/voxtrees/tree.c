@@ -104,7 +104,7 @@ static void find_center (const vox_dot set[], size_t n, vox_dot res)
     size_t i;
     memset (res, 0, sizeof(vox_dot));
 
-    for (i=0; i<n; i++) sum_vector (set[i], res, res);
+    for (i=0; i<n; i++) vox_sum_vector (set[i], res, res);
     for (i=0; i<VOX_N; i++) res[i] = ceilf (res[i]/n/vox_voxel[i])*vox_voxel[i];
 }
 
@@ -124,7 +124,7 @@ static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *bo
             else if (set[i][j] > box->max[j]) box->max[j] = set[i][j];
         }
     }
-    sum_vector (box->max, vox_voxel, box->max);
+    vox_sum_vector (box->max, vox_voxel, box->max);
 }
 
 /**
@@ -171,7 +171,7 @@ static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 {
     vox_dot dot_max;
     int i;
-    sum_vector (dot, vox_voxel, dot_max);
+    vox_sum_vector (dot, vox_voxel, dot_max);
 
     for (i=0; i<VOX_N; i++)
     {
@@ -600,7 +600,7 @@ delete_from_dense_stripe (struct vox_node *tree, const vox_dot voxel)
         tree->bounding_box.min[idx] += vox_voxel[idx];
         return tree;
     }
-    sum_vector (voxel, vox_voxel, other_side);
+    vox_sum_vector (voxel, vox_voxel, other_side);
     // First special case. Delete "rightmost" voxel.
     if (vox_dot_equalp (tree->bounding_box.max, other_side))
     {
@@ -652,7 +652,7 @@ static struct vox_node* __attribute__((noinline))
     // No, special case 1, deletion of "leftmost" voxel.
     if (vox_dot_equalp (tree->bounding_box.min, voxel))
     {
-        sum_vector (voxel, vox_voxel, other_side);
+        vox_sum_vector (voxel, vox_voxel, other_side);
         // Create 1 inner node.
         node = node_alloc (0);
         inner = &(node->data.inner);

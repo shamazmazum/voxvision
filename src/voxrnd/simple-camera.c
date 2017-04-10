@@ -65,7 +65,7 @@ static int simple_move_camera (struct vox_camera *cam, vox_dot delta)
     struct vox_simple_camera *camera = (void*)cam;
     vox_rotate_vector (camera->rotation, delta, delta);
     vox_dot new_pos;
-    sum_vector (camera->position, delta, new_pos);
+    vox_sum_vector (camera->position, delta, new_pos);
 
     int res = 0;
     if (camera->ctx != NULL)
