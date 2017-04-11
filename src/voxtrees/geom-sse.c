@@ -72,27 +72,24 @@ int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir,
         return 1;
     }
     __v4sf d = _mm_load_ps (dir);
-    __v4sf dist = sub / d;
+    __v4sf mask = d == _mm_set_ps1(0);
 
-    // Get rid of NaNs (they can appear if d == 0)
-    __v4sf mask = _mm_cmpunord_ps (dist, dist);
-    __v4sf zeros = _mm_set_ps1 (0);
-    __v4sf dist_nonans = _mm_blendv_ps (dist, zeros, mask);
+    // Replace NaNs (they can appear if d == 0) with zeros
+    __v4sf dist = _mm_blendv_ps (sub / d, _mm_set_ps1(0), mask);
 
     // Find the maximum distance
-    __v4sf max1 = _mm_shuffle_ps (dist_nonans, dist_nonans, _MM_SHUFFLE (3, 1, 0, 2));
-    __v4sf max2 = _mm_shuffle_ps (dist_nonans, dist_nonans, _MM_SHUFFLE (3, 0, 2, 1));
-    max1 = _mm_max_ps (dist_nonans, max1);
-    max2 = _mm_max_ps (dist_nonans, max2);
+    __v4sf max1 = _mm_shuffle_ps (dist, dist, _MM_SHUFFLE (3, 1, 0, 2));
+    __v4sf max2 = _mm_shuffle_ps (dist, dist, _MM_SHUFFLE (3, 0, 2, 1));
+    max1 = _mm_max_ps (dist, max1);
+    max2 = _mm_max_ps (dist, max2);
     max1 = _mm_max_ps (max1, max2);
     if (max1[0] <= 0) return 0;
 
     // Calculate hit point
-    __v4sf hit = max1*d + o;
+    __v4sf hit = _mm_blendv_ps (max1 * d + o, fit, max1 == dist);
     __v4sf lt = hit < _mm_load_ps (box->min);
     __v4sf gt = hit > _mm_load_ps (box->max);
     __v4sf outside = _mm_or_ps (lt, gt);
-    outside = _mm_andnot_ps(max1 == dist_nonans, outside);
     if (mask_bits_set (outside)) return 0;
     _mm_store_ps (res, hit);
     return 1;
