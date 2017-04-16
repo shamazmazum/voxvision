@@ -871,3 +871,10 @@ void vox_dump_tree (const struct vox_node *tree)
         }
     }
 }
+
+void vox_set_voxel_size (float x, float y, float z)
+{
+    vox_voxel[0] = x;
+    vox_voxel[1] = y;
+    vox_voxel[2] = z;
+}

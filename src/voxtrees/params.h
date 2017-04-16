@@ -37,4 +37,12 @@
 **/
 extern vox_dot vox_voxel;
 
+/**
+   \brief Set sides of a voxel.
+
+   This is merely a helper function. You can alter the sides by writing to
+   vox_voxel directly.
+**/
+void vox_set_voxel_size (float x, float y, float z);
+
 #endif
