@@ -48,7 +48,7 @@ static int dot_betweenp (const struct vox_box *box, const vox_dot dot)
     return 1;
 }
 
-static int vect_eq (vox_dot v1, vox_dot v2)
+static int vect_eq (const vox_dot v1, const vox_dot v2)
 {
     int i;
     float mdiff = PREC;
@@ -62,7 +62,7 @@ static int vect_eq (vox_dot v1, vox_dot v2)
     else return 0;
 }
 
-static int quat_eq (vox_quat v1, vox_quat v2)
+static int quat_eq (const vox_quat v1, const vox_quat v2)
 {
     int i;
     float mdiff = PREC;
@@ -74,6 +74,18 @@ static int quat_eq (vox_quat v1, vox_quat v2)
 
     if (mdiff <= PREC) return 1;
     else return 0;
+}
+
+static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot target)
+{
+    float t = (target[0] - origin[0])/dir[0];
+    CU_ASSERT (t >= 0);
+    vox_dot res;
+    res[0] = target[0];
+    res[1] = dir[1]*t + origin[1];
+    res[2] = dir[2]*t + origin[2];
+
+    return vect_eq (target, res);
 }
 
 static void test_rotation_around_itself ()
@@ -679,6 +691,22 @@ static void test_simp_camera ()
     camera->iface->destroy_camera (camera);
 }
 
+static void test_camera_look_at ()
+{
+    vox_dot pos = {-100, 20, -20};
+    vox_dot look_at = {0,0,0};
+    vox_dot dir;
+
+    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    camera->iface->set_window_size (camera, 100, 100);
+    camera->iface->set_position (camera, pos);
+    camera->iface->look_at (camera, look_at);
+    camera->iface->screen2world (camera, dir, 50, 50);
+
+    CU_ASSERT (hit_dot (pos, dir, look_at));
+    camera->iface->destroy_camera (camera);
+}
+
 static void test_camera_class_coercion ()
 {
     vox_dot pos = {10,110,1110}, newpos;
@@ -765,6 +793,9 @@ int main ()
     if (vox_suite == NULL) PROC_SUIT_ERROR;
 
     test = CU_add_test (rnd_suite, "Simple camera", test_simp_camera);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (rnd_suite, "Simple camera look_at test", test_camera_look_at);
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (rnd_suite, "Camera class coercion", test_camera_class_coercion);

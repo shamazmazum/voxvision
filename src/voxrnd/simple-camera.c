@@ -110,6 +110,41 @@ static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
     vox_quat_mul (r[2], r[0], camera->rotation);
 }
 
+static void simple_look_at (struct vox_camera *cam, vox_dot coord)
+{
+    struct vox_simple_camera *camera = (void*)cam;
+
+    vox_dot sub;
+    float phi, psi, sinpsi, cospsi;
+    int i;
+    vox_dot xort = {1, 0, 0};
+
+    /*
+      First of all, we assume that initial rotation quaternion is {1,0,0,0}, in
+      other words, no rotation. We rotate camera around its Z axis which at this
+      point is the same as the world Z axis.
+    */
+    vox_dot_sub (camera-> position, coord, sub);
+    phi = atan2f (sub[1], sub[0])/2 - M_PI_4;
+    vox_quat q1 = {cosf(phi), 0, 0, sinf(phi)};
+
+    /*
+      Now we rotate around camera's X axis. After the first rotation it does no
+      coincide with the world's X axis. So we find X unit vector (xort) first,
+      and then perform rotation around this unit vector.
+    */
+    psi = - M_PI_4 - atan2f (sqrtf (sub[0]*sub[0] + sub[1]*sub[1]), sub[2])/2;
+    vox_rotate_vector (q1, xort, xort);
+    sinpsi = sinf(psi);
+    cospsi = cosf(psi);
+    vox_quat q2;
+    for (i=0; i<3; i++) q2[i+1] = sinpsi*xort[i];
+    q2[0] = cospsi;
+
+    // The resulting rotation is multiplication of previous rotations.
+    vox_quat_mul (q2, q1, camera->rotation);
+}
+
 static void simple_set_window_size (struct vox_camera *cam, int w, int h)
 {
     struct vox_simple_camera *camera = (void*)cam;
@@ -188,6 +223,7 @@ static struct vox_camera_interface vox_simple_camera_interface =
     .set_rot_angles = simple_set_rot_angles,
     .move_camera = simple_move_camera,
     .rotate_camera = simple_rotate_camera,
+    .look_at = simple_look_at,
     .set_window_size = simple_set_window_size,
     .construct_camera = simple_construct_camera,
     .destroy_camera = simple_destroy_camera,

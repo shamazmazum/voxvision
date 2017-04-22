@@ -54,6 +54,14 @@ struct vox_camera_interface
               contain 3 elements.
     */
 
+    void (*look_at) (struct vox_camera *camera, vox_dot coord);
+    /**<
+       \brief Look at the object.
+
+       Turn the camera so that the object with given coordinates will be in
+       center of the screen.
+    */
+
     /*
      * --------------
      * Setters/getters
@@ -90,14 +98,14 @@ struct vox_camera_interface
        \brief Get field of view.
     **/
 
+    /*
+     * 64 byte border. Rarely used methods are below this line.
+     */
+
     void (*set_fov) (struct vox_camera *camera, float fov);
     /**<
        \brief Set field of view.
     **/
-
-    /*
-     * 64 byte border. Rarely used methods are below this line.
-     */
 
     void (*set_window_size) (struct vox_camera *camera, int w, int h);
     /**<
