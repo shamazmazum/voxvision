@@ -2,12 +2,6 @@
 #include "geom.h"
 
 #ifndef SSE_INTRIN
-void vox_sum_vector (const vox_dot a, const vox_dot b, vox_dot res)
-{
-    int i;
-    for (i=0; i<VOX_N; i++) res[i] = a[i] + b[i];
-}
-
 int voxel_in_box (const struct vox_box *box, const vox_dot dot)
 {
     int i;

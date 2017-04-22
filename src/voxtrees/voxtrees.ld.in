@@ -17,7 +17,6 @@ VOXTREES_@voxvision_VERSION@ {
             vox_sqr_metric;
             voxtrees_print_statistics;
             voxtrees_clear_statistics;
-            vox_sum_vector;
             vox_set_voxel_size;
 # FIXME: Used only for tests:
             get_subspace_idx;
