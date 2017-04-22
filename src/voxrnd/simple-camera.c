@@ -157,7 +157,7 @@ static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
         memset (camera->position, 0, sizeof (vox_dot));
         camera->fov = 1.0;
         camera->body_radius = 50;
-        memset (camera->rotation, 0, 3*sizeof(float));
+        memset (camera->rotation, 0, sizeof (vox_quat));
         camera->rotation[0] = 1;
         camera->xmul = 0; camera->ymul = 0;
     }
