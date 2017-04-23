@@ -9,11 +9,10 @@
 #include "params.h"
 
 /**
-   \brief Add one vector to another.
+   \brief Vector addition
 **/
 #ifdef SSE_INTRIN
 #define vox_dot_add(a,b,res) _mm_store_ps ((res), _mm_load_ps (a) + _mm_load_ps (b))
-#define vox_dot_sub(a,b,res) _mm_store_ps ((res), _mm_load_ps (a) - _mm_load_ps (b))
 #else
 #define vox_dot_add(a,b,res) do { \
     res[0] = a[0] + b[0]; \
@@ -21,6 +20,14 @@
     res[2] = a[2] + b[2]; \
     } \
     while (0);
+#endif
+
+/**
+   \brief Vector subtraction
+**/
+#ifdef SSE_INTRIN
+#define vox_dot_sub(a,b,res) _mm_store_ps ((res), _mm_load_ps (a) - _mm_load_ps (b))
+#else
 #define vox_dot_sub(a,b,res) do { \
     res[0] = a[0] - b[0]; \
     res[1] = a[1] - b[1]; \
