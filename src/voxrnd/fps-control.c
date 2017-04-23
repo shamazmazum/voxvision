@@ -13,9 +13,12 @@
  */
 vox_fps_controller_t vox_make_fps_controller (int fps)
 {
-    __block struct vox_fps_info fps_info;
-    memset (&fps_info, 0, sizeof (struct vox_fps_info));
-    fps_info.total_time = SDL_GetTicks();
+    __block unsigned int counter = 0;
+    __block int delay = 0;
+    __block unsigned int actual_fps = 0;
+    __block Uint32 total_time = SDL_GetTicks();
+    __block Uint32 current_time = total_time;
+
     vox_fps_controller_t controller = ^{
         /*
          * Call this block in a loop in the main thread.
@@ -23,35 +26,39 @@ vox_fps_controller_t vox_make_fps_controller (int fps)
          */
         long delta, tmp;
         Uint32 new_time;
+        Uint32 frame_time;
+        struct vox_fps_info fps_info;
+        unsigned int updated = 0;
 
-        fps_info.trigger = 0;
-        fps_info.counter++;
-        SDL_Delay ((Uint32)fps_info.delay);
+        counter++;
+        SDL_Delay ((Uint32)delay);
         new_time = SDL_GetTicks();
-        fps_info.frame_time = new_time - fps_info.current_time;
+        frame_time = new_time - current_time;
 
         if (fps)
         {
-            delta = fps_info.frame_time - fps_info.delay;
-            tmp = (1<<16) - (fps<<16)*(long)fps_info.frame_time/1000;
+            delta = frame_time - delay;
+            tmp = (1<<16) - (fps<<16)*(long)frame_time/1000;
             delta *= tmp;
             tmp = delta >> 16;
             if (tmp == 0) delta >>= 15;
             else delta = tmp;
-            fps_info.delay += (int)delta;
-            if (fps_info.delay < 0) fps_info.delay = 0;
+            delay += (int)delta;
+            if (delay < 0) delay = 0;
         }
 
-        if (new_time - fps_info.total_time > 1000)
+        if (new_time - total_time > 1000)
         {
-            fps_info.fps = fps_info.counter;
-            fps_info.counter = 0;
-            fps_info.total_time = new_time;
-            fps_info.trigger = 1;
+            actual_fps = counter;
+            counter = 0;
+            total_time = new_time;
+            updated = 1;
         }
-        fps_info.current_time = SDL_GetTicks();
+        current_time = SDL_GetTicks();
 
-        return &fps_info;
+        fps_info.status = vox_fpsstatus (actual_fps, updated);
+        fps_info.frame_time = frame_time;
+        return fps_info;
     };
 
     return Block_copy (controller);

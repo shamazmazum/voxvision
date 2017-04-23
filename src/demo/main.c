@@ -406,8 +406,9 @@ int main (int argc, char *argv[])
         camera->iface->rotate_camera (camera, rot_delta);
         camera->iface->move_camera (camera, step);
 
-        struct vox_fps_info *fps_info = fps_controller();
-        if (fps_info->trigger) printf ("Frames per second: %i\n", fps_info->fps);
+        struct vox_fps_info fps_info = fps_controller();
+        if (vox_fpsstatus_updated (fps_info.status))
+            printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
     }
 
 end:

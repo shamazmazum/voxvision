@@ -16,7 +16,7 @@ struct vox_engine {
     struct vox_camera *camera;
     struct vox_node *tree;
     struct vox_rnd_ctx *ctx;
-    struct vox_fps_info *fps_info;
+    struct vox_fps_info fps_info;
 
     lua_State *L;
     int width, height;
@@ -34,7 +34,7 @@ struct vox_engine {
     struct vox_camera *camera;
     struct vox_node *tree;
     struct vox_rnd_ctx *ctx;
-    struct vox_fps_info *fps_info;
+    struct vox_fps_info fps_info;
 };
 #endif /* VOXENGINE_SOURCE */
 

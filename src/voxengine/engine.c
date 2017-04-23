@@ -141,7 +141,7 @@ static void execute_tick (struct vox_engine *engine)
     lua_pushvalue (L, 1);
     lua_pushvalue (L, 2);
     lua_pushnumber (L, SDL_GetTicks());
-    lua_pushnumber (L, engine->fps_info->frame_time);
+    lua_pushnumber (L, engine->fps_info.frame_time);
     if (lua_pcall (L, 4, 0, 0))
         luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
     lua_pop (L, 1);
