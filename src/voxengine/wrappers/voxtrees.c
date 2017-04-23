@@ -4,11 +4,7 @@
 #include <voxtrees.h>
 #include <stdlib.h>
 #include <strings.h>
-
-struct nodedata
-{
-    struct vox_node *node;
-};
+#include <modules.h>
 
 static int newtree (lua_State *L)
 {

@@ -4,12 +4,7 @@
 #include <voxrnd.h>
 #include <stdlib.h>
 #include <strings.h>
-
-struct cameradata
-{
-    struct vox_camera *camera;
-    struct vox_camera_interface *iface;
-};
+#include <modules.h>
 
 static int get_position (lua_State *L)
 {
