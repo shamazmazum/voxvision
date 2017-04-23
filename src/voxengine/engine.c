@@ -2,9 +2,6 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
-#include <voxtrees.h>
-#include <voxrnd.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -14,25 +11,6 @@
 
 #include <modules.h>
 #include "engine.h"
-
-struct vox_engine
-{
-    lua_State *L;
-    int width, height;
-    const char *script;
-
-    struct vox_camera *camera;
-    struct vox_node *tree;
-    struct vox_rnd_ctx *ctx;
-
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
-    SDL_Surface *surface;
-    vox_fps_controller_t fps_controller;
-
-    float frame_time;
-};
 
 static int engine_panic (lua_State *L)
 {
@@ -163,7 +141,7 @@ static void execute_tick (struct vox_engine *engine)
     lua_pushvalue (L, 1);
     lua_pushvalue (L, 2);
     lua_pushnumber (L, SDL_GetTicks());
-    lua_pushnumber (L, engine->frame_time);
+    lua_pushnumber (L, engine->fps_info->frame_time);
     if (lua_pcall (L, 4, 0, 0))
         luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
     lua_pop (L, 1);
@@ -291,18 +269,12 @@ bad:
 
 void vox_engine_tick (struct vox_engine *engine)
 {
-    struct vox_fps_info *fps_info;
-
     vox_render (engine->ctx);
     SDL_UpdateTexture (engine->texture, NULL, engine->surface->pixels, engine->surface->pitch);
     SDL_FillRect (engine->surface, NULL, 0);
     SDL_RenderCopy (engine->renderer, engine->texture, NULL, NULL);
     SDL_RenderPresent (engine->renderer);
-
-    fps_info = engine->fps_controller();
-    // FIXME: let it be verbose by now
-    engine->frame_time = fps_info->frame_time;
-    if (fps_info->trigger) printf ("Frames per second: %i\n", fps_info->fps);
+    engine->fps_info = engine->fps_controller();
 
     execute_tick (engine);
     assert (lua_gettop (engine->L) == 2);
