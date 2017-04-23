@@ -98,20 +98,16 @@ static void prepare_safe_environment (lua_State *L)
     lua_getglobal (L, "pairs");
     lua_setfield (L, -2, "pairs");
 
-    if (luaL_loadstring (L, "require \"math\"") || lua_pcall (L, 0, 0, 0))
+    if (luaL_loadstring (L, "return require \"math\"") || lua_pcall (L, 0, 1, 0))
         luaL_error (L, "Cannot load math module");
 
-    lua_getglobal (L, "package");
-    lua_getfield (L, -1, "loaded");
-    lua_getfield (L, -1, "math");
-
     lua_getfield (L, -1, "sin");
-    lua_setfield (L, -5, "sin");
+    lua_setfield (L, -3, "sin");
 
     lua_getfield (L, -1, "cos");
-    lua_setfield (L, -5, "cos");
+    lua_setfield (L, -3, "cos");
 
-    lua_pop (L, 3);
+    lua_pop (L, 1);
 }
 
 static void initialize_lua (struct vox_engine *engine)
