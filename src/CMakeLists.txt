@@ -11,5 +11,12 @@ else (INIPARSER_FOUND)
 message (WARNING "Iniparser was not found. Will not build demo application.")
 endif (INIPARSER_FOUND)
 
+if (LUA_FOUND AND LUA_VERSION_MAJOR EQUAL 5 AND LUA_VERSION_MINOR GREATER 1)
+message (STATUS "Lua version OK.")
+add_subdirectory (voxengine)
+else (LUA_FOUND AND LUA_VERSION_MAJOR EQUAL 5 AND LUA_VERSION_MINOR GREATER 1)
+message (WARNING "Lua was not found. Will not build lua engine.")
+endif (LUA_FOUND AND LUA_VERSION_MAJOR EQUAL 5 AND LUA_VERSION_MINOR GREATER 1)
+
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/voxvision.h voxtrees.h voxrnd.h
          DESTINATION include/voxvision)

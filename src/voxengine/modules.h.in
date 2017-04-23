@@ -1,0 +1,1 @@
+#define LUA_MODULE_PATH "@voxengine_module_path@/"
