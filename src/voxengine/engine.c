@@ -30,6 +30,8 @@ struct vox_engine
     SDL_Texture *texture;
     SDL_Surface *surface;
     vox_fps_controller_t fps_controller;
+
+    float frame_time;
 };
 
 static int engine_panic (lua_State *L)
@@ -128,6 +130,27 @@ static void initialize_lua (struct vox_engine *engine)
                     lua_tostring (L, -1));
 }
 
+static void execute_tick (struct vox_engine *engine)
+{
+    lua_State *L = engine->L;
+
+    lua_getglobal (L, "voxvision");
+    lua_getfield (L, -1, "tick");
+
+    if (!lua_isfunction (L, -1))
+        luaL_error (L, "tick is not a function: %s", lua_tostring (L, -1));
+
+    set_safe_environment (L);
+
+    // Copy the tree and the camera
+    lua_pushvalue (L, 1);
+    lua_pushvalue (L, 2);
+    lua_pushnumber (L, engine->frame_time);
+    if (lua_pcall (L, 3, 0, 0))
+        luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
+    lua_pop (L, 1);
+}
+
 static void execute_init (struct vox_engine *engine)
 {
     lua_State *L = engine->L;
@@ -136,7 +159,7 @@ static void execute_init (struct vox_engine *engine)
     lua_getfield (L, -1, "init");
 
     if (!lua_isfunction (L, -1))
-        luaL_error (L, "init is not a function %s", lua_tostring (L, -1));
+        luaL_error (L, "init is not a function: %s", lua_tostring (L, -1));
 
     set_safe_environment (L);
 
@@ -145,7 +168,7 @@ static void execute_init (struct vox_engine *engine)
 
     struct nodedata *ndata = luaL_checkudata (L, -2, "voxtrees.vox_node");
     struct cameradata *cdata = luaL_checkudata (L, -1, "voxrnd.camera");
-    lua_pop (L, 3);
+    lua_remove (L, 1);
 
     engine->camera = cdata->camera;
     engine->tree = ndata->node;
@@ -198,7 +221,7 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
     initialize_lua (engine);
     assert (lua_gettop (engine->L) == 0);
     execute_init (engine);
-    assert (lua_gettop (engine->L) == 0);
+    assert (lua_gettop (engine->L) == 2);
 
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -260,7 +283,11 @@ void vox_engine_tick (struct vox_engine *engine)
 
     fps_info = engine->fps_controller();
     // FIXME: let it be verbose by now
+    engine->frame_time = fps_info->frame_time;
     if (fps_info->trigger) printf ("Frames per second: %i\n", fps_info->fps);
+
+    execute_tick (engine);
+    assert (lua_gettop (engine->L) == 2);
 }
 
 void vox_destroy_engine (struct vox_engine *engine)
