@@ -53,7 +53,7 @@ static void usage()
     fprintf (stderr, "Usase: <program> [-w width] [-h height] -s script [rest]\n");
 }
 
-static int load_module (lua_State *L, const char *modname)
+static void load_module (lua_State *L, const char *modname)
 {
     char path[MAXPATHLEN];
     char init[MAXPATHLEN];
@@ -63,26 +63,17 @@ static int load_module (lua_State *L, const char *modname)
     strcat (path, ".so");
 
     void *handle = dlopen (path, RTLD_LAZY | RTLD_NODELETE);
-    if (handle == NULL)
-    {
-        fprintf (stderr, "Cannot open lua module %s\n", path);
-        return 1;
-    }
+    if (handle == NULL) luaL_error (L, "Cannot open lua module %s", path);
 
     strcpy (init, "luaopen_");
     strcat (init, modname);
 
     void *init_func = dlsym (handle, init);
-    if (init_func == NULL)
-    {
-        fprintf (stderr, "Cannot cannot find initfunction %s\n", init);
-        return 1;
-    }
+    if (init_func == NULL) luaL_error (L, "Cannot cannot find initfunction %s", init);
 
     luaL_requiref (L, modname, init_func, 0);
     // Copy table in our environment
     lua_setfield (L, -2, modname);
-    return 0;
 }
 
 static void set_safe_environment (lua_State *L)
@@ -93,7 +84,7 @@ static void set_safe_environment (lua_State *L)
     lua_setupvalue (L, -2, 1);
 }
 
-static int initialize_lua (struct vox_engine *engine)
+static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
     engine->L = L;
@@ -111,8 +102,8 @@ static int initialize_lua (struct vox_engine *engine)
     lua_pushvalue (L, -1);
     lua_setglobal (L, "voxvision");
 
-    if (load_module (L, "voxtrees")) return 1;
-    if (load_module (L, "voxrnd")) return 1;
+    load_module (L, "voxtrees");
+    load_module (L, "voxrnd");
 
     // Also add some safe functions
     lua_getglobal (L, "print");
@@ -126,25 +117,18 @@ static int initialize_lua (struct vox_engine *engine)
     lua_pop (L, 1);
 
     if (luaL_loadfile (L, engine->script))
-    {
-        fprintf (stderr, "Error loading script %s\n", engine->script);
-        return 1;
-    }
+        luaL_error (L, "Error loading script %s", engine->script);
     set_safe_environment (L);
 
     if ((res = lua_pcall (L, 0, 0, 0)))
-    {
-        fprintf (stderr,
-                 "Error executing script %s\n"
-                 "%s\n",
-                 engine->script,
-                 lua_tostring (L, -1));
-        return 1;
-    }
-    return 0;
+        luaL_error (L,
+                    "Error executing script %s\n"
+                    "%s",
+                    engine->script,
+                    lua_tostring (L, -1));
 }
 
-static int execute_init (struct vox_engine *engine)
+static void execute_init (struct vox_engine *engine)
 {
     lua_State *L = engine->L;
 
@@ -152,20 +136,12 @@ static int execute_init (struct vox_engine *engine)
     lua_getfield (L, -1, "init");
 
     if (!lua_isfunction (L, -1))
-    {
-        fprintf (stderr, "init is not a function %s\n", lua_tostring (L, -1));
-        return 1;
-    }
+        luaL_error (L, "init is not a function %s", lua_tostring (L, -1));
 
     set_safe_environment (L);
 
     if (lua_pcall (L, 0, 2, 0))
-    {
-        fprintf (stderr,
-                 "Error executing init function: %s\n",
-                 lua_tostring (L, -1));
-        return 1;
-    }
+        luaL_error (L, "Error executing init function: %s", lua_tostring (L, -1));
 
     struct nodedata *ndata = luaL_checkudata (L, -2, "voxtrees.vox_node");
     struct cameradata *cdata = luaL_checkudata (L, -1, "voxrnd.camera");
@@ -173,8 +149,6 @@ static int execute_init (struct vox_engine *engine)
 
     engine->camera = cdata->camera;
     engine->tree = ndata->node;
-
-    return 0;
 }
 
 struct vox_engine* vox_create_engine (int *argc, char **argv[])
@@ -221,9 +195,9 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
     engine->height = height;
     engine->script = script;
 
-    if (initialize_lua (engine)) goto bad;
+    initialize_lua (engine);
     assert (lua_gettop (engine->L) == 0);
-    if (execute_init (engine)) goto bad;
+    execute_init (engine);
     assert (lua_gettop (engine->L) == 0);
 
     // Init SDL
