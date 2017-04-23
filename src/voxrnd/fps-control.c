@@ -1,5 +1,5 @@
-#include <SDL2/SDL.h>
 #include <Block.h>
+#include <strings.h>
 #include "fps-control.h"
 
 /*
@@ -13,46 +13,45 @@
  */
 vox_fps_controller_t vox_make_fps_controller (int fps)
 {
-    __block Uint32 total_time = SDL_GetTicks();
-    __block Uint32 frame_time = total_time;
-    __block int counter = 0;
-    __block int delay = 0;
+    __block struct vox_fps_info fps_info;
+    memset (&fps_info, 0, sizeof (struct vox_fps_info));
+    fps_info.total_time = SDL_GetTicks();
     vox_fps_controller_t controller = ^{
         /*
          * Call this block in a loop in the main thread.
-         * It will put a rendering loop to sleep when needed
-         * and also return fps count each second.
+         * It will put a rendering loop to sleep when needed.
          */
-        int actual_fps = 0;
         long delta, tmp;
         Uint32 new_time;
 
-        counter++;
-        SDL_Delay ((Uint32)delay);
+        fps_info.trigger = 0;
+        fps_info.counter++;
+        SDL_Delay ((Uint32)fps_info.delay);
         new_time = SDL_GetTicks();
+        fps_info.frame_time = new_time - fps_info.current_time;
 
         if (fps)
         {
-            frame_time = new_time - frame_time;
-            delta = frame_time - delay;
-            tmp = (1<<16) - (fps<<16)*(long)frame_time/1000;
+            delta = fps_info.frame_time - fps_info.delay;
+            tmp = (1<<16) - (fps<<16)*(long)fps_info.frame_time/1000;
             delta *= tmp;
             tmp = delta >> 16;
             if (tmp == 0) delta >>= 15;
             else delta = tmp;
-            delay += (int)delta;
-            if (delay < 0) delay = 0;
+            fps_info.delay += (int)delta;
+            if (fps_info.delay < 0) fps_info.delay = 0;
         }
 
-        if (new_time - total_time > 1000)
+        if (new_time - fps_info.total_time > 1000)
         {
-            actual_fps = counter;
-            counter = 0;
-            total_time = new_time;
+            fps_info.fps = fps_info.counter;
+            fps_info.counter = 0;
+            fps_info.total_time = new_time;
+            fps_info.trigger = 1;
         }
-        frame_time = SDL_GetTicks();
+        fps_info.current_time = SDL_GetTicks();
 
-        return actual_fps;
+        return &fps_info;
     };
 
     return Block_copy (controller);
