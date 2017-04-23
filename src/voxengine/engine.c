@@ -86,6 +86,34 @@ static void set_safe_environment (lua_State *L)
     lua_setupvalue (L, -2, 1);
 }
 
+static void prepare_safe_environment (lua_State *L)
+{
+    // Our environment is on top of the stack
+    lua_getglobal (L, "print");
+    lua_setfield (L, -2, "print");
+
+    lua_getglobal (L, "ipairs");
+    lua_setfield (L, -2, "ipairs");
+
+    lua_getglobal (L, "pairs");
+    lua_setfield (L, -2, "pairs");
+
+    if (luaL_loadstring (L, "require \"math\"") || lua_pcall (L, 0, 0, 0))
+        luaL_error (L, "Cannot load math module");
+
+    lua_getglobal (L, "package");
+    lua_getfield (L, -1, "loaded");
+    lua_getfield (L, -1, "math");
+
+    lua_getfield (L, -1, "sin");
+    lua_setfield (L, -5, "sin");
+
+    lua_getfield (L, -1, "cos");
+    lua_setfield (L, -5, "cos");
+
+    lua_pop (L, 3);
+}
+
 static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
@@ -108,14 +136,7 @@ static void initialize_lua (struct vox_engine *engine)
     load_module (L, "voxrnd");
 
     // Also add some safe functions
-    lua_getglobal (L, "print");
-    lua_setfield (L, -2, "print");
-
-    lua_getglobal (L, "ipairs");
-    lua_setfield (L, -2, "ipairs");
-
-    lua_getglobal (L, "pairs");
-    lua_setfield (L, -2, "pairs");
+    prepare_safe_environment (L);
     lua_pop (L, 1);
 
     if (luaL_loadfile (L, engine->script))
@@ -145,8 +166,9 @@ static void execute_tick (struct vox_engine *engine)
     // Copy the tree and the camera
     lua_pushvalue (L, 1);
     lua_pushvalue (L, 2);
+    lua_pushnumber (L, SDL_GetTicks());
     lua_pushnumber (L, engine->frame_time);
-    if (lua_pcall (L, 3, 0, 0))
+    if (lua_pcall (L, 4, 0, 0))
         luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
     lua_pop (L, 1);
 }
