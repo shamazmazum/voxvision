@@ -23,7 +23,7 @@ static void usage()
     fprintf (stderr, "Usase: <program> [-w width] [-h height] -s script [rest]\n");
 }
 
-static int load_module (struct vox_engine *engine, const char *modname)
+static int load_module (lua_State *L, const char *modname)
 {
     char path[MAXPATHLEN];
     char init[MAXPATHLEN];
@@ -49,10 +49,18 @@ static int load_module (struct vox_engine *engine, const char *modname)
         return 1;
     }
 
-    luaL_requiref (engine->L, modname, init_func, 0);
+    luaL_requiref (L, modname, init_func, 0);
     // Copy table in our environment
-    lua_setfield (engine->L, -2, modname);
+    lua_setfield (L, -2, modname);
     return 0;
+}
+
+// Function is on top of the stack
+static void set_safe_environment (lua_State *L)
+{
+    lua_getglobal (L, "voxvision");
+    // FIXME: _ENV is upvalue #1
+    lua_setupvalue (L, -2, 1);
 }
 
 static int initialize_lua (struct vox_engine *engine)
@@ -68,8 +76,8 @@ static int initialize_lua (struct vox_engine *engine)
     lua_pushvalue (L, -1);
     lua_setglobal (L, "voxvision");
 
-    if (load_module (engine, "voxtrees")) return 1;
-    if (load_module (engine, "voxrnd")) return 1;
+    if (load_module (L, "voxtrees")) return 1;
+    if (load_module (L, "voxrnd")) return 1;
 
     // Also add some safe functions
     lua_getglobal (L, "print");
@@ -86,11 +94,7 @@ static int initialize_lua (struct vox_engine *engine)
         fprintf (stderr, "Error loading script %s\n", engine->script);
         return 1;
     }
-
-    // Swap function and the environment
-    lua_insert (L, -2);
-    // FIXME: Is upvalue#1 the _ENV?
-    lua_setupvalue(L, -2, 1);
+    set_safe_environment (L);
 
     if ((res = lua_pcall (L, 0, 0, 0)))
     {
