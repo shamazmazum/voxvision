@@ -197,7 +197,7 @@ static int destroydotset (lua_State *L)
     struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
     free (set->array);
 
-    return 1;
+    return 0;
 }
 
 static int lengthdotset (lua_State *L)
