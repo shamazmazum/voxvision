@@ -108,9 +108,7 @@ static const struct luaL_Reg tree_methods [] = {
     {"__gc", destroytree},
     {"insert", inserttree},
     {"delete", deletetree},
-#if 0
     {"rebuild", rebuildtree},
-#endif
     {"bounding_box", bbtree},
     {NULL, NULL}
 };
