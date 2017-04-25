@@ -115,7 +115,8 @@ static void initialize_lua (struct vox_engine *engine)
     lua_pop (L, 1);
 
     if (luaL_loadfile (L, engine->script))
-        luaL_error (L, "Error loading script %s", engine->script);
+        luaL_error (L, "Error loading script %s: %s", engine->script,
+                    lua_tostring (L, -1));
     set_safe_environment (L);
 
     if ((res = lua_pcall (L, 0, 0, 0)))
