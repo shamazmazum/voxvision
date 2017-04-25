@@ -125,7 +125,7 @@ static void simple_look_at (struct vox_camera *cam, vox_dot coord)
       point is the same as the world Z axis.
     */
     vox_dot_sub (camera-> position, coord, sub);
-    phi = atan2f (sub[1], sub[0])/2 - M_PI_4;
+    phi = -atan2f (sub[0], sub[1])/2;
     vox_quat q1 = {cosf(phi), 0, 0, sinf(phi)};
 
     /*
@@ -133,7 +133,7 @@ static void simple_look_at (struct vox_camera *cam, vox_dot coord)
       coincide with the world's X axis. So we find X unit vector (xort) first,
       and then perform rotation around this unit vector.
     */
-    psi = - M_PI_4 - atan2f (sqrtf (sub[0]*sub[0] + sub[1]*sub[1]), sub[2])/2;
+    psi = -atan2f (sub[2], -sqrtf (sub[0]*sub[0] + sub[1]*sub[1]))/2;
     vox_rotate_vector (q1, xort, xort);
     sinpsi = sinf(psi);
     cospsi = cosf(psi);
