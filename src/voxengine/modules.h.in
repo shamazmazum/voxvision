@@ -14,4 +14,10 @@ struct cameradata
     struct vox_camera_interface *iface;
 };
 
+struct scancodedata
+{
+    const char *key;
+    unsigned char code;
+};
+
 #endif

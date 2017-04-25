@@ -108,6 +108,7 @@ static void initialize_lua (struct vox_engine *engine)
 
     load_module (L, "voxtrees");
     load_module (L, "voxrnd");
+    load_module (L, "voxsdl");
 
     // Also add some safe functions
     prepare_safe_environment (L);
@@ -279,6 +280,7 @@ void vox_engine_tick (struct vox_engine *engine)
     SDL_RenderPresent (engine->renderer);
     engine->fps_info = engine->fps_controller();
 
+    engine->event_occured = SDL_PollEvent (&(engine->event));
     execute_tick (engine);
     assert (lua_gettop (engine->L) == 2);
 }

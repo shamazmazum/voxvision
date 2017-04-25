@@ -18,6 +18,9 @@ struct vox_engine {
     struct vox_rnd_ctx *ctx;
     struct vox_fps_info fps_info;
 
+    SDL_Event event;
+    int event_occured;
+
     lua_State *L;
     int width, height;
     const char *script;
@@ -35,6 +38,9 @@ struct vox_engine {
     struct vox_node *tree;
     struct vox_rnd_ctx *ctx;
     struct vox_fps_info fps_info;
+
+    SDL_Event event;
+    int event_occured;
 };
 #endif /* VOXENGINE_SOURCE */
 
