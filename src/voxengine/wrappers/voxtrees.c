@@ -253,13 +253,22 @@ static int read_raw_data (lua_State *L)
     const char *filename = luaL_checkstring (L, 1);
     float *dim = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     unsigned int samplesize = luaL_checkinteger (L, 3);
-    unsigned int threshold = luaL_checkinteger (L, 4);
     const char *errorstr;
     unsigned int d[3];
     d[0] = dim[0]; d[1] = dim[1]; d[2] = dim[2];
     int res;
 
-    struct vox_node *tree = vox_read_raw_data (filename, d, samplesize, threshold, &errorstr);
+    struct vox_node *tree = vox_read_raw_data (filename, d, samplesize,
+                                               ^(unsigned int sample) {
+                                                   lua_pushvalue (L, -1);
+                                                   lua_pushinteger (L, sample);
+                                                   if (lua_pcall (L, 1, 1, 0))
+                                                       luaL_error (L, "Error executing callback: %s",
+                                                                   lua_tostring (L, -1));
+                                                   int res = lua_toboolean (L, -1);
+                                                   lua_pop (L, 1);
+                                                   return res;
+                                               }, &errorstr);
     if (tree != NULL)
     {
         res = 1;

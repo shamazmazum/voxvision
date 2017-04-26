@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxrnd.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld)
 include_directories (${SDL2_INCLUDE_DIR}/..)
-add_definitions (-DVOXRND_SOURCE -fblocks)
+add_definitions (-DVOXRND_SOURCE)
 
 if (GCD_FOUND)
 include_directories (${GCD_INCLUDE_DIR})

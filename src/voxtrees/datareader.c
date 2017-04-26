@@ -8,7 +8,7 @@
 #include "datareader.h"
 
 struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
-                                    unsigned int samplesize, unsigned int threshold,
+                                    unsigned int samplesize, int (^test)(unsigned int sample),
                                     const char **error)
 {
     struct vox_node *tree = NULL;
@@ -51,7 +51,7 @@ struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
                     value |= buf[pos] << (8*l);
                     pos++;
                 }
-                if (value > threshold)
+                if (test (value))
                 {
                     array[counter][0] = i*vox_voxel[0];
                     array[counter][1] = j*vox_voxel[1];
