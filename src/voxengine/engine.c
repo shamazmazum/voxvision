@@ -281,7 +281,7 @@ void vox_engine_tick (struct vox_engine *engine)
     SDL_RenderPresent (engine->renderer);
     engine->fps_info = engine->fps_controller();
 
-    engine->event_occured = SDL_PollEvent (&(engine->event));
+    SDL_PumpEvents();
     execute_tick (engine);
     assert (lua_gettop (engine->L) == 2);
 }
