@@ -18,9 +18,7 @@
 
 #include <voxtrees.h>
 #include <voxrnd.h>
-#include "reader.h"
 #include "config.h"
-#include "error.h"
 
 /* FIXME: There is a standard POSIX way for this? */
 static int get_file_directory (const char *path, char *dir)
@@ -84,9 +82,8 @@ static void amend_box (struct vox_node **tree, vox_dot center, int size, int add
 int main (int argc, char *argv[])
 {
     int dim[3];
-    vox_dot *set;
     dictionary *cfg = NULL;
-    int fd = -1, ch, res;
+    int ch, res;
 
     struct vox_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
@@ -139,7 +136,7 @@ int main (int argc, char *argv[])
     }
     /*
       Sanity check dimensions.
-      Although this is not dangerous to have negative dimensions (read_data()
+      Although this is not dangerous to have negative dimensions (read_raw_data()
       will capture this error anyway, it's probably good idea to inform about
       malformed entry in .cfg file.
     */
@@ -198,23 +195,14 @@ int main (int argc, char *argv[])
         strncpy (dataset_path, "./", MAXPATHLEN);
     strncat (dataset_path, dataset_name, MAXPATHLEN);
 
-    fd = open (dataset_path, O_RDONLY);
-    if (fd == -1)
-    {
-        perror ("Cannot open dataset");
-        goto end;
-    }
-
     printf ("Reading raw data\n");
-    int length = read_data (fd, &set, (unsigned int*)dim, samplesize, threshold);
-    if (length == -1)
+    const char *errorstr;
+    tree = vox_read_raw_data (dataset_path, (unsigned int*)dim, samplesize, threshold, &errorstr);
+    if (tree == NULL)
     {
-        fprintf (stderr, "Cannot read dataset: %s\n", get_error_string (gerror));
+        fprintf (stderr, "Cannot read dataset: %s\n", errorstr);
         goto end;
     }
-
-    close (fd);
-    fd = -1;
 
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -223,12 +211,6 @@ int main (int argc, char *argv[])
         goto end;
     }
 
-    // Build voxel tree
-    Uint32 time = SDL_GetTicks();
-    tree = vox_make_tree (set, length);
-    printf ("Building tree (%zu voxels) took %u ms\n",
-            vox_voxels_in_tree (tree), SDL_GetTicks() - time);
-    free (set);
     voxtrees_print_statistics ();
     voxtrees_clear_statistics ();
 
@@ -413,7 +395,6 @@ int main (int argc, char *argv[])
 
 end:
     if (cfg != NULL) iniparser_freedict (cfg);
-    if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);
     if (tree != NULL) vox_destroy_tree (tree);
