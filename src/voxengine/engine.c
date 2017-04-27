@@ -34,15 +34,15 @@ static void load_module (lua_State *L, const char *modname)
     char path[MAXPATHLEN];
     char init[MAXPATHLEN];
 
-    strcpy (path, VOX_MODULE_PATH);
-    strcat (path, modname);
-    strcat (path, ".so");
+    strlcpy (path, VOX_MODULE_PATH, MAXPATHLEN);
+    strlcat (path, modname, MAXPATHLEN);
+    strlcat (path, ".so", MAXPATHLEN);
 
     void *handle = dlopen (path, RTLD_LAZY | RTLD_NODELETE);
     if (handle == NULL) luaL_error (L, "Cannot open lua module %s", path);
 
-    strcpy (init, "luaopen_");
-    strcat (init, modname);
+    strlcpy (init, "luaopen_", MAXPATHLEN);
+    strlcat (init, modname, MAXPATHLEN);
 
     void *init_func = dlsym (handle, init);
     if (init_func == NULL) luaL_error (L, "Cannot cannot find initfunction %s", init);
