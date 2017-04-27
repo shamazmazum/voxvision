@@ -30,17 +30,68 @@ struct vox_engine {
     vox_fps_controller_t fps_controller;
 };
 #else /* VOXENGINE_SOURCE */
+
+/**
+   \brief Voxengine instance.
+
+   This is a part of voxengine structure visible to user. You must create
+   voxengine with vox_create_engine.
+**/
+
 struct vox_engine {
     struct vox_camera *camera;
+    /**< \brief Camera used by an engine. */
     struct vox_node *tree;
+    /**< \brief Tree used by an engine. **/
     struct vox_rnd_ctx *ctx;
+    /**< \brief renderer context used by an engine */
     struct vox_fps_info fps_info;
+    /**< \brief FPS controller info returned after each tick */
 };
 #endif /* VOXENGINE_SOURCE */
 
+/**
+   \brief Create voxengine.
+
+   This function creates a lua engine. It parses command line arguments,
+   initializes SDL (opens window for drawing, etc.), initializes lua state, load
+   all needed modules and so on. See the main page of documentation for more
+   informantion. If successful, it will put a remaining command line argument
+   count in *argc, and remaining arguments in *argv.
+
+   \param argc pointer to argument count.
+   \param argv pointer to array of arguments.
+   \return pointer to created engine on success or NULL.
+**/
 struct vox_engine* vox_create_engine (int *argc, char **argv[]);
+
+/**
+   \brief Engine tick function.
+
+   Do an engine tick. See the main page of documentation for more
+   information. This function is usually called inside an infinite loop in the
+   main program.
+**/
 void vox_engine_tick (struct vox_engine *engine);
+
+/**
+   \brief Destroy an engine.
+**/
 void vox_destroy_engine (struct vox_engine *engine);
+
+/**
+   \brief Find a full path of a data file.
+
+   This function searches for a file in usual locations where data files can be
+   stored. These locations include system-wide voxvision data directory
+   (<install_prefix>/share/voxvision/data), user-specific data directory
+   (~/.voxvision) or a directory specified in VOXVISION_DATA environment
+   variable.
+
+   \param filename a name of the desired file.
+   \param fullpath a string where result will be stored in case of success.
+   \return 1 if the search was successful, 0 otherwise.
+**/
 int vox_find_data_file (const char *filename, char *fullpath);
 
 #endif

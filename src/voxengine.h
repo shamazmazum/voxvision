@@ -1,5 +1,5 @@
 /**
-   @file voxrnd.h
+   @file voxengine.h
    @brief All headers you need for lua engine
 **/
 #ifndef __VOXENGINE__
