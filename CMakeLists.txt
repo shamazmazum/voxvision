@@ -59,5 +59,5 @@ COMMENT "Run tests"
 )
 endif(CUNIT_FOUND)
 
-install (DIRECTORY examples/ DESTINATION share/examples/voxvision
+install (DIRECTORY data/ DESTINATION share/voxvision/data
          FILES_MATCHING PATTERN "*.cfg" PATTERN "*.dat")

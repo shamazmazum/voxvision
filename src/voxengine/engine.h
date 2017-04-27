@@ -4,12 +4,16 @@
 **/
 #ifndef ENGINE_H
 #define ENGINE_H
+#include <SDL2/SDL.h>
+
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
 #include "../voxtrees/tree.h"
 #include "../voxrnd/camera.h"
 #include "../voxrnd/fps-control.h"
 #include "../voxrnd/renderer.h"
-#include <SDL2/SDL.h>
 
 #ifdef VOXENGINE_SOURCE
 struct vox_engine {
@@ -41,5 +45,6 @@ struct vox_engine {
 struct vox_engine* vox_create_engine (int *argc, char **argv[]);
 void vox_engine_tick (struct vox_engine *engine);
 void vox_destroy_engine (struct vox_engine *engine);
+int vox_find_data_file (const char *filename, char *fullpath);
 
 #endif

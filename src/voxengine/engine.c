@@ -1,7 +1,3 @@
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -38,7 +34,7 @@ static void load_module (lua_State *L, const char *modname)
     char path[MAXPATHLEN];
     char init[MAXPATHLEN];
 
-    strcpy (path, LUA_MODULE_PATH);
+    strcpy (path, VOX_MODULE_PATH);
     strcat (path, modname);
     strcat (path, ".so");
 
@@ -109,6 +105,7 @@ static void initialize_lua (struct vox_engine *engine)
     load_module (L, "voxtrees");
     load_module (L, "voxrnd");
     load_module (L, "voxsdl");
+    load_module (L, "voxengine");
 
     // Also add some safe functions
     prepare_safe_environment (L);

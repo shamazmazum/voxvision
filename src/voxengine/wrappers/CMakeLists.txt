@@ -15,5 +15,8 @@ set_target_properties (voxrnd-wrapper PROPERTIES OUTPUT_NAME voxrnd PREFIX "")
 add_library (voxsdl-wrapper SHARED voxsdl.c)
 set_target_properties (voxsdl-wrapper PROPERTIES OUTPUT_NAME voxsdl PREFIX "")
 
-install (TARGETS voxtrees-wrapper voxrnd-wrapper voxsdl-wrapper LIBRARY
+add_library (voxengine-wrapper SHARED voxengine.c)
+set_target_properties (voxengine-wrapper PROPERTIES OUTPUT_NAME voxengine PREFIX "")
+
+install (TARGETS voxtrees-wrapper voxrnd-wrapper voxsdl-wrapper voxengine-wrapper LIBRARY
          DESTINATION share/voxvision/modules)
