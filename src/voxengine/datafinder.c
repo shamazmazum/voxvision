@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <strings.h>
 
+#include <lua.h>
+
 #include <modules.h>
 #include "engine.h"
 

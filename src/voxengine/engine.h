@@ -6,10 +6,6 @@
 #define ENGINE_H
 #include <SDL2/SDL.h>
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-
 #include "../voxtrees/tree.h"
 #include "../voxrnd/camera.h"
 #include "../voxrnd/fps-control.h"

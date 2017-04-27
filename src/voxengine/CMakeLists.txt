@@ -19,4 +19,4 @@ target_link_libraries (voxengine voxrnd voxtrees ${LUA_LIBRARIES})
 install (TARGETS voxengine LIBRARY
          DESTINATION lib)
 install (FILES engine.h
-         DESTINATION include/voxvision)
+         DESTINATION include/voxvision/voxengine)

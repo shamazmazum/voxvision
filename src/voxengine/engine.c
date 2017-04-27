@@ -1,3 +1,7 @@
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -26,7 +30,7 @@ static int engine_panic (lua_State *L)
 
 static void usage()
 {
-    fprintf (stderr, "Usase: <program> [-w width] [-h height] -s script [rest]\n");
+    fprintf (stderr, "Usase: <program> [-w width] [-h height] [-f fps] -s script [rest]\n");
 }
 
 static void load_module (lua_State *L, const char *modname)
