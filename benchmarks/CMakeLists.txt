@@ -6,6 +6,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR}/../src
                      ${CMAKE_CURRENT_SOURCE_DIR}/../src
                      ${CMAKE_CURRENT_SOURCE_DIR})
 
+add_definitions (-fblocks)
 add_subdirectory (voxtrees)
 add_subdirectory (voxrnd)
 

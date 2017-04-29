@@ -18,25 +18,7 @@
 
 #include <voxtrees.h>
 #include <voxrnd.h>
-#include "reader.h"
 #include "config.h"
-#include "error.h"
-
-/* FIXME: There is a standard POSIX way for this? */
-static int get_file_directory (const char *path, char *dir)
-{
-    ptrdiff_t len;
-    char *cursor;
-    len = stpncpy (dir, path, MAXPATHLEN) - dir;
-    cursor = dir + len;
-    while (*cursor != '/')
-    {
-        if (cursor == dir) return 0;
-        cursor--;
-    }
-    *(cursor+1) = '\0';
-    return 1;
-}
 
 static void suitable_shot_name (char *name)
 {
@@ -84,9 +66,8 @@ static void amend_box (struct vox_node **tree, vox_dot center, int size, int add
 int main (int argc, char *argv[])
 {
     int dim[3];
-    vox_dot *set;
     dictionary *cfg = NULL;
-    int fd = -1, ch, res;
+    int ch, res;
 
     struct vox_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
@@ -139,7 +120,7 @@ int main (int argc, char *argv[])
     }
     /*
       Sanity check dimensions.
-      Although this is not dangerous to have negative dimensions (read_data()
+      Although this is not dangerous to have negative dimensions (read_raw_data()
       will capture this error anyway, it's probably good idea to inform about
       malformed entry in .cfg file.
     */
@@ -194,27 +175,16 @@ int main (int argc, char *argv[])
     cfg = NULL;
 
     // Read dataset
-    if (!get_file_directory (datacfgname, dataset_path))
-        strncpy (dataset_path, "./", MAXPATHLEN);
-    strncat (dataset_path, dataset_name, MAXPATHLEN);
-
-    fd = open (dataset_path, O_RDONLY);
-    if (fd == -1)
-    {
-        perror ("Cannot open dataset");
-        goto end;
-    }
-
+    vox_find_data_file (dataset_name, dataset_path);
     printf ("Reading raw data\n");
-    int length = read_data (fd, &set, (unsigned int*)dim, samplesize, threshold);
-    if (length == -1)
+    const char *errorstr;
+    tree = vox_read_raw_data (dataset_path, (unsigned int*)dim, samplesize,
+                              ^(unsigned int sample){return sample > threshold;}, &errorstr);
+    if (tree == NULL)
     {
-        fprintf (stderr, "Cannot read dataset: %s\n", get_error_string (gerror));
+        fprintf (stderr, "Cannot read dataset: %s\n", errorstr);
         goto end;
     }
-
-    close (fd);
-    fd = -1;
 
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -223,12 +193,6 @@ int main (int argc, char *argv[])
         goto end;
     }
 
-    // Build voxel tree
-    Uint32 time = SDL_GetTicks();
-    tree = vox_make_tree (set, length);
-    printf ("Building tree (%zu voxels) took %u ms\n",
-            vox_voxels_in_tree (tree), SDL_GetTicks() - time);
-    free (set);
     voxtrees_print_statistics ();
     voxtrees_clear_statistics ();
 
@@ -284,8 +248,7 @@ int main (int argc, char *argv[])
     ctx = vox_make_renderer_context (surface, tree, camera);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
-    printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
-            "the current directory\n");
+    printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
 
     fps_controller = vox_make_fps_controller (global_settings.fps);
     while (1)
@@ -406,13 +369,13 @@ int main (int argc, char *argv[])
         camera->iface->rotate_camera (camera, rot_delta);
         camera->iface->move_camera (camera, step);
 
-        struct vox_fps_info *fps_info = fps_controller();
-        if (fps_info->trigger) printf ("Frames per second: %i\n", fps_info->fps);
+        struct vox_fps_info fps_info = fps_controller();
+        if (vox_fpsstatus_updated (fps_info.status))
+            printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
     }
 
 end:
     if (cfg != NULL) iniparser_freedict (cfg);
-    if (fd  >= 0) close (fd);
     if (ctx != NULL) free (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);
     if (tree != NULL) vox_destroy_tree (tree);

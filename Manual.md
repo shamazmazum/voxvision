@@ -242,6 +242,216 @@ available in **voxrnd** library. I'll try to make a guide for that later.
 You can get more info on camera interface in `struct vox_camera_interface`
 documentation.
 
+Voxengine
+---------
+**Voxengine** is somewhat a combine library, integrating all other libraries of
+voxvision, SDL2 and lua scripting. Creating of an engine can be done by calling
+`vox_create_engine()` like so:
+~~~~~~~~{.c}
+int main (int argc, char *argv[])
+{
+    struct vox_engine *engine = vox_create_engine (&argc, &argv);
+    if (engine != NULL) {
+        // Success
+    }
+}
+~~~~~~~~
+`vox_create_engine()` takes a liberty to process command line arguments for its
+caller and leaves pointer to unprocessed arguments back in argv, decrementing argc by
+a number of processed arguments. Currently **voxengine** understands these arguments:
+    * `-w` Sets width of created SDL screen
+    * `-h` Sets height of created SDL screen
+    * `-f` Sets desired FPS (frames per second) value
+    * `-s` Sets lua control script.
+
+The defaults are 800x600@30 fps. The only mandatory argument is `-s`. A lifecycle of
+an application which uses **voxengine** can be similar to the following:
+    1. You create an engine by calling `vox_create_engine()`.
+    2. In infinite loop you poll for SDL events using `SDL_PollEvent()`.
+    3. You call `vox_engine_tick()` to render a new frame and update the engine's state.
+    4. In case you deside to quit, jump out of the loop and call `vox_destroy_engine()`.
+
+~~~~~~~~~~~~~~~{.c}
+int main (int argc, char *argv[])
+{
+    struct vox_engine *engine = vox_create_engine (&argc, &argv);
+    if (engine == NULL) {
+        // vox_create_engine reports an error.
+        // Quit here
+        return 1;
+    }
+    while (1) {
+        vox_engine_tick (engine);
+        SDL_Event event;
+        if (SDL_PollEvent (&event)) {
+            // Process events
+        }
+        // You can also use some slots of engine which are accessible for user, like
+        // fps_info
+    }
+
+done:
+    vox_destroy_engine (engine);
+    return 0;
+}
+~~~~~~~~~~~~~~~
+
+The power of **voxengine** comes with lua. A lua control script (the one you passed
+with `-s`) is executed in protected environment and must at least contain `init`
+function. This environment includes:
+    * Standard `print` function
+    * `pairs` and `ipairs`
+    * `sin` and `cos` from math module
+    * `voxtrees`, `voxrnd` and `voxengine` modules
+
+`init` function takes no arguments and must return 2 values: a tree and a camera.
+Let's see an example:
+
+~~~~~~~~~~~~~~~{.lua}
+-- Shortcuts
+vt = voxtrees
+vr = voxrnd
+
+function init ()
+   -- 'voxelsize' function sets length of a voxel's sides
+   vt.voxelsize (vt.dot (0.25, 0.25, 0.25))
+   --[[
+   Here we create a set of dots which define voxels. This set can contain up to n
+   dots where n is an argument given to 'dotset' function.
+   ]]--
+   local a = vt.dotset(50*50*50)
+   for i = 0,50 do
+      for j = 0,50 do
+         for k = 0,50 do
+            --[[
+            'push' is the only method understood by dotset. It adds a new dot to
+            the set.
+            ]]--
+            a:push (vt.dot (i,j,k))
+         end
+      end
+   end
+   -- Now we convert this flat set to tree. This is like calling vox_new_tree() in C.
+   local t = vt.settree (a)
+   -- Print number of voxels in tree
+   print (#t)
+
+   -- Here we initialize a new simple camera
+   local camera = vr.simple_camera()
+   --[[
+   Almost all methods in vox_camera_interface structure are also present as lua
+   camera method.
+   ]]--
+   camera:set_position (vt.dot (25,-100,25))
+   camera:look_at (vt.dot (25,25,25))
+   camera:set_fov (0.45)
+
+   -- Now return the tree and the camera.
+   return t, camera
+end
+
+function tick (tree, camera, time)
+   time = time / 2000
+   local dot = vt.dot (25+125*sin(time),25-125*cos(time),25)
+   camera:set_position (dot)
+   camera:look_at (vt.dot (25,25,25))
+end
+~~~~~~~~~~~~~~~
+
+Another function seen in this example is `tick`. It is called once in the main loop
+when `vox_engine_tick()` is called and used to update the scene. Here is another
+example which brings some interaction with user:
+
+~~~~~~~~~~~~~~~{.lua}
+vt = voxtrees
+vr = voxrnd
+vs = voxsdl
+
+function init ()
+   -- You can also create an empty tree
+   local t = vt.tree()
+   -- And add a voxel to it
+   t:insert (vt.dot(0,0,0))
+
+   local camera = vr.simple_camera()
+   camera:set_position (vt.dot (0,-10,0))
+   return t, camera
+end
+
+function tick (tree, camera, time)
+   -- Here you can get the keyboard state with 'get_keyboard_state' function
+   local keystate = vs.get_keyboard_state()
+   --[[
+   You can check if a key is pressed in the following way.
+   'scancodes' table contains scancodes for keys from a to z, 0 to 9, F1 to F12 and
+   arrow keys.
+   This example implements WASD-movement and camera rotation.
+   ]]--
+   if keystate:keypressed (vs.scancodes.s) then
+      camera:move_camera (vt.dot (0,-5,0))
+   elseif keystate:keypressed (vs.scancodes.w) then
+      camera:move_camera (vt.dot (0,5,0))
+   end
+
+   if keystate:keypressed (vs.scancodes.a) then
+      camera:move_camera (vt.dot (-5,0,0))
+   elseif keystate:keypressed (vs.scancodes.d) then
+      camera:move_camera (vt.dot (5,0,0))
+   end
+
+   if keystate:keypressed (vs.scancodes.leftarrow) then
+      camera:rotate_camera (vt.dot (0,0,0.05))
+   elseif keystate:keypressed (vs.scancodes.rightarrow) then
+      camera:rotate_camera (vt.dot (0,0,-0.05))
+   end
+   
+   if keystate:keypressed (vs.scancodes.uparrow) then
+      camera:rotate_camera (vt.dot (-0.05,0,0))
+   elseif keystate:keypressed (vs.scancodes.downarrow) then
+      camera:rotate_camera (vt.dot (0.05,0,0))
+   end
+end
+~~~~~~~~~~~~~~~
+
+`tick` function can accept up to 4 arguments: tree, camera, time returned by
+`SDL_GetTicks` and time taken to render previous frame.
+
+This is lua API reference:
+
+| Module   | Function           |  Meaning                            |  Example             |
+|----------|-----------         | --------------------                | ------------         |
+|voxtree   |  tree              | Create an empty tree                | voxtrees.tree()      |
+|          |  dot               | Create a dot                        | voxtrees.dot (x,y,z) |
+|          |  dotset            | Create a set of dots up to n dots   | voxtrees.dotset (n)  |
+|          |  settree           | Create a tree from a set            | voxtrees.settree(set) |
+|          |  box               | Create a box                        | voxtrees.box(dot_min,dot_max) |
+|          |  boxtree           | Create a tree from a box filled with voxels | voxtree.boxtree (box) |
+|          | voxelsize          | Set voxel's size                    | voxtrees.voxelsize (x,y,z) |
+|voxrnd    | simple_camera      | Create a simple camera              | voxrnd.simple_camera () |
+|          | distorted_camera   | Create a distorted camera           | voxrnd.distorted_camera () |
+|voxsdl    | get_keyboard_state | Get keyboard state                  | voxsdl.get_keyboard_state () |
+
+There are also many methods which you must use with `:` notation:
+
+| Object type | Method         | Meaning                       | Example                                    |
+|-------------| -----------    | -------------                 | ----------------------------------         |
+| tree        | insert         | Insert a voxel                | tree:insert (voxtrees.dot (x,y,z))         |
+|             | delete         | Delete a voxel                | tree:delete (voxtrees.dot (x,y,z))         |
+|             | rebuild        | Rebuild a tree                | tree:rebuild()                             |
+|             | bounding_box   | Return bounding box           | tree:bounding_box()                        |
+| dotset      | push           | Add a dot to dotset           | dotset:push (voxtrees.dot (x,y,z))         |
+| camera      | get_position   | Return camera's position      | camera:get_position ()                     |
+|             | set_position   | Set camera's position         | camera:set_position (voxtrees.dot (x,y,z)) |
+|             | get_fov        | Return camera's field of view | camera:get_fov()                           |
+|             | set_fov        | Set camera's field of view    | camera:set_fov (fov)                       |
+|             | set_rot_angles | Set camera's rotation angles  | |
+|             | rotate_camera  | Rotate camera (see C API documentation) | |
+|             | move_camera    | Move camera (see C API documentation) | |
+|             | look_at        | Look at object | |
+| key state   | keypressed     | Check if a key is pressed     | state:keypressed (voxsdl.scancodes.F1)     |
+
+All memory required for such objects as trees, dotsets etc. is handeled by lua automatically.
+
 Demo application
 ----------------
 This application is ment as a demonstration of **voxvision** libraries and as a

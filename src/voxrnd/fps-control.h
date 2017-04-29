@@ -4,9 +4,23 @@
 **/
 #ifndef FRAME_COUNTER_H
 #define FRAME_COUNTER_H
-
 #include <SDL2/SDL.h>
-#ifndef VOXRND_SOURCE
+
+/**
+   \brief true if FPS controller status was updated.
+**/
+#define vox_fpsstatus_updated(status) (status)&1
+
+/**
+   \brief Get actual FPS value.
+**/
+#define vox_fpsstatus_fps(status) (status)>>1
+
+/**
+   \brief Construct FPS status.
+**/
+#define vox_fpsstatus(fps, updated) ((fps)<<1 | ((updated) ? 1: 0))
+
 /**
    \brief Frame counter info.
 
@@ -14,50 +28,35 @@
 **/
 struct vox_fps_info
 {
-    int trigger;
+    unsigned int status;
     /**<
-       \brief Becomes 1 once in a second, 0 all other time.
+       \brief FPS controller status.
 
-       Indicates update in the structure.
+       See vox_fpsstatus_updated() and vox_fpsstatus_fps().
     */
-    int fps; /**< \brief Actual FPS value */
     Uint32 frame_time;
     /**<
        \brief Time taken to render the previous frame.
 
-       Given in SDL ticks.
+       Given in SDL ticks (milliseconds).
     */
 };
-#else /* VOXRND_SOURCE */
-struct vox_fps_info
-{
-    int trigger;
-    int fps;
-    Uint32 frame_time;
-    Uint32 current_time;
-    Uint32 total_time;
-    int counter;
-    int delay;
-};
-#endif /* VOXRND_SOURCE */
 
 /**
    \brief FPS controller type
 **/
-typedef struct vox_fps_info* (^vox_fps_controller_t)(void);
+typedef struct vox_fps_info (^vox_fps_controller_t)(void);
 
 /**
    \brief Make FPS controller.
 
    FPS controller is a block that must be called once in a rendering
    loop. It will put a thread to sleep to achieve a specified amount of
-   frames per second. It returns a pointer to its internal structure
-   vox_fps_info (see documentation). This structure lives as much as FPS
-   controller lives and must not be freed by user himeself.
+   frames per second. This block returns FPS controller status (see vox_fps_info).
 
    \param fps A desired FPS value. If it's zero, only count FPS, do not put
    a thread to sleep.
-   \return Pointer to info structure.
+   \return FPS controller status.
 **/
 vox_fps_controller_t vox_make_fps_controller (int fps);
 

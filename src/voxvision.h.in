@@ -6,6 +6,8 @@
 #ifndef VOXVISION_H
 #define VOXVISION_H
 
+#define VOX_MODULE_PATH "@voxengine_module_path@/"
+#define VOX_DATA_PATH "@voxengine_data_path@/"
 
 /**
    \brief Use SSE intrinsics

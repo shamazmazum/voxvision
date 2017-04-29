@@ -27,6 +27,7 @@ endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 
 find_package (SDL2 REQUIRED)
 find_package (IniParser)
+find_package (Lua)
 if (WITH_GCD)
 message (STATUS "Compiling with GCD. If configuration is unsuccessful, try -DWITH_GCD=OFF")
 find_package (GCD REQUIRED)
@@ -58,5 +59,7 @@ COMMENT "Run tests"
 )
 endif(CUNIT_FOUND)
 
+install (DIRECTORY data/ DESTINATION share/voxvision/data
+  FILES_MATCHING PATTERN "*.dat")
 install (DIRECTORY examples/ DESTINATION share/examples/voxvision
-         FILES_MATCHING PATTERN "*.cfg" PATTERN "*.dat")
+  FILES_MATCHING PATTERN "*.cfg" PATTERN "*.lua")

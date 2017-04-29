@@ -669,8 +669,9 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  =  @CMAKE_CURRENT_SOURCE_DIR@/src/voxvision.h
-INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxtrees.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd.h
-INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd @CMAKE_CURRENT_SOURCE_DIR@/src/voxtrees
+INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxtrees.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxtrees
+INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd
+INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine
 INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/Manual.md
 INPUT                  += @CMAKE_CURRENT_BINARY_DIR@/src/voxvision.h
 
@@ -704,7 +705,9 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd/vect-ops.h
+EXCLUDE                =  @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd/vect-ops.h
+EXCLUDE                += @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine/modules
+EXCLUDE                += @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine/modules.h
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
