@@ -6,11 +6,11 @@ add_definitions (-DVOXTREES_SOURCE)
 add_library (voxtrees SHARED geom.c geom-sse.c search.c tree.c statistics.c datareader.c)
 
 set_target_properties (voxtrees PROPERTIES VERSION ${voxvision_VERSION}
-                                           SOVERSION ${voxvision_VERSION_MAJOR}
-                                           LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld
-                                           LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld")
+  SOVERSION ${voxvision_VERSION_MAJOR}
+  LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld
+  LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld")
 
-target_link_libraries (voxtrees m)
+target_link_libraries (voxtrees m BlocksRuntime)
 install (FILES params.h tree.h search.h statistics.h geom.h datareader.h
          DESTINATION include/voxvision/voxtrees)
 install (TARGETS voxtrees LIBRARY

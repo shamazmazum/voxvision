@@ -16,13 +16,10 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld
                                          LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld")
 
-target_link_libraries (voxrnd ${SDL2_LIBRARY} m)
+target_link_libraries (voxrnd ${SDL2_LIBRARY} m BlocksRuntime)
 if (GCD_FOUND)
 target_link_libraries (voxrnd ${GCD_LIBRARY})
 endif (GCD_FOUND)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-target_link_libraries (voxrnd BlocksRuntime)
-endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 install (FILES camera.h renderer.h simple-camera.h distorted-camera.h fps-control.h
          DESTINATION include/voxvision/voxrnd)

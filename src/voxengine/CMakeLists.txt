@@ -10,7 +10,7 @@ set_target_properties (voxengine PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
   LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld
   LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld")
-target_link_libraries (voxengine voxrnd voxtrees ${LUA_LIBRARIES})
+target_link_libraries (voxengine ${LUA_LIBRARIES} BlocksRuntime)
 
 install (TARGETS voxengine LIBRARY
          DESTINATION lib)
