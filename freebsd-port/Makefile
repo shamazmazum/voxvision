@@ -15,6 +15,6 @@ USES=		lua cmake:outsource
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	shamazmazum
-GH_TAGNAME=	dc444b3
+GH_TAGNAME=	00adaed
 
 .include <bsd.port.mk>

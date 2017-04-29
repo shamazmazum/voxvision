@@ -1,4 +1,6 @@
 bin/voxvision-demo
+bin/voxvision-engine
+include/voxvision/voxengine.h
 include/voxvision/voxengine/engine.h
 include/voxvision/voxrnd.h
 include/voxvision/voxrnd/camera.h
@@ -23,10 +25,14 @@ lib/libvoxrnd.so.0.14
 lib/libvoxtrees.so
 lib/libvoxtrees.so.0
 lib/libvoxtrees.so.0.14
-%%PORTEXAMPLES%%%%EXAMPLESDIR%%/bonsai.dat
+%%PORTEXAMPLES%%%%EXAMPLESDIR%%/example1.lua
+%%PORTEXAMPLES%%%%EXAMPLESDIR%%/example2.lua
+%%PORTEXAMPLES%%%%EXAMPLESDIR%%/example3.lua
 %%PORTEXAMPLES%%%%EXAMPLESDIR%%/scene1.cfg
 %%PORTEXAMPLES%%%%EXAMPLESDIR%%/scene2.cfg
-%%PORTEXAMPLES%%%%EXAMPLESDIR%%/skull.dat
+%%DATADIR%%/data/bonsai.dat
+%%DATADIR%%/data/skull.dat
 %%DATADIR%%/modules/voxrnd.so
 %%DATADIR%%/modules/voxsdl.so
 %%DATADIR%%/modules/voxtrees.so
+%%DATADIR%%/modules/voxutils.lua
