@@ -38,15 +38,14 @@ static void load_module (lua_State *L, const char *modname)
     char path[MAXPATHLEN];
     char init[MAXPATHLEN];
 
-    strlcpy (path, VOX_MODULE_PATH, MAXPATHLEN);
-    strlcat (path, modname, MAXPATHLEN);
-    strlcat (path, ".so", MAXPATHLEN);
+    if (snprintf (path, MAXPATHLEN, "%s%s.so", VOX_MODULE_PATH, modname) >= MAXPATHLEN)
+        luaL_error (L, "Module path name is too long");
 
     void *handle = dlopen (path, RTLD_LAZY | RTLD_NODELETE);
     if (handle == NULL) luaL_error (L, "Cannot open lua module %s", path);
 
-    strlcpy (init, "luaopen_", MAXPATHLEN);
-    strlcat (init, modname, MAXPATHLEN);
+    if (snprintf (init, MAXPATHLEN, "luaopen_%s", modname) >= MAXPATHLEN)
+        luaL_error (L, "Module path name is too long");
 
     void *init_func = dlsym (handle, init);
     if (init_func == NULL) luaL_error (L, "Cannot cannot find initfunction %s", init);
@@ -60,9 +59,8 @@ static void load_lua_module (lua_State *L, const char *modname)
 {
     char path[MAXPATHLEN];
 
-    strlcpy (path, VOX_MODULE_PATH, MAXPATHLEN);
-    strlcat (path, modname, MAXPATHLEN);
-    strlcat (path, ".lua", MAXPATHLEN);
+    if (snprintf (path, MAXPATHLEN, "%s%s.lua", VOX_MODULE_PATH, modname) >= MAXPATHLEN)
+        luaL_error (L, "Module path name is too long");
 
     if (luaL_loadfile (L, path) || lua_pcall (L, 0, 1, 0))
         luaL_error (L, "Cannot load module %s: %s", modname, lua_tostring (L, -1));

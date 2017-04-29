@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdio.h>
 #include "tree.h"
 #include "datareader.h"
 
@@ -82,20 +83,21 @@ static int check_file (const char* filename)
 int vox_find_data_file (const char *filename, char *fullpath)
 {
     // At first, try to find data file in system-wide data directory
-    strlcpy (fullpath, VOX_DATA_PATH, MAXPATHLEN);
-    strlcat (fullpath, filename, MAXPATHLEN);
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s%s", VOX_DATA_PATH, filename) >= MAXPATHLEN)
+        return 0;
     if (check_file (fullpath)) return 1;
 
     // Then check at ~/.voxvision
-    strlcpy (fullpath, getenv("HOME"), MAXPATHLEN);
-    strlcat (fullpath, "/.voxvision/", MAXPATHLEN);
-    strlcat (fullpath, filename, MAXPATHLEN);
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s/.voxvision/%s", getenv ("HOME"), filename) >= MAXPATHLEN)
+        return 0;
     if (check_file (fullpath)) return 1;
 
     // Then as last resort try environment variable VOXVISION_DATA
-    strlcpy (fullpath, getenv("VOXVISION_DATA"), MAXPATHLEN);
-    strlcat (fullpath, "/", MAXPATHLEN);
-    strlcat (fullpath, filename, MAXPATHLEN);
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s/%s", getenv ("VOXVISION_DATA"), filename) >= MAXPATHLEN)
+        return 0;
     if (check_file (fullpath)) return 1;
 
     return 0;
