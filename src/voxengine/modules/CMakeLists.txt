@@ -16,4 +16,7 @@ add_library (voxsdl-wrapper SHARED voxsdl.c)
 set_target_properties (voxsdl-wrapper PROPERTIES OUTPUT_NAME voxsdl PREFIX "")
 
 install (TARGETS voxtrees-wrapper voxrnd-wrapper voxsdl-wrapper LIBRARY
-         DESTINATION share/voxvision/modules)
+  DESTINATION share/voxvision/modules)
+
+install (FILES voxutils.lua
+  DESTINATION share/voxvision/modules)

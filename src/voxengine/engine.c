@@ -56,6 +56,21 @@ static void load_module (lua_State *L, const char *modname)
     lua_setfield (L, -2, modname);
 }
 
+static void load_lua_module (lua_State *L, const char *modname)
+{
+    char path[MAXPATHLEN];
+
+    strlcpy (path, VOX_MODULE_PATH, MAXPATHLEN);
+    strlcat (path, modname, MAXPATHLEN);
+    strlcat (path, ".lua", MAXPATHLEN);
+
+    if (luaL_loadfile (L, path) || lua_pcall (L, 0, 1, 0))
+        luaL_error (L, "Cannot load module %s: %s", modname, lua_tostring (L, -1));
+
+    // Copy table in our environment
+    lua_setfield (L, -2, modname);
+}
+
 static void set_safe_environment (lua_State *L)
 {
     // Function is on top of the stack
@@ -106,9 +121,13 @@ static void initialize_lua (struct vox_engine *engine)
     lua_pushvalue (L, -1);
     lua_setglobal (L, "voxvision");
 
+    // Load C modules
     load_module (L, "voxtrees");
     load_module (L, "voxrnd");
     load_module (L, "voxsdl");
+
+    // Local lua modules
+    load_lua_module (L, "voxutils");
 
     // Also add some safe functions
     prepare_safe_environment (L);
