@@ -9,7 +9,7 @@
 #include <dlfcn.h>
 #include <assert.h>
 
-#include <modules.h>
+#include "modules.h"
 #include "engine.h"
 
 static int engine_panic (lua_State *L)
@@ -109,7 +109,6 @@ static void initialize_lua (struct vox_engine *engine)
     load_module (L, "voxtrees");
     load_module (L, "voxrnd");
     load_module (L, "voxsdl");
-    load_module (L, "voxengine");
 
     // Also add some safe functions
     prepare_safe_environment (L);

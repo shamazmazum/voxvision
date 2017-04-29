@@ -19,6 +19,7 @@ VOXTREES_@voxvision_VERSION@ {
             voxtrees_clear_statistics;
             vox_set_voxel_size;
             vox_read_raw_data;
+            vox_find_data_file;
 # FIXME: Used only for tests:
             get_subspace_idx;
     local: *;

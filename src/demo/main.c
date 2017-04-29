@@ -20,22 +20,6 @@
 #include <voxrnd.h>
 #include "config.h"
 
-/* FIXME: There is a standard POSIX way for this? */
-static int get_file_directory (const char *path, char *dir)
-{
-    ptrdiff_t len;
-    char *cursor;
-    len = stpncpy (dir, path, MAXPATHLEN) - dir;
-    cursor = dir + len;
-    while (*cursor != '/')
-    {
-        if (cursor == dir) return 0;
-        cursor--;
-    }
-    *(cursor+1) = '\0';
-    return 1;
-}
-
 static void suitable_shot_name (char *name)
 {
     static int i = 0;
@@ -191,10 +175,7 @@ int main (int argc, char *argv[])
     cfg = NULL;
 
     // Read dataset
-    if (!get_file_directory (datacfgname, dataset_path))
-        strncpy (dataset_path, "./", MAXPATHLEN);
-    strncat (dataset_path, dataset_name, MAXPATHLEN);
-
+    vox_find_data_file (dataset_name, dataset_path);
     printf ("Reading raw data\n");
     const char *errorstr;
     tree = vox_read_raw_data (dataset_path, (unsigned int*)dim, samplesize,
@@ -267,8 +248,7 @@ int main (int argc, char *argv[])
     ctx = vox_make_renderer_context (surface, tree, camera);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
-    printf ("Other keys: q - quit. F11 - take screenshot in screen.bmp in "
-            "the current directory\n");
+    printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
 
     fps_controller = vox_make_fps_controller (global_settings.fps);
     while (1)

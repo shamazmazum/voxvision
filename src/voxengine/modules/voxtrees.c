@@ -1,10 +1,14 @@
+#include <sys/param.h>
+
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+
 #include <voxtrees.h>
+#include "../modules.h"
+
 #include <stdlib.h>
 #include <strings.h>
-#include <modules.h>
 
 static int newtree (lua_State *L)
 {
@@ -286,6 +290,27 @@ static int read_raw_data (lua_State *L)
     return res;
 }
 
+static int find_data_file (lua_State *L)
+{
+    char fullpath[MAXPATHLEN];
+    const char *filename = luaL_checkstring (L, 1);
+    int res;
+
+    if (vox_find_data_file (filename, fullpath))
+    {
+        lua_pushstring (L, fullpath);
+        res = 1;
+    }
+    else
+    {
+        lua_pushnil (L);
+        lua_pushstring (L, "No such file");
+        res = 2;
+    }
+
+    return res;
+}
+
 static const struct luaL_Reg voxtrees [] = {
     {"tree", newtree},
     {"dot", newdot},
@@ -295,6 +320,7 @@ static const struct luaL_Reg voxtrees [] = {
     {"box", newbox},
     {"voxelsize", voxelsize},
     {"read_raw_data", read_raw_data},
+    {"find_data_file", find_data_file},
     {NULL, NULL}
 };
 

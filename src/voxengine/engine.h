@@ -79,19 +79,4 @@ void vox_engine_tick (struct vox_engine *engine);
 **/
 void vox_destroy_engine (struct vox_engine *engine);
 
-/**
-   \brief Find a full path of a data file.
-
-   This function searches for a file in usual locations where data files can be
-   stored. These locations include system-wide voxvision data directory
-   (<install_prefix>/share/voxvision/data), user-specific data directory
-   (~/.voxvision) or a directory specified in VOXVISION_DATA environment
-   variable.
-
-   \param filename a name of the desired file.
-   \param fullpath a string where result will be stored in case of success.
-   \return 1 if the search was successful, 0 otherwise.
-**/
-int vox_find_data_file (const char *filename, char *fullpath);
-
 #endif

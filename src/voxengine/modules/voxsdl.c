@@ -2,7 +2,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 #include <SDL2/SDL.h>
-#include <modules.h>
+#include "../modules.h"
 
 static void register_scancode (lua_State *L, const char *c, Uint8 scancode)
 {

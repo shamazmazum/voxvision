@@ -1,9 +1,6 @@
 #ifndef MODULES_H
 #define MODULES_H
 
-#define VOX_MODULE_PATH "@voxengine_module_path@/"
-#define VOX_DATA_PATH "@voxengine_data_path@/"
-
 struct nodedata
 {
     struct vox_node *node;

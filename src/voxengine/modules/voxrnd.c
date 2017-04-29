@@ -4,7 +4,7 @@
 #include <voxrnd.h>
 #include <stdlib.h>
 #include <strings.h>
-#include <modules.h>
+#include "../modules.h"
 
 static int get_position (lua_State *L)
 {

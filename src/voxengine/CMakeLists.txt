@@ -1,15 +1,11 @@
 cmake_minimum_required (VERSION 2.6)
 
-set (voxengine_module_path ${CMAKE_INSTALL_PREFIX}/share/voxvision/modules)
-set (voxengine_data_path ${CMAKE_INSTALL_PREFIX}/share/voxvision/data)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxengine.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/modules.h.in ${CMAKE_CURRENT_BINARY_DIR}/modules.h)
 include_directories (${LUA_INCLUDE_DIR} ${SDL2_INCLUDE_DIR}/..)
-include_directories (${CMAKE_CURRENT_BINARY_DIR})
-add_subdirectory (wrappers)
+add_subdirectory (modules)
 
 add_definitions (-fblocks -DVOXENGINE_SOURCE)
-add_library (voxengine SHARED engine.c datafinder.c)
+add_library (voxengine SHARED engine.c)
 set_target_properties (voxengine PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
   LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld
