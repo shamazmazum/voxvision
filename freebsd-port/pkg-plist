@@ -18,13 +18,13 @@ include/voxvision/voxtrees/tree.h
 include/voxvision/voxvision.h
 lib/libvoxengine.so
 lib/libvoxengine.so.0
-lib/libvoxengine.so.0.14
+lib/libvoxengine.so.0.20
 lib/libvoxrnd.so
 lib/libvoxrnd.so.0
-lib/libvoxrnd.so.0.14
+lib/libvoxrnd.so.0.20
 lib/libvoxtrees.so
 lib/libvoxtrees.so.0
-lib/libvoxtrees.so.0.14
+lib/libvoxtrees.so.0.20
 %%PORTEXAMPLES%%%%EXAMPLESDIR%%/example1.lua
 %%PORTEXAMPLES%%%%EXAMPLESDIR%%/example2.lua
 %%PORTEXAMPLES%%%%EXAMPLESDIR%%/example3.lua

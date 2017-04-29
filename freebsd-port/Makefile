@@ -1,5 +1,5 @@
 PORTNAME=	voxvision
-PORTVERSION=	0.14
+PORTVERSION=	0.20
 CATEGORIES=	graphics
 MAINTAINER=	shamaz.mazum@gmail.com
 COMMENT=	Voxel visualisation library
@@ -15,6 +15,6 @@ USES=		lua cmake:outsource
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	shamazmazum
-GH_TAGNAME=	00adaed
+GH_TAGNAME=	v0.20
 
 .include <bsd.port.mk>
