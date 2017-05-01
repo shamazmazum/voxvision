@@ -3,7 +3,7 @@ Voxvision
 
 What is Voxvision?
 -----------------
-**Voxvision** is a library (two of them to be accurate) for creating and
+**Voxvision** is a library (few of them to be accurate) for creating and
 operating on voxel octrees and also for visualising sets of voxels. It also
 contains a demo application which shows functionality of these libraries.
 
@@ -25,6 +25,10 @@ O(n) voxel-by-voxel search.
 The second library, *voxrnd*, is a SDL-based renderer of voxel datasets with 6
 degrees of freedom, collision detection and multicore parallel processing.
 
+And the third library, *voxengine* manages the first two, opening windows,
+loading data etc. and provides lua scripting with which you can describe your
+scene, control camera, do simple keyboard handling etc.
+
 Is there any API documentation?
 -------------------------------
 You can try to execute `make doc` from building directory (see below) to
@@ -34,12 +38,12 @@ libraries.
 
 What are understandable formats of datasets used in the library?
 ----------------------------------------------------------------
-There is no special format the library can work with for now, it understands
-only arrays of voxels. The demo application provides an example of how a dataset
-can be loaded in memory. All datasets are simple raw binary files. For example,
+There is no special format the library can work with for now, but *voxtrees* can
+handle simple raw binary format (see documentation and examples). For example,
 you can visit http://www.volvis.org/ to get some of datasets. Also you need to
-write a simple configuration file to work with dataset. Few datasets and
-configuration (`.cfg`) files present in `example` directory.
+write a simple configuration file to work with dataset (or, if you use
+*voxengine*, write a loading script). Few datasets and configuration (`.cfg`)
+files present in `example` directory.
 
 Demo application
 ----------------
@@ -47,6 +51,11 @@ Usage: `voxvision-demo [-c <global_config>] <dataset_config>` where
 `dataset_config` is a configuration file for dataset and `global_config` is an
 optional global configuration file. These files are in `ini` format (as in
 Microsoft Windows). See tutorial for more info.
+
+Also, with version 0.20, here comes *voxengine* library and simple program,
+which uses its capabilities.
+Usage: `voxvision-engine [-w width] [-h height] [-f fps] -s script`. `script` is
+lua control script, look at `examples` directory.
 
 Requirements
 ------------
@@ -57,6 +66,8 @@ Requirements
 * [GCD](https://en.wikipedia.org/wiki/Grand_Central_Dispatch) for parallel
   rendering, optional, but highly recommended.
 * Doxygen for API documentation, optional
+* Lua >= 5.2, optional, but highly recommended for *voxengine* library.
+* Clang or other compiller with support for blocks. GCC will not do.
 
 Building
 --------
@@ -68,8 +79,7 @@ cmake -DCMAKE_BUILD_TYPE=RELEASE ..
 make
 make install
 ```
-Last step is optional. Also you can add `-DSSE_INTRIN=ON` to the third line to
-enable some SSE intrinsics. It will speed up tree creation considerably. It's
-better to use clang to build the library.
+Last step is optional. Also you can add `-DSSE_INTRIN=OFF` to the third line if
+you have old hardware. If you do not have GCD, add `-DWITH_GCD=OFF`.
 
-*TODO: tell about internals, API, configuration files*
+For more info visit [the project page](http://shamazmazum.github.io/voxvision)
