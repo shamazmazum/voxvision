@@ -290,6 +290,43 @@ static int read_raw_data (lua_State *L)
     return res;
 }
 
+static int read_raw_data_ranged (lua_State *L)
+{
+    const char *filename = luaL_checkstring (L, 1);
+    float *dim = luaL_checkudata (L, 2, "voxtrees.vox_dot");
+    unsigned int samplesize = luaL_checkinteger (L, 3);
+    unsigned int min, max;
+    if (lua_isnoneornil (L, 4)) min = 1 << (8*samplesize-1);
+    else min = luaL_checkinteger (L, 4);
+    if (lua_isnoneornil (L, 5)) max = 1<<8*samplesize;
+    else max = luaL_checkinteger (L, 5);
+
+    const char *errorstr;
+    unsigned int d[3];
+    d[0] = dim[0]; d[1] = dim[1]; d[2] = dim[2];
+    int res;
+
+    struct vox_node *tree = vox_read_raw_data (filename, d, samplesize,
+                                               ^(unsigned int sample) {
+                                                   return (sample >= min) ? (sample < max) : 0;
+                                               }, &errorstr);
+    if (tree != NULL)
+    {
+        res = 1;
+        newtree (L);
+        struct nodedata *data = luaL_checkudata (L, -1, "voxtrees.vox_node");
+        data->node = tree;
+    }
+    else
+    {
+        res = 2;
+        lua_pushnil (L);
+        lua_pushstring (L, errorstr);
+    }
+
+    return res;
+}
+
 static int find_data_file (lua_State *L)
 {
     char fullpath[MAXPATHLEN];
@@ -320,6 +357,7 @@ static const struct luaL_Reg voxtrees [] = {
     {"box", newbox},
     {"voxelsize", voxelsize},
     {"read_raw_data", read_raw_data},
+    {"read_raw_data_ranged", read_raw_data_ranged},
     {"find_data_file", find_data_file},
     {NULL, NULL}
 };
