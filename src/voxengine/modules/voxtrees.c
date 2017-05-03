@@ -57,7 +57,7 @@ static int inserttree (lua_State *L)
     // Fix alignemnt
     memcpy (copy, dot, sizeof(vox_dot));
     int res = vox_insert_voxel (&(data->node), copy);
-    lua_pushinteger (L, res);
+    lua_pushboolean (L, res);
     return 1;
 }
 
@@ -79,7 +79,7 @@ static int deletetree (lua_State *L)
     // Fix alignemnt
     memcpy (copy, dot, sizeof(vox_dot));
     int res = vox_delete_voxel (&(data->node), copy);
-    lua_pushinteger (L, res);
+    lua_pushboolean (L, res);
     return 1;
 }
 

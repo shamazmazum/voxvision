@@ -52,6 +52,7 @@ struct vox_camera_interface
 
        \param delta a vector with deltas of camera position coordinates. Must
               contain 3 elements.
+       \return 1 on success (if no collisions are found), 0 otherwise
     */
 
     void (*look_at) (struct vox_camera *camera, vox_dot coord);
@@ -90,7 +91,7 @@ struct vox_camera_interface
        with any object on scene to which camera is attached.
 
        \param pos a new position
-       \return 0 on success (if no collisions is found)
+       \return 1 on success (if no collisions are found), 0 otherwise
     */
 
     float (*get_fov) (const struct vox_camera *camera);
