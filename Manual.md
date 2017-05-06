@@ -299,8 +299,11 @@ done:
 The power of **voxengine** comes with lua. A lua control script (the one you passed
 with `-s`) is executed in protected environment and must at least contain `init`
 function. This environment includes:
-    * Standard `print`, `pairs`, `ipairs` functions
-    * `sin`, `cos` in `math` table
+    * Standard `print`, `pairs`, `ipairs`, `next`, `unpack`, `tostring`, `tonumber`
+    functions.
+    * Almost all from math module in `math` table
+    * `os.clock`
+    * `table.insert`, `table.remove`, `table.maxn`, `table.sort` functions
     * `voxtrees`, `voxrnd` and `voxutils` modules
 
 `init` function takes no arguments and must return 2 values: a tree and a camera.
