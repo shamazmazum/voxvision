@@ -26,12 +26,9 @@ static int set_position (lua_State *L)
     float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot position;
     memcpy (position, data, sizeof (vox_dot));
-    int moved;
+    camera->iface->set_position (camera->camera, position);
 
-    moved = camera->iface->set_position (camera->camera, position);
-    lua_pushboolean (L, moved);
-
-    return 1;
+    return 0;
 }
 
 static int get_fov (lua_State *L)
@@ -81,12 +78,9 @@ static int move_camera (lua_State *L)
     float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot delta;
     memcpy (delta, data, sizeof (vox_dot));
-    int moved;
+    camera->iface->move_camera (camera->camera, delta);
 
-    moved = camera->iface->move_camera (camera->camera, delta);
-    lua_pushboolean (L, moved);
-
-    return 1;
+    return 0;
 }
 
 static int look_at (lua_State *L)

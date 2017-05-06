@@ -272,7 +272,7 @@ int main (int argc, char *argv[])
             switch (event.type)
             {
             case SDL_KEYDOWN:
-                if ((event.key.keysym.scancode == global_controls.shrink) ||
+                /*if ((event.key.keysym.scancode == global_controls.shrink) ||
                     (event.key.keysym.scancode == global_controls.grow))
                 {
                     float radius;
@@ -284,7 +284,7 @@ int main (int argc, char *argv[])
                     radius = vox_simple_camera_set_radius ((struct vox_simple_camera*)camera, radius);
                     printf ("Camera body radius is now %f\n", radius);
                 }
-                else if ((event.key.keysym.scancode == global_controls.insert) ||
+                else */if ((event.key.keysym.scancode == global_controls.insert) ||
                          (event.key.keysym.scancode == global_controls.delete))
                 {
                     /*

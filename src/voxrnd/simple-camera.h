@@ -16,15 +16,12 @@ struct vox_simple_camera
 {
     struct vox_camera_interface *iface; /**< \brief Simple camera methods **/
 #ifdef VOXRND_SOURCE
-    struct vox_rnd_ctx *ctx;
+    float xmul, ymul;
 
     vox_dot position;
     vox_quat rotation;
 
     float fov;
-    float body_radius;
-    float xmul, ymul;
-    // 64-byte border (SSE)
 #endif
 };
 
@@ -32,25 +29,5 @@ struct vox_simple_camera
    \brief Get methods of the simple camera
 **/
 struct vox_camera_interface* vox_simple_camera_iface ();
-
-/**
-   \brief Set body radius of a simple camera.
-
-   A simple camera has a spherical body in the space.
-   This body cannot intersect any other object,
-   so this way collision detection is implemented.
-   This function sets a radius of this sphere.
-
-   \return A new body radius.
-   If supplied radius is lesser than zero, zero is returned
-**/
-float vox_simple_camera_set_radius (struct vox_simple_camera *camera, float radius);
-
-/**
-   \brief Get body radius of a simple camera.
-
-   See vox_simple_camera_set_radius() for details.
-**/
-float vox_simple_camera_get_radius (struct vox_simple_camera *camera);
 
 #endif

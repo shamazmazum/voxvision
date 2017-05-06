@@ -32,14 +32,10 @@ static void simple_get_position (const struct vox_camera *cam, vox_dot res)
     vox_dot_copy (res, camera->position);
 }
 
-static int simple_set_position (struct vox_camera *cam, vox_dot pos)
+static void simple_set_position (struct vox_camera *cam, vox_dot pos)
 {
     struct vox_simple_camera *camera = (void*)cam;
-    int moved = 1;
-    if (camera->ctx != NULL)
-        moved = !vox_tree_ball_collidep (camera->ctx->scene, pos, camera->body_radius);
-    if (moved) vox_dot_copy (camera->position, pos);
-    return moved;
+    vox_dot_copy (camera->position, pos);
 }
 
 static void simple_set_rot_angles (struct vox_camera *cam, vox_dot angles)
@@ -60,18 +56,11 @@ static void simple_set_rot_angles (struct vox_camera *cam, vox_dot angles)
     vox_quat_mul (r[2], tmp, camera->rotation);
 }
 
-static int simple_move_camera (struct vox_camera *cam, vox_dot delta)
+static void simple_move_camera (struct vox_camera *cam, vox_dot delta)
 {
     struct vox_simple_camera *camera = (void*)cam;
     vox_rotate_vector (camera->rotation, delta, delta);
-    vox_dot new_pos;
-    vox_dot_add (camera->position, delta, new_pos);
-
-    int moved = 1;
-    if (camera->ctx != NULL)
-        moved = !vox_tree_ball_collidep (camera->ctx->scene, new_pos, camera->body_radius);
-    if (moved) vox_dot_copy (camera->position, new_pos);
-    return moved;
+    vox_dot_add (camera->position, delta, camera->position);
 }
 
 static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
@@ -178,20 +167,16 @@ static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
 
     if (old_camera != NULL)
     {
-        camera->ctx = old_camera->ctx;
         vox_dot_copy (camera->position, old_camera->position);
         camera->fov = old_camera->fov;
-        camera->body_radius = old_camera->body_radius;
         vox_quat_copy (camera->rotation, old_camera->rotation);
         camera->xmul = old_camera->xmul;
         camera->ymul = old_camera->ymul;
     }
     else
     {
-        camera->ctx = NULL;
         memset (camera->position, 0, sizeof (vox_dot));
         camera->fov = 1.0;
-        camera->body_radius = 50;
         memset (camera->rotation, 0, sizeof (vox_quat));
         camera->rotation[0] = 1;
         camera->xmul = 0; camera->ymul = 0;
@@ -235,16 +220,4 @@ static struct vox_camera_interface vox_simple_camera_interface =
 struct vox_camera_interface* vox_simple_camera_iface ()
 {
     return &vox_simple_camera_interface;
-}
-
-float vox_simple_camera_set_radius (struct vox_simple_camera *camera, float radius)
-{
-    radius = (radius > 0) ? radius : 0;
-    camera->body_radius = radius;
-    return radius;
-}
-
-float vox_simple_camera_get_radius (struct vox_simple_camera *camera)
-{
-    return camera->body_radius;
 }

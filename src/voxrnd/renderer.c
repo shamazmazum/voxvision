@@ -46,7 +46,6 @@ struct vox_rnd_ctx* vox_make_renderer_context (SDL_Surface *surface, struct vox_
 void vox_rc_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
 {
     ctx->camera = camera;
-    camera->ctx = ctx;
     camera->iface->set_window_size (camera, ctx->surface->w, ctx->surface->h);
 }
 

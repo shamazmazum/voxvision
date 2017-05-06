@@ -43,16 +43,12 @@ struct vox_camera_interface
               elements.
     */
 
-    int (*move_camera) (struct vox_camera *camera, vox_dot delta);
+    void (*move_camera) (struct vox_camera *camera, vox_dot delta);
     /**<
        \brief Move the camera.
 
-       Depending on implementation, camera may not move if there is a collision
-       with any object on scene to which camera is attached.
-
-       \param delta a vector with deltas of camera position coordinates. Must
-              contain 3 elements.
-       \return 1 on success (if no collisions are found), 0 otherwise
+       \param delta a vector with deltas of camera position coordinates (in
+              camera's coordinate system). Must contain 3 elements.
     */
 
     void (*look_at) (struct vox_camera *camera, vox_dot coord);
@@ -83,15 +79,11 @@ struct vox_camera_interface
        \param res where result is stored
     */
 
-    int (*set_position) (struct vox_camera *camera, vox_dot pos);
+    void (*set_position) (struct vox_camera *camera, vox_dot pos);
     /**<
        \brief Set camera position.
 
-       Depending on implementation, camera may not move if there is a collision
-       with any object on scene to which camera is attached.
-
        \param pos a new position
-       \return 1 on success (if no collisions are found), 0 otherwise
     */
 
     float (*get_fov) (const struct vox_camera *camera);
@@ -160,9 +152,6 @@ struct vox_camera_interface
 struct vox_camera
 {
     struct vox_camera_interface *iface; /**< \brief camera methods **/
-#ifdef VOXRND_SOURCE
-    struct vox_rnd_ctx *ctx;
-#endif
 };
 
 #endif
