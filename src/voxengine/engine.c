@@ -80,25 +80,7 @@ static void set_safe_environment (lua_State *L)
 static void prepare_safe_environment (lua_State *L)
 {
     // Our environment is on top of the stack
-    lua_getglobal (L, "print");
-    lua_setfield (L, -2, "print");
-
-    lua_getglobal (L, "ipairs");
-    lua_setfield (L, -2, "ipairs");
-
-    lua_getglobal (L, "pairs");
-    lua_setfield (L, -2, "pairs");
-
-    if (luaL_loadstring (L, "return require \"math\"") || lua_pcall (L, 0, 1, 0))
-        luaL_error (L, "Cannot load math module");
-
-    lua_getfield (L, -1, "sin");
-    lua_setfield (L, -3, "sin");
-
-    lua_getfield (L, -1, "cos");
-    lua_setfield (L, -3, "cos");
-
-    lua_pop (L, 1);
+#include <safe_environment.h>
 }
 
 static void initialize_lua (struct vox_engine *engine)

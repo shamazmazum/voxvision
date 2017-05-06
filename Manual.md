@@ -299,10 +299,9 @@ done:
 The power of **voxengine** comes with lua. A lua control script (the one you passed
 with `-s`) is executed in protected environment and must at least contain `init`
 function. This environment includes:
-    * Standard `print` function
-    * `pairs` and `ipairs`
-    * `sin` and `cos` from math module
-    * `voxtrees`, `voxrnd` and `voxengine` modules
+    * Standard `print`, `pairs`, `ipairs` functions
+    * `sin`, `cos` in `math` table
+    * `voxtrees`, `voxrnd` and `voxutils` modules
 
 `init` function takes no arguments and must return 2 values: a tree and a camera.
 Let's see an example:
@@ -352,7 +351,7 @@ end
 
 function tick (tree, camera, time)
    time = time / 2000
-   local dot = vt.dot (25+125*sin(time),25-125*cos(time),25)
+   local dot = vt.dot (25+125*math.sin(time),25-125*math.cos(time),25)
    camera:set_position (dot)
    camera:look_at (vt.dot (25,25,25))
 end

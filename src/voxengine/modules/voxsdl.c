@@ -76,7 +76,7 @@ int luaopen_voxsdl (lua_State *L)
     luaL_newlib (L, voxsdl);
 
     lua_newtable (L);
-#include "scancodes.c"
+#include <scancodes.h>
     register_scancode (L, "leftarrow", SDL_SCANCODE_LEFT);
     register_scancode (L, "rightarrow", SDL_SCANCODE_RIGHT);
     register_scancode (L, "uparrow", SDL_SCANCODE_UP);

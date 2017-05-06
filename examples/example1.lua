@@ -32,7 +32,7 @@ end
 function tick (tree, camera, time)
    -- You can rotate camera or modify tree in tick() function
    time = time / 2000
-   local dot = vt.dot (25+125*sin(time),25-125*cos(time),25)
+   local dot = vt.dot (25+125*math.sin(time),25-125*math.cos(time),25)
    camera:set_position (dot)
    camera:look_at (vt.dot (25,25,25))
 end

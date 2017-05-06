@@ -11,7 +11,7 @@ LIB_DEPENDS=	libiniparser.so:devel/iniparser \
 		libdispatch.so:devel/libdispatch
 
 USE_SDL=	sdl2
-USES=		lua cmake:outsource
+USES=		lua cmake:outsource python:build
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	shamazmazum
