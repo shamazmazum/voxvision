@@ -9,6 +9,11 @@ VOXRND_@voxvision_VERSION@ {
             vox_render;
             vox_make_fps_controller;
             vox_destroy_fps_controller;
+            vox_make_cd;
+            vox_cd_attach_camera;
+            vox_cd_attach_context;
+            vox_cd_collide;
+
 # For the tests
             vox_quat_mul;
             vox_rotate_vector;

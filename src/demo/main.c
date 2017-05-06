@@ -79,6 +79,7 @@ int main (int argc, char *argv[])
     SDL_Texture *texture = NULL;
     SDL_Surface *surface = NULL;
     vox_fps_controller_t fps_controller = NULL;
+    struct vox_cd *cd = NULL;
     char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
@@ -246,6 +247,9 @@ int main (int argc, char *argv[])
     camera->iface->set_rot_angles (camera, angles);
     int camera_type = 0;
     ctx = vox_make_renderer_context (surface, tree, camera);
+    cd = vox_make_cd();
+    vox_cd_attach_camera (cd, camera, 3);
+    vox_cd_attach_context (cd, ctx);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
@@ -272,20 +276,8 @@ int main (int argc, char *argv[])
             switch (event.type)
             {
             case SDL_KEYDOWN:
-                /*if ((event.key.keysym.scancode == global_controls.shrink) ||
-                    (event.key.keysym.scancode == global_controls.grow))
-                {
-                    float radius;
-                    radius = vox_simple_camera_get_radius ((struct vox_simple_camera*)camera);
-                    if (event.key.keysym.scancode == global_controls.shrink)
-                        radius-=5;
-                    else
-                        radius+=5;
-                    radius = vox_simple_camera_set_radius ((struct vox_simple_camera*)camera, radius);
-                    printf ("Camera body radius is now %f\n", radius);
-                }
-                else */if ((event.key.keysym.scancode == global_controls.insert) ||
-                         (event.key.keysym.scancode == global_controls.delete))
+                if ((event.key.keysym.scancode == global_controls.insert) ||
+                    (event.key.keysym.scancode == global_controls.delete))
                 {
                     /*
                       Tree modification will be performed when there
@@ -369,6 +361,7 @@ int main (int argc, char *argv[])
         camera->iface->rotate_camera (camera, rot_delta);
         camera->iface->move_camera (camera, step);
 
+        vox_cd_collide (cd);
         struct vox_fps_info fps_info = fps_controller();
         if (vox_fpsstatus_updated (fps_info.status))
             printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
@@ -389,6 +382,7 @@ end:
     if (tree_group != NULL) dispatch_release (tree_group);
 #endif
     if (fps_controller != NULL) vox_destroy_fps_controller (fps_controller);
+    if (cd != NULL) free (cd);
     voxtrees_print_statistics ();
 
     return 0;

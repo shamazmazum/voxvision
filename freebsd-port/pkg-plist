@@ -8,6 +8,7 @@ include/voxvision/voxrnd/distorted-camera.h
 include/voxvision/voxrnd/fps-control.h
 include/voxvision/voxrnd/renderer.h
 include/voxvision/voxrnd/simple-camera.h
+include/voxvision/voxrnd/cd.h
 include/voxvision/voxtrees.h
 include/voxvision/voxtrees/datareader.h
 include/voxvision/voxtrees/geom.h

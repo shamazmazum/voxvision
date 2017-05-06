@@ -19,9 +19,6 @@ struct controls
     int fly_up;
     int fly_down;
 
-    int shrink;
-    int grow;
-
     int insert;
     int delete;
 

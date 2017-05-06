@@ -20,9 +20,6 @@ struct controls global_controls =
     .fly_up         = SDL_SCANCODE_1,
     .fly_down       = SDL_SCANCODE_2,
 
-    .shrink         = SDL_SCANCODE_H,
-    .grow           = SDL_SCANCODE_G,
-
     .insert         = SDL_SCANCODE_I,
     .delete         = SDL_SCANCODE_O,
 
@@ -61,9 +58,6 @@ int load_configuration (const char *filename)
     set_control (dict, "Controls:WalkBackwards", &global_controls.walk_backwards);
     set_control (dict, "Controls:FlyUp", &global_controls.fly_up);
     set_control (dict, "Controls:FlyDown", &global_controls.fly_down);
-
-    set_control (dict, "Controls:Shrink", &global_controls.shrink);
-    set_control (dict, "Controls:Grow", &global_controls.grow);
 
     set_control (dict, "Controls:Insert", &global_controls.insert);
     set_control (dict, "Controls:Delete", &global_controls.delete);
