@@ -12,6 +12,11 @@ struct cameradata
     struct vox_camera_interface *iface;
 };
 
+struct cddata
+{
+    struct vox_cd *cd;
+};
+
 struct scancodedata
 {
     const char *key;

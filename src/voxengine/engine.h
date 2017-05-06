@@ -10,6 +10,7 @@
 #include "../voxrnd/camera.h"
 #include "../voxrnd/fps-control.h"
 #include "../voxrnd/renderer.h"
+#include "../voxrnd/cd.h"
 
 #ifdef VOXENGINE_SOURCE
 struct vox_engine {
@@ -28,6 +29,7 @@ struct vox_engine {
     SDL_Surface *surface;
 
     vox_fps_controller_t fps_controller;
+    struct vox_cd *cd;
 };
 #else /* VOXENGINE_SOURCE */
 

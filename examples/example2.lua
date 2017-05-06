@@ -12,12 +12,13 @@ function init ()
    local camera = vr.simple_camera()
    camera:set_position (vt.dot (100,60,-100))
    camera:set_rot_angles (vt.dot (0.7, 0, 0))
-   return tree, camera
+   return {tree = tree, camera = camera}
 end
 
-function tick (tree, camera, time)
+function tick (world, time)
    -- Get keyboard state
    local keystate = vs.get_keyboard_state()
+   local camera = world.camera
 
    -- If 's' key is pressed, move camera, and so on
    if keystate:keypressed (vs.scancodes.s) then

@@ -137,12 +137,11 @@ static void execute_tick (struct vox_engine *engine)
     {
         set_safe_environment (L);
 
-        // Copy the tree and the camera
+        // Copy the "world" table
         lua_pushvalue (L, 1);
-        lua_pushvalue (L, 2);
         lua_pushnumber (L, SDL_GetTicks());
         lua_pushnumber (L, engine->fps_info.frame_time);
-        if (lua_pcall (L, 4, 0, 0))
+        if (lua_pcall (L, 3, 0, 0))
             luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
         lua_pop (L, 1);
     }
@@ -157,21 +156,30 @@ static void execute_init (struct vox_engine *engine)
 
     lua_getglobal (L, "voxvision");
     lua_getfield (L, -1, "init");
+    lua_remove (L, 1);
 
-    if (!lua_isfunction (L, -1))
+    if (!lua_isfunction (L, 1))
         luaL_error (L, "init is not a function: %s", lua_tostring (L, -1));
 
     set_safe_environment (L);
 
-    if (lua_pcall (L, 0, 2, 0))
+    if (lua_pcall (L, 0, 1, 0))
         luaL_error (L, "Error executing init function: %s", lua_tostring (L, -1));
 
-    struct nodedata *ndata = luaL_checkudata (L, -2, "voxtrees.vox_node");
-    struct cameradata *cdata = luaL_checkudata (L, -1, "voxrnd.camera");
-    lua_remove (L, 1);
+    lua_getfield (L, 1, "tree");
+    lua_getfield (L, 1, "camera");
+    lua_getfield (L, 1, "cd");
+    
+    struct nodedata *ndata = luaL_checkudata (L, 2, "voxtrees.vox_node");
+    struct cameradata *cdata = luaL_checkudata (L, 3, "voxrnd.camera");
+    struct cddata *cd = NULL;
+    if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, "voxrnd.cd");
 
     engine->camera = cdata->camera;
     engine->tree = ndata->node;
+    if (cd != NULL) engine->cd = cd->cd;
+
+    lua_pop (L, 3);
 }
 
 struct vox_engine* vox_create_engine (int *argc, char **argv[])
@@ -221,7 +229,7 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
     initialize_lua (engine);
     assert (lua_gettop (engine->L) == 0);
     execute_init (engine);
-    assert (lua_gettop (engine->L) == 2);
+    assert (lua_gettop (engine->L) == 1);
 
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -263,6 +271,7 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
 
     engine->ctx = vox_make_renderer_context (engine->surface, engine->tree, engine->camera);
     engine->fps_controller = vox_make_fps_controller (fps);
+    if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
 
     return engine;
 
@@ -282,7 +291,8 @@ void vox_engine_tick (struct vox_engine *engine)
 
     SDL_PumpEvents();
     execute_tick (engine);
-    assert (lua_gettop (engine->L) == 2);
+    if (engine->cd != NULL) vox_cd_collide (engine->cd);
+    assert (lua_gettop (engine->L) == 1);
 }
 
 void vox_destroy_engine (struct vox_engine *engine)

@@ -143,9 +143,51 @@ static const struct luaL_Reg camera_methods [] = {
     {NULL, NULL}
 };
 
+static int new_cd (lua_State *L)
+{
+    struct cddata *data = lua_newuserdata (L, sizeof (struct cddata));
+    data->cd = vox_make_cd ();
+    luaL_getmetatable (L, "voxrnd.cd");
+    lua_setmetatable (L, -2);
+    return 1;
+}
+
+static int printcd (lua_State *L)
+{
+    lua_pushfstring (L, "<collision detector>");
+    return 1;
+}
+
+static int destroycd (lua_State *L)
+{
+    struct cddata *cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    free (cd->cd);
+
+    return 0;
+}
+
+static int cd_attach_camera (lua_State *L)
+{
+    struct cddata *cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    struct cameradata *camera = luaL_checkudata (L, 2, "voxrnd.camera");
+    float radius = luaL_checknumber (L, 3);
+
+    vox_cd_attach_camera (cd->cd, camera->camera, radius);
+
+    return 0;
+}
+
+static const struct luaL_Reg cd_methods [] = {
+    {"__gc", destroycd},
+    {"__tostring", printcd},
+    {"attach_camera", cd_attach_camera},
+    {NULL, NULL}
+};
+
 static const struct luaL_Reg voxrnd [] = {
     {"simple_camera", new_simple_camera},
     {"distorted_camera", new_distorted_camera},
+    {"cd", new_cd},
     {NULL, NULL}
 };
 
@@ -155,6 +197,11 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, camera_methods, 0);
+
+    luaL_newmetatable(L, "voxrnd.cd");
+    lua_pushvalue (L, -1);
+    lua_setfield (L, -2, "__index");
+    luaL_setfuncs (L, cd_methods, 0);
 
     luaL_newlib (L, voxrnd);
     return 1;

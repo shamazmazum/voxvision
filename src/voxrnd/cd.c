@@ -39,9 +39,12 @@ void vox_cd_collide (struct vox_cd *cd)
     {
         vox_dot position;
         camera->iface->get_position (camera, position);
-        if (vox_tree_ball_collidep (ctx->scene, position, cd->camera_radius))
-            camera->iface->set_position (camera, cd->last_position);
-        else
-            vox_dot_copy (cd->last_position, position);
+        if (!vox_dot_equalp (position, cd->last_position))
+        {
+            if (vox_tree_ball_collidep (ctx->scene, position, cd->camera_radius))
+                camera->iface->set_position (camera, cd->last_position);
+            else
+                vox_dot_copy (cd->last_position, position);
+        }
     }
 }

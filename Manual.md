@@ -160,9 +160,9 @@ structure called camera interface. **voxrnd** currently provides 2 camera classe
 and therefore 2 implementations of camera interface. You can get an implementation of
 camera interface by calling camera interface getter. One is
 `vox_simple_camera_iface()` and the other is `vox_distorted_camera_iface()`. The first
-camera class features a simple camera with 6 degrees of freedom and simple collision
-detection, and the second is like the first, but produces distorted projection like
-one produced by circular fish-eye camera.
+camera class features a simple camera with 6 degrees of freedom, and the second is like
+the first, but produces distorted projection like one produced by circular fish-eye
+camera.
 
 To create a simple camera you must write something like this:
 ~~~~~~~~~~~~~~~~~~~~{.c}
@@ -242,6 +242,31 @@ available in **voxrnd** library. I'll try to make a guide for that later.
 You can get more info on camera interface in `struct vox_camera_interface`
 documentation.
 
+### Collision detection
+Unfortunatelly, currently you cannot move the whole tree to any direction, so there is no
+tree-tree collision detection. But there is collision detection mechanism for camera. This
+mechanism can be created by calling `vox_make_cd()` which returns an object of type
+`struct vox_cd`. Later you attach your camera and your rendering context (that means, the
+whole scene) to this structure. Once in a rendering loop you do `vox_cd_collide()`. This
+automatically checks camera position and if it collides with any part of a tree, its
+previous valid position is restored. Example:
+
+~~~~~~~~~~~~~~~~~~~~{.c}
+struct vox_rnd_ctx *ctx =
+     vox_make_renderer_context (surface, tree, camera);
+struct vox_cd *cd = vox_make_cd ();
+vox_cd_attach_camera (cd, camera, 4); // 4 is the camera's body radius
+vox_cd_attach_context (cd, ctx);
+while (1) {
+    vox_render (ctx);
+    vox_cd_collide (cd);
+    ....
+}
+done:
+free (cd);
+// And so on
+~~~~~~~~~~~~~~~~~~~~
+
 Voxengine
 ---------
 **Voxengine** is somewhat a combine library, integrating all other libraries of
@@ -306,7 +331,8 @@ function. This environment includes:
     * `table.insert`, `table.remove`, `table.maxn`, `table.sort` functions
     * `voxtrees`, `voxrnd` and `voxutils` modules
 
-`init` function takes no arguments and must return 2 values: a tree and a camera.
+`init` function takes no arguments and must return a table. The table is your "world". It
+must contain a tree to render and a camera to see through.
 Let's see an example:
 
 ~~~~~~~~~~~~~~~{.lua}
@@ -348,12 +374,14 @@ function init ()
    camera:look_at (vt.dot (25,25,25))
    camera:set_fov (0.45)
 
-   -- Now return the tree and the camera.
-   return t, camera
+   -- Now return the tree and the camera in a table.
+   -- As you see, the tree must be in the field 'tree' and camera in the field 'camera'
+   return {tree = t, camera = camera}
 end
 
-function tick (tree, camera, time)
+function tick (world, time)
    time = time / 2000
+   local camera = world.camera
    local dot = vt.dot (25+125*math.sin(time),25-125*math.cos(time),25)
    camera:set_position (dot)
    camera:look_at (vt.dot (25,25,25))
@@ -377,12 +405,23 @@ function init ()
 
    local camera = vr.simple_camera()
    camera:set_position (vt.dot (0,-10,0))
-   return t, camera
+
+   --[[
+        Here is collision detector.
+        Its interface is like its C equivalent, only it lacks attach_context() method.
+        Context which contains returned tree is attached by the engine automatically
+   ]]--
+   local cd = vr.cd()
+   cd:attach_camera (camera, 4)
+
+   -- Collision detector is returned in 'cd' field
+   return {tree = t, camera = camera, cd = cd}
 end
 
-function tick (tree, camera, time)
+function tick (world, time)
    -- Here you can get the keyboard state with 'get_keyboard_state' function
    local keystate = vs.get_keyboard_state()
+   local camera = world.camera
    --[[
    You can check if a key is pressed in the following way.
    'scancodes' table contains scancodes for keys from a to z, 0 to 9, F1 to F12 and
@@ -415,42 +454,11 @@ function tick (tree, camera, time)
 end
 ~~~~~~~~~~~~~~~
 
-`tick` function can accept up to 4 arguments: tree, camera, time returned by
-`SDL_GetTicks` and time taken to render previous frame.
+`tick` function can accept up to 3 arguments: the "world" table (the one returned by
+init()), time returned by `SDL_GetTicks` and time taken to render previous frame.
 
-This is lua API reference:
-
-| Module   | Function           |  Meaning                            |  Example             |
-|----------|-----------         | --------------------                | ------------         |
-|voxtree   |  tree              | Create an empty tree                | voxtrees.tree()      |
-|          |  dot               | Create a dot                        | voxtrees.dot (x,y,z) |
-|          |  dotset            | Create a set of dots up to n dots   | voxtrees.dotset (n)  |
-|          |  settree           | Create a tree from a set            | voxtrees.settree(set) |
-|          |  box               | Create a box                        | voxtrees.box(dot_min,dot_max) |
-|          |  boxtree           | Create a tree from a box filled with voxels | voxtree.boxtree (box) |
-|          | voxelsize          | Set voxel's size                    | voxtrees.voxelsize (x,y,z) |
-|voxrnd    | simple_camera      | Create a simple camera              | voxrnd.simple_camera () |
-|          | distorted_camera   | Create a distorted camera           | voxrnd.distorted_camera () |
-|voxsdl    | get_keyboard_state | Get keyboard state                  | voxsdl.get_keyboard_state () |
-
-There are also many methods which you must use with `:` notation:
-
-| Object type | Method         | Meaning                       | Example                                    |
-|-------------| -----------    | -------------                 | ----------------------------------         |
-| tree        | insert         | Insert a voxel                | tree:insert (voxtrees.dot (x,y,z))         |
-|             | delete         | Delete a voxel                | tree:delete (voxtrees.dot (x,y,z))         |
-|             | rebuild        | Rebuild a tree                | tree:rebuild()                             |
-|             | bounding_box   | Return bounding box           | tree:bounding_box()                        |
-| dotset      | push           | Add a dot to dotset           | dotset:push (voxtrees.dot (x,y,z))         |
-| camera      | get_position   | Return camera's position      | camera:get_position ()                     |
-|             | set_position   | Set camera's position         | camera:set_position (voxtrees.dot (x,y,z)) |
-|             | get_fov        | Return camera's field of view | camera:get_fov()                           |
-|             | set_fov        | Set camera's field of view    | camera:set_fov (fov)                       |
-|             | set_rot_angles | Set camera's rotation angles  | |
-|             | rotate_camera  | Rotate camera (see C API documentation) | |
-|             | move_camera    | Move camera (see C API documentation) | |
-|             | look_at        | Look at object | |
-| key state   | keypressed     | Check if a key is pressed     | state:keypressed (voxsdl.scancodes.F1)     |
+**Voxengine**'s lua interface can do primitive keyboard handling by itself. It can also
+understand raw data files. Please look at lua scripts in `example` directory.
 
 All memory required for such objects as trees, dotsets etc. is handeled by lua automatically.
 

@@ -26,11 +26,12 @@ function init ()
    camera:look_at (vt.dot (25,25,25))
    camera:set_fov (0.45)
    -- You must return 2 values from init: a tree and a camera
-   return t, camera
+   return {tree = t, camera = camera}
 end
 
-function tick (tree, camera, time)
+function tick (world, time)
    -- You can rotate camera or modify tree in tick() function
+   local camera = world.camera
    time = time / 2000
    local dot = vt.dot (25+125*math.sin(time),25-125*math.cos(time),25)
    camera:set_position (dot)
