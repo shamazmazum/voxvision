@@ -8,7 +8,6 @@
 #define _STATISTICS_H_
 #ifdef VOXTREES_SOURCE
 #ifdef STATISTICS
-#define WITH_STAT(expr) expr
 #define DEPTH_MAX 20
 #define FILL_RATIO_LEN 10
 #include <stdint.h>
@@ -25,6 +24,8 @@ struct statistics
     uint64_t rti_early_exits;
     uint64_t rti_first_subspace;
     uint64_t rti_worst_cases;
+    uint64_t rti_voxels_hit;
+    uint64_t rti_voxels_skipped;
 
     float empty_volume;
     uint64_t fill_ratio_hist[FILL_RATIO_LEN];
@@ -42,8 +43,14 @@ extern struct statistics gstats;
 
 void update_fill_ratio_hist (const struct vox_box *box, size_t n);
 
+int _once ();
+int _recursion_depth();
+
+#define WITH_STAT(expr) expr
+#define WITH_STAT_ONCE(expr) if (_once()) expr
 #else
-#define WITH_STAT(expr) 
+#define WITH_STAT(expr)
+#define WITH_STAT_ONCE(expr)
 #endif
 #endif
 /**

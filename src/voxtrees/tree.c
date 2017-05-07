@@ -199,8 +199,6 @@ static void* node_alloc (int flavor)
     return aligned_alloc (16, size+addend);
 }
 
-WITH_STAT (static int recursion = -1;)
-
 struct vox_node* vox_make_dense_leaf (const struct vox_box *box)
 {
     struct vox_node *res = node_alloc (DENSE_LEAF);
@@ -225,7 +223,6 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
 {
     struct vox_node *node  = NULL;
     int leafp, densep;
-    WITH_STAT (recursion++);
 
     if (n > 0)
     {
@@ -270,7 +267,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         /* Empty nodes are leafs too */
         gstats.empty_nodes++;
         gstats.leaf_nodes++;
-        gstats.depth_hist[recursion]++;
+        gstats.depth_hist[_recursion_depth()]++;
     }
     else
     {
@@ -283,12 +280,11 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
             else update_fill_ratio_hist (&(node->bounding_box), n);
             gstats.leaf_nodes++;
-            gstats.depth_hist[recursion]++;
+            gstats.depth_hist[_recursion_depth()]++;
         }
         else gstats.inner_nodes++;
     }
 #endif
-    WITH_STAT (recursion--);
     return node;
 }
 

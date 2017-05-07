@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <dlfcn.h>
 #include "statistics.h"
 #include "tree.h"
 
@@ -25,7 +26,8 @@ void voxtrees_print_statistics()
         "vox_ray_tree_intersection(): calls: %lu\n"
         "vox_ray_tree_intersection(): early exits: %lu (%lu%%)\n"
         "vox_ray_tree_intersection(): ray does not cross subspaces: %lu (%lu%%)\n"
-        "vox_ray_tree_intersection(): worst cases without intersection: %lu (%lu%%)\n\n",
+        "vox_ray_tree_intersection(): worst cases without intersection: %lu (%lu%%)\n"
+        "vox_ray_tree_intersection(): voxels hit/skipped: %lu/%lu (%lu%% total)\n\n",
         gstats.leaf_nodes,
         gstats.inner_nodes,
         gstats.empty_nodes, (gstats.leaf_nodes) ? gstats.empty_nodes*100/gstats.leaf_nodes: 0,
@@ -34,7 +36,9 @@ void voxtrees_print_statistics()
         gstats.rti_calls,
         gstats.rti_early_exits, (gstats.rti_calls) ? gstats.rti_early_exits*100/gstats.rti_calls: 0,
         gstats.rti_first_subspace, (gstats.rti_calls) ? gstats.rti_first_subspace*100/gstats.rti_calls: 0,
-        gstats.rti_worst_cases, (gstats.rti_calls) ? gstats.rti_worst_cases*100/gstats.rti_calls: 0);
+        gstats.rti_worst_cases, (gstats.rti_calls) ? gstats.rti_worst_cases*100/gstats.rti_calls: 0,
+        gstats.rti_voxels_hit, gstats.rti_voxels_skipped, (gstats.rti_voxels_hit) ?
+        gstats.rti_voxels_skipped*100/(gstats.rti_voxels_hit+gstats.rti_voxels_skipped): 0);
 
     printf ("Voxtrees number-by-depth histogram:\n");
     for (i=0; i<DEPTH_MAX; i++) printf ("%lu ", gstats.depth_hist[i]);
@@ -79,6 +83,118 @@ void update_fill_ratio_hist (const struct vox_box *box, size_t n)
     gstats.fill_ratio_hist[idx]++;
 }
 
+/*
+  Poor man's backtrace. Backtrace from execinfo is very slow.
+*/
+static int backtr (void **addrlist, int len) __attribute__ ((noinline));
+static int backtr (void **addrlist, int len)
+{
+    if (len == 0) return 0;
+#ifdef __x86_64__
+    int i = 0;
+    void **bp;
+    asm("\t mov %%rbp,%0" : "=r"(bp));
+    while (i < len && bp != NULL)
+    {
+        addrlist[i] = *(bp+1);
+        bp = (void**)*bp;
+        i++;
+    }
+
+    return i;
+#else
+    return 0;
+#endif
+}
+
+static int findsym (void *addr, void **sym)
+{
+    // Must be power of 2
+#define SYMCACHESIZE 16
+    static struct {
+        void *addr;
+        void *sym;
+    } symcache[SYMCACHESIZE];
+    static unsigned int symcacheptr = SYMCACHESIZE;
+    static int symcachewrap = 0;
+
+    unsigned int start = symcacheptr;
+    unsigned int end = (symcachewrap) ? symcacheptr: SYMCACHESIZE;
+    unsigned int idx;
+
+    for (idx=start; idx<end; idx = (idx+1)&((1<<SYMCACHESIZE)-1))
+    {
+        if (symcache[idx].addr == addr)
+        {
+            *sym = symcache[idx].sym;
+            return 1;
+        }
+    }
+
+    // Item not in cache
+    Dl_info info;
+    if (!dladdr (addr, &info)) return 0;
+    *sym = info.dli_saddr;
+
+    unsigned int oldptr = symcacheptr;
+    symcacheptr = (symcacheptr-1)&((1<<SYMCACHESIZE)-1);
+    symcache[symcacheptr].addr = addr;
+    symcache[symcacheptr].sym = *sym;
+    if (symcacheptr > oldptr)
+    {
+        printf ("symcache: wrapping pointer\n");
+        symcachewrap = 1;
+    }
+
+    printf ("symcache: adding entry, symcacheptr=%i\n",symcacheptr);
+    return 1;
+}
+
+/*
+ * CAUTION: fragile!
+ * This function may be used in other recursive functions of this library
+ * to execute something only once per call.
+ */
+int _once ()
+{
+    void *addrlist[3];
+    int len = backtr (addrlist, 3);
+    // Can do nothing, return 1
+    if (len != 3) return 1;
+
+    void *addr1, *addr2;
+
+    // Failure, return 1
+    if (!findsym (addrlist[1], &addr1)) return 1;
+    if (!findsym (addrlist[2], &addr2)) return 1;
+
+    if (addr1 != addr2) return 1;
+    return 0;
+}
+
+/*
+ * Used to get recursion depth (up to DEPTH_MAX). Like _once() it's fragile.
+ * Returned 0 means no recursion.
+ */
+int _recursion_depth ()
+{
+    void *addrlist[DEPTH_MAX+2];
+    int len = backtr (addrlist, DEPTH_MAX+2);
+    if (len < 2) return 0;
+
+    // Just return 0 on failure
+    void *current_func, *addr;
+    int i = 1;
+    if (!findsym (addrlist[i], &current_func)) return 0;
+
+    for (i=2; i<len; i++)
+    {
+        if (!findsym (addrlist[i], &addr)) return 0;
+        if (addr != current_func) break;
+    }
+
+    return i-2;
+}
 #else
 void voxtrees_print_statistics()
 {
