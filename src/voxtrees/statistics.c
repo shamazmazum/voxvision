@@ -28,7 +28,7 @@ void voxtrees_print_statistics()
         "vox_ray_tree_intersection(): worst cases without intersection: %lu (%lu%%)\n\n",
         gstats.leaf_nodes,
         gstats.inner_nodes,
-        gstats.empty_nodes, gstats.empty_nodes*100/gstats.leaf_nodes,
+        gstats.empty_nodes, (gstats.leaf_nodes) ? gstats.empty_nodes*100/gstats.leaf_nodes: 0,
         gstats.empty_volume,
         gstats.dense_dots, gstats.dense_leafs,
         gstats.rti_calls,
