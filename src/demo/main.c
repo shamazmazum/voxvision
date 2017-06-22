@@ -250,6 +250,8 @@ int main (int argc, char *argv[])
     cd = vox_make_cd();
     vox_cd_attach_camera (cd, camera, 3);
     vox_cd_attach_context (cd, ctx);
+    SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
+    SDL_SetRelativeMouseMode (SDL_TRUE);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
@@ -346,25 +348,27 @@ int main (int argc, char *argv[])
         vox_dot step = {0,0,0};
         vox_dot rot_delta = {0,0,0};
         const Uint8 *keystate = SDL_GetKeyboardState (NULL);
+        int x,y;
+
         if (keystate[global_controls.walk_forwards]) step[1] += 5;
         else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
         if (keystate[global_controls.walk_right]) step[0] += 5;
         else if (keystate[global_controls.walk_left]) step[0] -= 5;
         if (keystate[global_controls.fly_up]) step[2] += 5;
         else if (keystate[global_controls.fly_down]) step[2] -= 5;
-        if (keystate[global_controls.look_up]) rot_delta[0] -= 0.01;
-        else if (keystate[global_controls.look_down]) rot_delta[0] += 0.01;
         if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
         else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
-        if (keystate[global_controls.look_left]) rot_delta[2] += 0.01;
-        else if (keystate[global_controls.look_right]) rot_delta[2] -= 0.01;
-        camera->iface->rotate_camera (camera, rot_delta);
         camera->iface->move_camera (camera, step);
 
         vox_cd_collide (cd);
         struct vox_fps_info fps_info = fps_controller();
         if (vox_fpsstatus_updated (fps_info.status))
             printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
+
+        SDL_GetRelativeMouseState (&x, &y);
+        rot_delta[2] = -global_settings.xspeed*x;
+        rot_delta[0] = global_settings.yspeed*y;
+        camera->iface->rotate_camera (camera, rot_delta);
     }
 
 end:

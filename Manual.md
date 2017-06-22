@@ -472,10 +472,6 @@ Here is default keys for basic controls:
 
 | Action         | Key         |
 | ---            | ----------- |
-| Look up        | Up arrow    |
-| Look down      | Down arrow  |
-| Look right     | Right arrow |
-| Look left      | Left arrow  |
 | Tilt left      | `Z`         |
 | Tilt right     | `X`         |
 | Walk left      | `A`         |
@@ -515,7 +511,9 @@ sample size.
 ### Global configuration file
 Here you can remap controls and set window properties. Look at the table:
 
-| Section:Key      | Type     | Defaults to  | Comment         |
-| -------------    | ------   | -----------  | --------        |
-| `Window:Width`   | number   | `800`        | Window's width  |
-| `Window:Height`  | number   | `600`        | Window's height |
+| Section:Key            | Type     | Defaults to  | Comment         |
+| --------------------   | ------   | -----------  | --------        |
+| `Window:Width`         | number   | `800`        | Window's width  |
+| `Window:Height`        | number   | `600`        | Window's height |
+| `Controls:MouseXSpeed` | number   | `0.01`       | Mouse horizontal speed (May be less than zero to invert axis) |
+| `Controls:MouseYSpeed` | number   | `0.01`       | Mouse vertical speed (May be less than zero to invert axis) |

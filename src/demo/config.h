@@ -5,10 +5,6 @@
 struct controls
 {
     // Head movement
-    int look_up;
-    int look_down;
-    int look_left;
-    int look_right;
     int tilt_left;
     int tilt_right;
 
@@ -31,6 +27,8 @@ struct settings
     int window_width;
     int window_height;
     int fps;
+    float xspeed;
+    float yspeed;
 };
 extern struct settings global_settings;
 
