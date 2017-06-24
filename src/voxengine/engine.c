@@ -239,6 +239,11 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
     }
 
     engine->ctx = vox_make_context_and_window (engine->width, engine->height);
+    if (engine->ctx == NULL)
+    {
+        fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
+        goto bad;
+    }
     vox_context_set_scene (engine->ctx, engine->tree);
     vox_context_set_camera (engine->ctx, engine->camera);
     engine->fps_controller = vox_make_fps_controller (fps);

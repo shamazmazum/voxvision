@@ -207,6 +207,11 @@ int main (int argc, char *argv[])
     int width = global_settings.window_width;
     int height = global_settings.window_height;
     ctx = vox_make_context_and_window (width, height);
+    if (ctx == NULL)
+    {
+        fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
+        goto end;
+    }
     vox_context_set_scene (ctx, tree);
     vox_context_set_camera (ctx, camera);
     cd = vox_make_cd();
