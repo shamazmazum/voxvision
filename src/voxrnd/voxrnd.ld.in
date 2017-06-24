@@ -3,9 +3,12 @@ VOXRND_@voxvision_VERSION@ {
             vox_distorted_camera_iface;
             vox_simple_camera_set_radius;
             vox_simple_camera_get_radius;
-            vox_make_renderer_context;
-            vox_rc_set_camera;
-            vox_rc_set_scene;
+            vox_make_context_from_surface;
+            vox_make_context_and_window;
+            vox_redraw;
+            vox_context_set_camera;
+            vox_context_set_scene;
+            vox_destroy_context;
             vox_render;
             vox_make_fps_controller;
             vox_destroy_fps_controller;

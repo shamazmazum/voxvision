@@ -23,11 +23,6 @@ struct vox_engine {
     int width, height;
     const char *script;
 
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
-    SDL_Surface *surface;
-
     vox_fps_controller_t fps_controller;
     struct vox_cd *cd;
 };

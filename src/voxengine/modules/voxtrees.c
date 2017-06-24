@@ -175,7 +175,7 @@ struct dotset {
 
 static int newdotset (lua_State *L)
 {
-    unsigned int len = luaL_checkunsigned (L, 1);
+    unsigned int len = luaL_checkinteger (L, 1);
     struct dotset *set = lua_newuserdata (L, sizeof (struct dotset));
     luaL_getmetatable (L, "voxtrees.dotset");
     lua_setmetatable (L, -2);

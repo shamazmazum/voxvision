@@ -238,38 +238,9 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
         goto bad;
     }
 
-    if (SDL_CreateWindowAndRenderer (engine->width, engine->height,
-                                     0,
-                                     &engine->window, &engine->renderer))
-    {
-        fprintf (stderr, "Cannot create a window: %s\n",
-                 SDL_GetError());
-        goto bad;
-    }
-
-    engine->texture = SDL_CreateTexture (engine->renderer, SDL_PIXELFORMAT_ARGB8888,
-                                         SDL_TEXTUREACCESS_STREAMING,
-                                         engine->width, engine->height);
-    if (engine->texture == NULL)
-    {
-        fprintf (stderr, "Cannot create texture: %s\n",
-                 SDL_GetError());
-        goto bad;
-    }
-
-    int bpp;
-    Uint32 Rmask, Gmask, Bmask, Amask;
-    SDL_PixelFormatEnumToMasks (SDL_PIXELFORMAT_ARGB8888, &bpp, &Rmask, &Gmask, &Bmask, &Amask);
-    engine->surface = SDL_CreateRGBSurface (0, engine->width, engine->height,
-                                            bpp, Rmask, Gmask, Bmask, Amask);
-    if (engine->surface == NULL)
-    {
-        fprintf (stderr, "Cannot create surface: %s\n",
-                 SDL_GetError());
-        goto bad;
-    }
-
-    engine->ctx = vox_make_renderer_context (engine->surface, engine->tree, engine->camera);
+    engine->ctx = vox_make_context_and_window (engine->width, engine->height);
+    vox_context_set_scene (engine->ctx, engine->tree);
+    vox_context_set_camera (engine->ctx, engine->camera);
     engine->fps_controller = vox_make_fps_controller (fps);
     if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
 
@@ -283,10 +254,7 @@ bad:
 void vox_engine_tick (struct vox_engine *engine)
 {
     vox_render (engine->ctx);
-    SDL_UpdateTexture (engine->texture, NULL, engine->surface->pixels, engine->surface->pitch);
-    SDL_FillRect (engine->surface, NULL, 0);
-    SDL_RenderCopy (engine->renderer, engine->texture, NULL, NULL);
-    SDL_RenderPresent (engine->renderer);
+    vox_redraw (engine->ctx);
     engine->fps_info = engine->fps_controller();
 
     SDL_PumpEvents();
@@ -298,12 +266,9 @@ void vox_engine_tick (struct vox_engine *engine)
 void vox_destroy_engine (struct vox_engine *engine)
 {
     if (engine->L != NULL) lua_close (engine->L);
-    if (engine->surface != NULL) SDL_FreeSurface(engine->surface);
-    if (engine->texture != NULL) SDL_DestroyTexture (engine->texture);
-    if (engine->renderer != NULL) SDL_DestroyRenderer (engine->renderer);
-    if (engine->window != NULL) SDL_DestroyWindow (engine->window);
     if (engine->fps_controller != NULL) vox_destroy_fps_controller (engine->fps_controller);
-    if (engine->ctx != NULL) free (engine->ctx);
+    if (engine->ctx != NULL) vox_destroy_context (engine->ctx);
+    if (engine->cd != NULL) free (engine->cd);
     if (SDL_WasInit(0)) SDL_Quit();
     free (engine);
 }

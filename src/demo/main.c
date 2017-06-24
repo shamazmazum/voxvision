@@ -74,16 +74,11 @@ int main (int argc, char *argv[])
     __block struct vox_node *tree = NULL;
     dispatch_queue_t tree_queue = NULL;
     dispatch_group_t tree_group = NULL;
-    SDL_Window *screen = NULL;
-    SDL_Renderer *renderer = NULL;
-    SDL_Texture *texture = NULL;
-    SDL_Surface *surface = NULL;
     vox_fps_controller_t fps_controller = NULL;
     struct vox_cd *cd = NULL;
     char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
-    char caption[MAXPATHLEN+20];
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
@@ -204,49 +199,16 @@ int main (int argc, char *argv[])
     tree_group = dispatch_group_create ();
 #endif
 
-    if (SDL_CreateWindowAndRenderer (global_settings.window_width,
-                                     global_settings.window_height,
-                                     0,
-                                     &screen, &renderer))
-    {
-        fprintf (stderr, "Cannot create a window: %s\n",
-                 SDL_GetError());
-        goto end;
-    }
-    sprintf (caption, "voxvision-demo: %s", datacfgname);
-    SDL_SetWindowTitle (screen, caption);
-
-    texture = SDL_CreateTexture (renderer, SDL_PIXELFORMAT_ARGB8888,
-                                 SDL_TEXTUREACCESS_STREAMING,
-                                 global_settings.window_width,
-                                 global_settings.window_height);
-    if (texture == NULL)
-    {
-        fprintf (stderr, "Cannot create texture: %s\n",
-                 SDL_GetError());
-        goto end;
-    }
-
-    int bpp;
-    Uint32 Rmask, Gmask, Bmask, Amask;
-    SDL_PixelFormatEnumToMasks (SDL_PIXELFORMAT_ARGB8888, &bpp, &Rmask, &Gmask, &Bmask, &Amask);
-    surface = SDL_CreateRGBSurface (0,
-                                    global_settings.window_width,
-                                    global_settings.window_height,
-                                    bpp, Rmask, Gmask, Bmask, Amask);
-    if (surface == NULL)
-    {
-        fprintf (stderr, "Cannot create surface: %s\n",
-                 SDL_GetError());
-        goto end;
-    }
-
     camera = vox_simple_camera_iface()->construct_camera (NULL);
     camera->iface->set_position (camera, origin);
     camera->iface->set_fov (camera, fov);
     camera->iface->set_rot_angles (camera, angles);
     int camera_type = 0;
-    ctx = vox_make_renderer_context (surface, tree, camera);
+    int width = global_settings.window_width;
+    int height = global_settings.window_height;
+    ctx = vox_make_context_and_window (width, height);
+    vox_context_set_scene (ctx, tree);
+    vox_context_set_camera (ctx, camera);
     cd = vox_make_cd();
     vox_cd_attach_camera (cd, camera, 3);
     vox_cd_attach_context (cd, ctx);
@@ -268,10 +230,7 @@ int main (int argc, char *argv[])
           a tree still may be executed in parallel on other queues.
         */
         dispatch_sync (tree_queue, ^{vox_render (ctx);});
-        SDL_UpdateTexture (texture, NULL, surface->pixels, surface->pitch);
-        SDL_FillRect (surface, NULL, 0);
-        SDL_RenderCopy (renderer, texture, NULL, NULL);
-        SDL_RenderPresent (renderer);
+        vox_redraw (ctx);
 
         if (SDL_PollEvent(&event))
         {
@@ -288,7 +247,7 @@ int main (int argc, char *argv[])
                     dispatch_group_notify (tree_group, tree_queue, ^{
                             vox_dot inter, dir, origin;
                             camera->iface->get_position (camera, origin);
-                            camera->iface->screen2world (camera, dir, surface->w/2, surface->h/2);
+                            camera->iface->screen2world (camera, dir, width/2, height/2);
                             const struct vox_node* leaf =
                                 vox_ray_tree_intersection (tree, origin, dir, inter);
                             if (leaf != NULL)
@@ -297,7 +256,7 @@ int main (int argc, char *argv[])
                                     amend_box (&tree, inter, 5, 1);
                                 else
                                     amend_box (&tree, inter, 5, 0);
-                                vox_rc_set_scene (ctx, tree);
+                                vox_context_set_scene (ctx, tree);
                             }
                         });
                 }
@@ -315,7 +274,7 @@ int main (int argc, char *argv[])
                                               dispatch_sync (tree_queue, ^{
                                                       vox_destroy_tree (tree);
                                                       tree = new_tree;
-                                                      vox_rc_set_scene (ctx, tree);
+                                                      vox_context_set_scene (ctx, tree);
                                                       printf ("Tree rebuilt\n");
                                                   });
                                           });
@@ -323,7 +282,7 @@ int main (int argc, char *argv[])
                 else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
                 {
                     suitable_shot_name (shot_name);
-                    SDL_SaveBMP (surface, shot_name);
+                    SDL_SaveBMP (ctx->surface, shot_name);
                 }
                 else if (event.key.keysym.scancode == global_controls.toggle_camera)
                 {
@@ -373,13 +332,9 @@ int main (int argc, char *argv[])
 
 end:
     if (cfg != NULL) iniparser_freedict (cfg);
-    if (ctx != NULL) free (ctx);
+    if (ctx != NULL) vox_destroy_context (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);
     if (tree != NULL) vox_destroy_tree (tree);
-    if (surface != NULL) SDL_FreeSurface(surface);
-    if (texture != NULL) SDL_DestroyTexture (texture);
-    if (renderer != NULL) SDL_DestroyRenderer (renderer);
-    if (screen != NULL) SDL_DestroyWindow (screen);
     if (SDL_WasInit(0)) SDL_Quit();
 #if USE_GCD
     if (tree_queue != NULL) dispatch_release (tree_queue);
