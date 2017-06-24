@@ -1,0 +1,4 @@
+[submodule "src/voxengine/modules/luasdl2"]
+	path = src/voxengine/modules/luasdl2
+	url = git@github.com:shamazmazum/luasdl2.git
+	branch = voxvision

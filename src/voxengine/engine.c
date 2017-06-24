@@ -27,7 +27,8 @@ static int engine_panic (lua_State *L)
     exit(0);
 }
 
-static void load_module (lua_State *L, const char *modname)
+// Load module, but do not add inot environment
+static void load_module_restricted (lua_State *L, const char *modname)
 {
     char path[MAXPATHLEN];
     char init[MAXPATHLEN];
@@ -45,6 +46,11 @@ static void load_module (lua_State *L, const char *modname)
     if (init_func == NULL) luaL_error (L, "Cannot cannot find initfunction %s", init);
 
     luaL_requiref (L, modname, init_func, 0);
+}
+
+static void load_module (lua_State *L, const char *modname)
+{
+    load_module_restricted (L, modname);
     // Copy table in our environment
     lua_setfield (L, -2, modname);
 }
@@ -97,13 +103,12 @@ static void initialize_lua (struct vox_engine *engine)
     // Load C modules
     load_module (L, "voxtrees");
     load_module (L, "voxrnd");
-    load_module (L, "voxsdl");
-
-    // Local lua modules
-    load_lua_module (L, "voxutils");
 
     // Also add some safe functions
     prepare_safe_environment (L);
+
+    // And load lua modules
+    load_lua_module (L, "voxutils");
     lua_pop (L, 1);
 }
 

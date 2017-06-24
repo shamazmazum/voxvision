@@ -27,7 +27,7 @@ endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 
 find_package (SDL2 REQUIRED)
 find_package (IniParser)
-find_package (Lua)
+find_package (Lua 5.3)
 set (Python_ADDITIONAL_VERSIONS 2.7)
 find_package (PythonInterp REQUIRED)
 if (WITH_GCD)

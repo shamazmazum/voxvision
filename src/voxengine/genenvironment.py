@@ -29,3 +29,15 @@ addfrommodule ("math", ["sin", "cos", "tan",
                         "max", "min", "pi", "pow",
                         "random", "randomseed"])
 addfrommodule ("os", ["clock", "difftime", "time"])
+
+def addfromcmodule (modname, names):
+    # Load a module, but do not add it in environment
+    print 'load_module_restricted (L, "'+modname+'");'
+    # Create an empty table
+    print 'lua_newtable (L);'
+    map (addnamefromtable, names)
+    print 'lua_setfield (L, -3, "' +modname+ '");'
+    print 'lua_pop (L, 1);'
+    print ''
+
+addfromcmodule ("voxsdl", ["getKeyboardState", "scancode"])

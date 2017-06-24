@@ -17,31 +17,31 @@ end
 
 function tick (world, time)
    -- Get keyboard state
-   local keystate = vs.get_keyboard_state()
+   local keystate = vs.getKeyboardState()
    local camera = world.camera
 
    -- If 's' key is pressed, move camera, and so on
-   if keystate:keypressed (vs.scancodes.s) then
+   if keystate[vs.scancode.S] then
       camera:move_camera (vt.dot (0,-5,0))
-   elseif keystate:keypressed (vs.scancodes.w) then
+   elseif keystate[vs.scancode.W] then
       camera:move_camera (vt.dot (0,5,0))
    end
 
-   if keystate:keypressed (vs.scancodes.a) then
+   if keystate[vs.scancode.A] then
       camera:move_camera (vt.dot (-5,0,0))
-   elseif keystate:keypressed (vs.scancodes.d) then
+   elseif keystate[vs.scancode.D] then
       camera:move_camera (vt.dot (5,0,0))
    end
 
-   if keystate:keypressed (vs.scancodes.leftarrow) then
+   if keystate[vs.scancode.Left] then
       camera:rotate_camera (vt.dot (0,0,0.05))
-   elseif keystate:keypressed (vs.scancodes.rightarrow) then
+   elseif keystate[vs.scancode.Right] then
       camera:rotate_camera (vt.dot (0,0,-0.05))
    end
    
-   if keystate:keypressed (vs.scancodes.uparrow) then
+   if keystate[vs.scancode.Up] then
       camera:rotate_camera (vt.dot (-0.05,0,0))
-   elseif keystate:keypressed (vs.scancodes.downarrow) then
+   elseif keystate[vs.scancode.Down] then
       camera:rotate_camera (vt.dot (0.05,0,0))
    end
 end

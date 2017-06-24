@@ -19,10 +19,9 @@ set_target_properties (voxtrees-wrapper PROPERTIES OUTPUT_NAME voxtrees PREFIX "
 add_library (voxrnd-wrapper SHARED voxrnd.c)
 set_target_properties (voxrnd-wrapper PROPERTIES OUTPUT_NAME voxrnd PREFIX "")
 
-add_library (voxsdl-wrapper SHARED voxsdl.c scancodes.h)
-set_target_properties (voxsdl-wrapper PROPERTIES OUTPUT_NAME voxsdl PREFIX "")
+add_subdirectory (luasdl2)
 
-install (TARGETS voxtrees-wrapper voxrnd-wrapper voxsdl-wrapper LIBRARY
+install (TARGETS voxtrees-wrapper voxrnd-wrapper LIBRARY
   DESTINATION share/voxvision/modules)
 
 install (FILES voxutils.lua

@@ -24,7 +24,7 @@ end
 
 function tick (world, time)
    -- Get keyboard state
-   local keystate = vs.get_keyboard_state()
+   local keystate = vs.getKeyboardState()
 
    previous_time = previous_time or time
    local framedelta = time - previous_time
