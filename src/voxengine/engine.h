@@ -17,14 +17,11 @@ struct vox_engine {
     struct vox_camera *camera;
     struct vox_node *tree;
     struct vox_rnd_ctx *ctx;
-    struct vox_fps_info fps_info;
 
     lua_State *L;
-    int width, height;
-    const char *script;
-
-    vox_fps_controller_t fps_controller;
     struct vox_cd *cd;
+
+    int width, height, quiting, script_executed;
 };
 #else /* VOXENGINE_SOURCE */
 
@@ -42,25 +39,32 @@ struct vox_engine {
     /**< \brief Tree used by an engine. **/
     struct vox_rnd_ctx *ctx;
     /**< \brief renderer context used by an engine */
-    struct vox_fps_info fps_info;
-    /**< \brief FPS controller info returned after each tick */
 };
 #endif /* VOXENGINE_SOURCE */
 
 /**
    \brief Create voxengine.
 
-   This function creates a lua engine. It parses command line arguments,
-   initializes SDL (opens window for drawing, etc.), initializes lua state, load
-   all needed modules and so on. See the main page of documentation for more
-   informantion. If successful, it will put a remaining command line argument
-   count in *argc, and remaining arguments in *argv.
+   This function creates a lua engine: initializes SDL, opens a window,
+   initializes lua environment, loads needed modules and so on. See the main
+   page of documentation for more informantion.
 
-   \param argc pointer to argument count.
-   \param argv pointer to array of arguments.
+   \param width Width of the window.
+   \param height Height of the window.
    \return pointer to created engine on success or NULL.
 **/
-struct vox_engine* vox_create_engine (int *argc, char **argv[]);
+struct vox_engine* vox_create_engine (int width, int height);
+
+/**
+   \brief Load lua script.
+
+   This function loads lua control script, unloading the previous one, if such
+   script exists. FIXME: Panics and quits on failure.
+
+   \param engine An initialized engine
+   \param script Script file name
+**/
+void vox_engine_load_script (struct vox_engine *engine, const char *script);
 
 /**
    \brief Engine tick function.
@@ -68,8 +72,21 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[]);
    Do an engine tick. See the main page of documentation for more
    information. This function is usually called inside an infinite loop in the
    main program.
+
+   \return 1 if tick is performed, 0 otherwise (e.g. script is not loaded,
+   nothing to do).
 **/
-void vox_engine_tick (struct vox_engine *engine);
+int vox_engine_tick (struct vox_engine *engine);
+
+/**
+   \brief Is quit was requested?
+
+   This function catches SDL_Quit event. As event handling is usually done in
+   lua, this function must be used to know when to quit.
+
+   \return 1 if quit was requested, 0 otherwise.
+**/
+int vox_engine_quit_requested (struct vox_engine *engine);
 
 /**
    \brief Destroy an engine.

@@ -22,9 +22,12 @@ function init ()
    return {tree = tree, camera = camera, cd = cd}
 end
 
-function tick (world, time, framedelta)
+function tick (world, time)
    -- Get keyboard state
    local keystate = vs.get_keyboard_state()
+
+   previous_time = previous_time or time
+   local framedelta = time - previous_time
    --[[
       This is as in previous example. 'voxutils' table has a function process_movement
       to process movement in one line of code. It can be called so:
@@ -34,5 +37,6 @@ function tick (world, time, framedelta)
    ]]--
 
    -- Also 'framedelta' contains time in milliseconds taken to render previous frame
-   voxutils.process_movement (keystate, world.camera, 0.25*framedelta)
+   voxutils.process_movement (keystate, world.camera, 0.25*framedelta, 0.001*framedelta)
+   previous_time = time
 end

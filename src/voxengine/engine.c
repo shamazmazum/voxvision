@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/param.h>
 #include <dlfcn.h>
 #include <assert.h>
@@ -26,11 +25,6 @@ static int engine_panic (lua_State *L)
 
     vox_destroy_engine (engine);
     exit(0);
-}
-
-static void usage()
-{
-    fprintf (stderr, "Usase: <program> [-w width] [-h height] [-f fps] -s script [rest]\n");
 }
 
 static void load_module (lua_State *L, const char *modname)
@@ -87,7 +81,6 @@ static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
     engine->L = L;
-    int res;
 
     luaL_openlibs (L);
     // Put engine in the registry and set panic handler
@@ -112,47 +105,22 @@ static void initialize_lua (struct vox_engine *engine)
     // Also add some safe functions
     prepare_safe_environment (L);
     lua_pop (L, 1);
-
-    if (luaL_loadfile (L, engine->script))
-        luaL_error (L, "Error loading script %s: %s", engine->script,
-                    lua_tostring (L, -1));
-    set_safe_environment (L);
-
-    if ((res = lua_pcall (L, 0, 0, 0)))
-        luaL_error (L,
-                    "Error executing script %s\n"
-                    "%s",
-                    engine->script,
-                    lua_tostring (L, -1));
-}
-
-static void execute_tick (struct vox_engine *engine)
-{
-    lua_State *L = engine->L;
-
-    lua_getglobal (L, "voxvision");
-    lua_getfield (L, -1, "tick");
-
-    if (lua_isfunction (L, -1))
-    {
-        set_safe_environment (L);
-
-        // Copy the "world" table
-        lua_pushvalue (L, 1);
-        lua_pushnumber (L, SDL_GetTicks());
-        lua_pushnumber (L, engine->fps_info.frame_time);
-        if (lua_pcall (L, 3, 0, 0))
-            luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
-        lua_pop (L, 1);
-    }
-    else if (!lua_isnil (L, -1))
-        luaL_error (L, "tick is not a function: %s", lua_tostring (L, -1));
-    else lua_pop (L, 2);
 }
 
 static void execute_init (struct vox_engine *engine)
 {
     lua_State *L = engine->L;
+
+    /*
+     * FIXME:
+     * Drop the old table from execution of the previous script.
+     * GC must free all resources.
+     */
+    if (engine->script_executed)
+    {
+        lua_pop (L, 1);
+        lua_gc (L, LUA_GCCOLLECT, 0);
+    }
 
     lua_getglobal (L, "voxvision");
     lua_getfield (L, -1, "init");
@@ -180,56 +148,68 @@ static void execute_init (struct vox_engine *engine)
     if (cd != NULL) engine->cd = cd->cd;
 
     lua_pop (L, 3);
+
+    vox_context_set_scene (engine->ctx, engine->tree);
+    vox_context_set_camera (engine->ctx, engine->camera);
+    if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
+    engine->script_executed = 1;
 }
 
-struct vox_engine* vox_create_engine (int *argc, char **argv[])
+void vox_engine_load_script (struct vox_engine *engine, const char *script)
+{
+    lua_State *L = engine->L;
+
+    if (luaL_loadfile (L, script))
+        luaL_error (L, "Error loading script %s: %s", script,
+                    lua_tostring (L, -1));
+    set_safe_environment (L);
+
+    if (lua_pcall (L, 0, 0, 0))
+        luaL_error (L,
+                    "Error executing script %s\n"
+                    "%s",
+                    script,
+                    lua_tostring (L, -1));
+
+    execute_init (engine);
+    assert (lua_gettop (engine->L) == 1);
+}
+
+static void execute_tick (struct vox_engine *engine)
+{
+    lua_State *L = engine->L;
+
+    lua_getglobal (L, "voxvision");
+    lua_getfield (L, -1, "tick");
+
+    if (lua_isfunction (L, -1))
+    {
+        set_safe_environment (L);
+
+        // Copy the "world" table
+        lua_pushvalue (L, 1);
+        lua_pushnumber (L, SDL_GetTicks());
+//        lua_pushnumber (L, engine->fps_info.frame_time);
+        if (lua_pcall (L, 2, 0, 0))
+            luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
+        lua_pop (L, 1);
+    }
+    else if (!lua_isnil (L, -1))
+        luaL_error (L, "tick is not a function: %s", lua_tostring (L, -1));
+    else lua_pop (L, 2);
+}
+
+struct vox_engine* vox_create_engine (int width, int height)
 {
     struct vox_engine *engine;
-    int ch, width = 800, height = 600, fps = 30;
-    const char *script = NULL;
-
-    while ((ch = getopt (*argc, *argv, "w:h:s:f:")) != -1)
-    {
-        switch (ch)
-        {
-        case 'w':
-            width = strtol (optarg, NULL, 10);
-            break;
-        case 'h':
-            height = strtol (optarg, NULL, 10);
-            break;
-        case 's':
-            script = optarg;
-            break;
-        case 'f':
-            fps = strtol (optarg, NULL, 10);
-            break;
-        case '?':
-        default:
-            usage();
-            return NULL;
-        }
-    }
-
-    *argc -= optind;
-    *argv += optind;
-
-    if (script == NULL)
-    {
-        usage ();
-        return NULL;
-    }
-
+ 
     engine = malloc (sizeof (struct vox_engine));
     memset (engine, 0, sizeof (struct vox_engine));
     engine->width = width;
     engine->height = height;
-    engine->script = script;
 
     initialize_lua (engine);
     assert (lua_gettop (engine->L) == 0);
-    execute_init (engine);
-    assert (lua_gettop (engine->L) == 1);
 
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -244,10 +224,6 @@ struct vox_engine* vox_create_engine (int *argc, char **argv[])
         fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
         goto bad;
     }
-    vox_context_set_scene (engine->ctx, engine->tree);
-    vox_context_set_camera (engine->ctx, engine->camera);
-    engine->fps_controller = vox_make_fps_controller (fps);
-    if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
 
     return engine;
 
@@ -256,24 +232,29 @@ bad:
     return NULL;
 }
 
-void vox_engine_tick (struct vox_engine *engine)
+int vox_engine_quit_requested (struct vox_engine *engine)
 {
+    return engine->quiting;
+}
+
+int vox_engine_tick (struct vox_engine *engine)
+{
+    if (!engine->script_executed) return 0;
+
     vox_render (engine->ctx);
     vox_redraw (engine->ctx);
-    engine->fps_info = engine->fps_controller();
 
-    SDL_PumpEvents();
+    engine->quiting = SDL_QuitRequested();
     execute_tick (engine);
     if (engine->cd != NULL) vox_cd_collide (engine->cd);
     assert (lua_gettop (engine->L) == 1);
+    return 1;
 }
 
 void vox_destroy_engine (struct vox_engine *engine)
 {
     if (engine->L != NULL) lua_close (engine->L);
-    if (engine->fps_controller != NULL) vox_destroy_fps_controller (engine->fps_controller);
     if (engine->ctx != NULL) vox_destroy_context (engine->ctx);
-    if (engine->cd != NULL) free (engine->cd);
     if (SDL_WasInit(0)) SDL_Quit();
     free (engine);
 }
