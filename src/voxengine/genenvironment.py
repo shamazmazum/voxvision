@@ -29,6 +29,7 @@ addfrommodule ("math", ["sin", "cos", "tan",
                         "max", "min", "pi", "pow",
                         "random", "randomseed"])
 addfrommodule ("os", ["clock", "difftime", "time"])
+addfrommodule ("string", ["format"])
 
 def addfromcmodule (modname, names):
     # Load a module, but do not add it in environment
@@ -40,4 +41,5 @@ def addfromcmodule (modname, names):
     print 'lua_pop (L, 1);'
     print ''
 
-addfromcmodule ("voxsdl", ["getKeyboardState", "scancode"])
+addfromcmodule ("voxsdl", ["getKeyboardState", "scancode", "pumpEvent", "pollEvent", "waitEvent",
+                           "event", "getRelativeMouseState"])
