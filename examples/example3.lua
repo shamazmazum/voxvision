@@ -23,22 +23,34 @@ function init ()
 end
 
 function tick (world, time)
+   local event, quit
+   for event in vs.pollEvent() do
+      if event.type == vs.event.KeyDown and event.keysym.sym == vs.key.Escape then
+         quit = true
+      elseif event.type == vs.event.Quit then
+         quit = true
+      end
+   end
+   if quit then request_quit() end
+
    -- Get keyboard state
    local keystate = vs.getKeyboardState()
 
    previous_time = previous_time or time
    local framedelta = time - previous_time
    --[[
-      This is as in previous example. 'voxutils' table has a function process_movement
-      to process movement in one line of code. It can be called so:
-      process_movement (keystate, camera, mdelta, adelta, controls).
-      mdelta is delta for move_camera method and adelta is delta for rotate_camera
-      control keys can be redefined in 'controls' table (see source code)
+      This is as in previous example. 'voxutils' table has a function
+      process_keyboard_movement to process basic keyboard movement in one line
+      of code. It can be called so:
+      process_keyboard_movement (keystate, camera, mdelta, controls).
+      mdelta is delta for move_camera method. Control keys can be redefined in
+      'controls' table (see source code).
    ]]--
 
    -- Also 'framedelta' contains time in milliseconds taken to render previous frame
    voxutils.process_keyboard_movement (keystate, world.camera, 0.25*framedelta)
 
+   -- This is how mouse movement is handeled
    local mask, x, y = vs.getRelativeMouseState()
    local rot = vt.dot (-y*0.0005*framedelta, 0, -x*0.0005*framedelta)
    world.camera:rotate_camera (rot)

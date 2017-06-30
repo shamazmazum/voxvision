@@ -21,7 +21,7 @@ struct vox_engine {
     lua_State *L;
     struct vox_cd *cd;
 
-    int width, height, quiting, script_executed;
+    int width, height, script_executed;
 };
 #else /* VOXENGINE_SOURCE */
 

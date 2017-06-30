@@ -83,6 +83,13 @@ static void prepare_safe_environment (lua_State *L)
 #include <safe_environment.h>
 }
 
+static int l_request_quit (lua_State *L)
+{
+    lua_pushboolean (L, 1);
+    lua_setfield (L, LUA_REGISTRYINDEX, "quit_requested");
+    return 0;
+}
+
 static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
@@ -106,6 +113,10 @@ static void initialize_lua (struct vox_engine *engine)
 
     // Also add some safe functions
     prepare_safe_environment (L);
+
+    // Add some (one by now) core functions
+    lua_pushcfunction (L, l_request_quit);
+    lua_setfield (L, -2, "request_quit");
 
     // And load lua modules
     load_lua_module (L, "voxutils");
@@ -194,7 +205,6 @@ static void execute_tick (struct vox_engine *engine)
         // Copy the "world" table
         lua_pushvalue (L, 1);
         lua_pushnumber (L, SDL_GetTicks());
-//        lua_pushnumber (L, engine->fps_info.frame_time);
         if (lua_pcall (L, 2, 0, 0))
             luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
         lua_pop (L, 1);
@@ -239,7 +249,14 @@ bad:
 
 int vox_engine_quit_requested (struct vox_engine *engine)
 {
-    return engine->quiting;
+    lua_State *L = engine->L;
+    int quit;
+
+    lua_getfield (L, LUA_REGISTRYINDEX, "quit_requested");
+    quit = lua_toboolean (L, -1);
+    lua_pop (L, 1);
+
+    return quit;
 }
 
 int vox_engine_tick (struct vox_engine *engine)
@@ -249,7 +266,6 @@ int vox_engine_tick (struct vox_engine *engine)
     vox_render (engine->ctx);
     vox_redraw (engine->ctx);
 
-    engine->quiting = SDL_QuitRequested();
     execute_tick (engine);
     if (engine->cd != NULL) vox_cd_collide (engine->cd);
     assert (lua_gettop (engine->L) == 1);

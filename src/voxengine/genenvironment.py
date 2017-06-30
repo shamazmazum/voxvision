@@ -42,4 +42,4 @@ def addfromcmodule (modname, names):
     print ''
 
 addfromcmodule ("voxsdl", ["getKeyboardState", "scancode", "pumpEvent", "pollEvent", "waitEvent",
-                           "event", "getRelativeMouseState"])
+                           "pushEvent", "event", "key", "scancode", "getRelativeMouseState"])

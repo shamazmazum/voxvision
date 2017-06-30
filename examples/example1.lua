@@ -1,5 +1,6 @@
 vt = voxtrees
 vr = voxrnd
+vs = voxsdl
 
 function init ()
    -- Set voxel size
@@ -30,6 +31,18 @@ function init ()
 end
 
 function tick (world, time)
+   -- This is how events are handeled. Just like in C program
+   local event, quit
+   for event in vs.pollEvent() do
+      if event.type == vs.event.KeyDown and event.keysym.sym == vs.key.Escape then
+         quit = true
+      elseif event.type == vs.event.Quit then
+         quit = true
+      end
+   end
+   -- Call request_quit when you wish to shut down the engine
+   if quit then request_quit() end
+
    -- You can rotate camera or modify tree in tick() function
    local camera = world.camera
    time = time / 2000

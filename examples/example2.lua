@@ -16,6 +16,16 @@ function init ()
 end
 
 function tick (world, time)
+   local event, quit
+   for event in vs.pollEvent() do
+      if event.type == vs.event.KeyDown and event.keysym.sym == vs.key.Escape then
+         quit = true
+      elseif event.type == vs.event.Quit then
+         quit = true
+      end
+   end
+   if quit then request_quit() end
+
    -- Get keyboard state
    local keystate = vs.getKeyboardState()
    local camera = world.camera
