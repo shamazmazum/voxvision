@@ -37,6 +37,11 @@ function tick (world, time)
    ]]--
 
    -- Also 'framedelta' contains time in milliseconds taken to render previous frame
-   voxutils.process_movement (keystate, world.camera, 0.25*framedelta, 0.001*framedelta)
+   voxutils.process_keyboard_movement (keystate, world.camera, 0.25*framedelta)
+
+   local mask, x, y = vs.getRelativeMouseState()
+   local rot = vt.dot (-y*0.0005*framedelta, 0, -x*0.0005*framedelta)
+   world.camera:rotate_camera (rot)
+
    previous_time = time
 end
