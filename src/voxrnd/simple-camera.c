@@ -68,38 +68,39 @@ static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
     struct vox_simple_camera *camera = (void*)cam;
 
     int i,j;
-    vox_dot ort[3];
-    vox_quat r[3], tmp;
-    memset (ort, 0, sizeof(vox_dot)*3);
+    vox_dot ort;
+    vox_quat tmp;
     for (i=0; i<3; i++)
     {
-        // Basis unit vectors in the world coordinate system
-        ort[i][i] = 1;
+        // Basis unit vector in the camera's coordinate system
+        memset (ort, 0, sizeof(vox_dot));
+        ort[i] = 1;
         /*
-          After rotation it is the basis unit vectors of camera's
-          coordinate system.
+          After rotation it is the same vector but in the world coordinate
+          system.
         */
-        vox_rotate_vector (camera->rotation, ort[i], ort[i]);
+        vox_rotate_vector (camera->rotation, ort, ort);
         float sinang = sinf(delta[i]);
         float cosang = cosf(delta[i]);
         for (j=0; j<3; j++)
         {
-            r[i][j+1] = sinang*ort[i][j];
+            tmp[j+1] = sinang*ort[j];
         }
-        r[i][0] = cosang;
+        tmp[0] = cosang;
+        /*
+          Now, tmp is a rotation around camera's i-th axis in the world
+          coordinate system. Apply this rotation by multiplying tmp and
+          camera->rotation quaternions.
+        */
+        vox_quat_mul (tmp, camera->rotation, camera->rotation);
     }
-    /*
-      For each axis i, r[i] has a rotation in the world coordinate system
-      around camera's basis unit vector i.
-      Resulting rotation is a composition of all these rotations
-    */
-
-    vox_quat_mul (r[0], camera->rotation, tmp);
-    vox_quat_mul (r[1], tmp, r[0]);
-    vox_quat_mul (r[2], r[0], camera->rotation);
 
     /*
-     * KLUDGE: Fix cummulative computational error by normalizing quaternion
+     * KLUDGE: Normalize resulting quaternion.
+     * Ordinary, we multiply rotation quaternions hence norm of the result is
+     * always 1. But there is a cummulative computational error because I use
+     * previous rotation to calculate the next. In order to fix it, I must
+     * normalize.
      */
     vox_quat_normalize (camera->rotation);
 }
