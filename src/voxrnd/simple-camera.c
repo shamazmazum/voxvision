@@ -97,6 +97,11 @@ static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
     vox_quat_mul (r[0], camera->rotation, tmp);
     vox_quat_mul (r[1], tmp, r[0]);
     vox_quat_mul (r[2], r[0], camera->rotation);
+
+    /*
+     * KLUDGE: Fix cummulative computational error by normalizing quaternion
+     */
+    vox_quat_normalize (camera->rotation);
 }
 
 static void simple_look_at (struct vox_camera *cam, vox_dot coord)

@@ -62,4 +62,22 @@ void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
     r = _mm_srli_si128 (r, 4);
     _mm_store_ps (res, r);
 }
+
+static __v4sf vox_vect_normalize (__v4sf vect)
+{
+    __v4sf sum = vect*vect;
+    sum = _mm_hadd_ps (sum, sum);
+    sum = _mm_hadd_ps (sum, sum);
+    return vect * _mm_rsqrt_ps (sum);
+}
+
+void vox_dot_normalize (vox_dot dot)
+{
+    _mm_store_ps (dot, vox_vect_normalize (_mm_load_ps (dot)));
+}
+
+void vox_quat_normalize (vox_quat quat)
+{
+    _mm_store_ps (quat, vox_vect_normalize (_mm_load_ps (quat)));
+}
 #endif
