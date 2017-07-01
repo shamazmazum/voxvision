@@ -81,8 +81,7 @@ int vox_engine_tick (struct vox_engine *engine);
 /**
    \brief Is quit was requested?
 
-   This function catches SDL_Quit event. As event handling is usually done in
-   lua, this function must be used to know when to quit.
+   This function checks if `request_quit()` was called in lua script.
 
    \return 1 if quit was requested, 0 otherwise.
 **/
