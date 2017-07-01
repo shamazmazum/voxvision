@@ -198,8 +198,9 @@ static void execute_tick (struct vox_engine *engine)
     lua_getglobal (L, "voxvision");
     lua_getfield (L, -1, "tick");
 
-    if (lua_isfunction (L, -1))
+    if (!lua_isnil (L, -1))
     {
+        // Assume that tick is a function
         set_safe_environment (L);
 
         // Copy the "world" table
@@ -209,9 +210,24 @@ static void execute_tick (struct vox_engine *engine)
             luaL_error (L, "error executing tick function: %s", lua_tostring (L, -1));
         lua_pop (L, 1);
     }
-    else if (!lua_isnil (L, -1))
-        luaL_error (L, "tick is not a function: %s", lua_tostring (L, -1));
-    else lua_pop (L, 2);
+    else
+    {
+        lua_pop (L, 2);
+        // Do very basic SDL event handling here
+        SDL_Event event;
+
+        if (SDL_PollEvent (&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                l_request_quit (L);
+                break;
+            default:
+                ;
+            }
+        }
+    }
 }
 
 struct vox_engine* vox_create_engine (int width, int height)
