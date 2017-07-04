@@ -367,14 +367,14 @@ vs = voxsdl
 
 function init ()
    -- Set voxel size
-   vt.voxelsize (vt.dot (0.25, 0.25, 0.25))
+   vt.voxelsize {0.25, 0.25, 0.25}
    -- Create a set for up to 50*50*50 dots
    local a = vt.dotset(50*50*50)
    for i = 0,50 do
       for j = 0,50 do
          for k = 0,50 do
             -- Push a new dot to the set
-            a:push (vt.dot (i,j,k))
+            a:push {i,j,k}
          end
       end
    end
@@ -386,8 +386,8 @@ function init ()
    -- Create a new simple camera
    local camera = vr.simple_camera()
    -- These methods are like methods in vox_camera_interface
-   camera:set_position (vt.dot (25,-100,25))
-   camera:look_at (vt.dot (25,25,25))
+   camera:set_position {25,-100,25}
+   camera:look_at {25,25,25}
    camera:set_fov (0.45)
    -- You must return at least 2 values in table from init: a tree and a camera
    return {tree = t, camera = camera}
@@ -409,9 +409,9 @@ function tick (world, time)
    -- You can rotate camera or modify tree in tick() function
    local camera = world.camera
    time = time / 2000
-   local dot = vt.dot (25+125*math.sin(time),25-125*math.cos(time),25)
+   local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
    camera:set_position (dot)
-   camera:look_at (vt.dot (25,25,25))
+   camera:look_at {25,25,25}
 end
 ~~~~~~~~~~~~~~~
 
@@ -431,10 +431,10 @@ function init ()
    -- You can also create an empty tree
    local t = vt.tree()
    -- And add a voxel to it
-   t:insert (vt.dot(0,0,0))
+   t:insert {0,0,0}
 
    local camera = vr.simple_camera()
-   camera:set_position (vt.dot (0,-10,0))
+   camera:set_position {0,-10,0}
 
    --[[
         Here is collision detector.
@@ -467,27 +467,27 @@ function tick (world, time)
         This example implements WASD-movement and camera rotation.
    ]]--
    if keystate[vs.scancode.S] then
-      camera:move_camera (vt.dot (0,-5,0))
+      camera:move_camera {0,-5,0}
    elseif keystate[vs.scancode.W] then
-      camera:move_camera (vt.dot (0,5,0))
+      camera:move_camera {0,5,0}
    end
 
    if keystate[vs.scancode.A] then
-      camera:move_camera (vt.dot (-5,0,0))
+      camera:move_camera {-5,0,0}
    elseif keystate[vs.scancode.D] then
-      camera:move_camera (vt.dot (5,0,0))
+      camera:move_camera {5,0,0}
    end
 
    if keystate[vs.scancode.Left] then
-      camera:rotate_camera (vt.dot (0,0,0.05))
+      camera:rotate_camera {0,0,0.05}
    elseif keystate[vs.scancode.Right] then
-      camera:rotate_camera (vt.dot (0,0,-0.05))
+      camera:rotate_camera {0,0,-0.05}
    end
    
    if keystate[vs.scancode.Up] then
-      camera:rotate_camera (vt.dot (-0.05,0,0))
+      camera:rotate_camera {-0.05,0,0}
    elseif keystate[vs.scancode.Down] then
-      camera:rotate_camera (vt.dot (0.05,0,0))
+      camera:rotate_camera {0.05,0,0}
    end
 end
 ~~~~~~~~~~~~~~~

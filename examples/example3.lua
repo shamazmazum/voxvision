@@ -7,12 +7,12 @@ function init ()
    -- 'skull.dat' is provided as an example.
    -- read_raw_data_ranged() is like faster read_raw_data() with test function checking
    -- min <= sample < max (in current example sample >= 40)
-   local tree = vt.read_raw_data_ranged (vt.find_data_file "skull.dat", vt.dot (256,256,256), 1, 40)
+   local tree = vt.read_raw_data_ranged (vt.find_data_file "skull.dat", {256,256,256}, 1, 40)
    print (#tree)
 
    local camera = vr.simple_camera()
-   camera:set_position (vt.dot (100,60,-100))
-   camera:set_rot_angles (vt.dot (0.7, 0, 0))
+   camera:set_position {100,60,-100}
+   camera:set_rot_angles {0.7, 0, 0}
 
    -- Also attach camera to collision detector
    local cd = vr.cd()
@@ -52,7 +52,7 @@ function tick (world, time)
 
    -- This is how mouse movement is handeled
    local mask, x, y = vs.getRelativeMouseState()
-   local rot = vt.dot (-y*0.0005*framedelta, 0, -x*0.0005*framedelta)
+   local rot = {-y*0.0005*framedelta, 0, -x*0.0005*framedelta}
    world.camera:rotate_camera (rot)
 
    previous_time = time

@@ -3,19 +3,14 @@
 #include <lualib.h>
 #include <voxrnd.h>
 #include <stdlib.h>
-#include <strings.h>
 #include "../modules.h"
 
 static int get_position (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
-    float *data = lua_newuserdata (L, sizeof (vox_dot));
     vox_dot position;
-    luaL_getmetatable (L, "voxtrees.vox_dot");
-    lua_setmetatable (L, -2);
-
     camera->iface->get_position (camera->camera, position);
-    memcpy (data, position, sizeof (vox_dot));
+    WRITE_DOT (position);
 
     return 1;
 }
@@ -23,9 +18,8 @@ static int get_position (lua_State *L)
 static int set_position (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
-    float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot position;
-    memcpy (position, data, sizeof (vox_dot));
+    READ_DOT (position, 2);
     camera->iface->set_position (camera->camera, position);
 
     return 0;
@@ -51,10 +45,8 @@ static int set_fov (lua_State *L)
 static int set_rot_angles (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
-    float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot angles;
-    memcpy (angles, data, sizeof (vox_dot));
-
+    READ_DOT (angles, 2);
     camera->iface->set_rot_angles (camera->camera, angles);
 
     return 0;
@@ -63,10 +55,8 @@ static int set_rot_angles (lua_State *L)
 static int rotate_camera (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
-    float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot delta;
-    memcpy (delta, data, sizeof (vox_dot));
-
+    READ_DOT (delta, 2);
     camera->iface->rotate_camera (camera->camera, delta);
 
     return 0;
@@ -75,9 +65,8 @@ static int rotate_camera (lua_State *L)
 static int move_camera (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
-    float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot delta;
-    memcpy (delta, data, sizeof (vox_dot));
+    READ_DOT (delta, 2);
     camera->iface->move_camera (camera->camera, delta);
 
     return 0;
@@ -86,10 +75,8 @@ static int move_camera (lua_State *L)
 static int look_at (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
-    float *data = luaL_checkudata (L, 2, "voxtrees.vox_dot");
     vox_dot coord;
-    memcpy (coord, data, sizeof (vox_dot));
-
+    READ_DOT (coord, 2);
     camera->iface->look_at (camera->camera, coord);
 
     return 0;

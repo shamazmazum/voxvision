@@ -8,7 +8,6 @@
 #include "../modules.h"
 
 #include <stdlib.h>
-#include <strings.h>
 
 static int newtree (lua_State *L)
 {
@@ -21,11 +20,9 @@ static int newtree (lua_State *L)
 
 static int newdenseleaf (lua_State *L)
 {
-    struct vox_box *arg = luaL_checkudata (L, 1, "voxtrees.vox_box");
     struct vox_box box;
-
-    // Fix alignment
-    memcpy (&box, arg, sizeof (struct vox_box));
+    READ_DOT (box.min, 1);
+    READ_DOT (box.max, 2);
 
     newtree (L);
     struct nodedata *data = luaL_checkudata (L, -1, "voxtrees.vox_node");
@@ -51,12 +48,10 @@ static int counttree (lua_State *L)
 static int inserttree (lua_State *L)
 {
     struct nodedata *data = luaL_checkudata (L, 1, "voxtrees.vox_node");
-    float *dot = luaL_checkudata (L, 2, "voxtrees.vox_dot");
-    vox_dot copy;
+    vox_dot dot;
 
-    // Fix alignemnt
-    memcpy (copy, dot, sizeof(vox_dot));
-    int res = vox_insert_voxel (&(data->node), copy);
+    READ_DOT (dot, 2);
+    int res = vox_insert_voxel (&(data->node), dot);
     lua_pushboolean (L, res);
     return 1;
 }
@@ -73,12 +68,10 @@ static int rebuildtree (lua_State *L)
 static int deletetree (lua_State *L)
 {
     struct nodedata *data = luaL_checkudata (L, 1, "voxtrees.vox_node");
-    float *dot = luaL_checkudata (L, 2, "voxtrees.vox_dot");
-    vox_dot copy;
+    vox_dot dot;
 
-    // Fix alignemnt
-    memcpy (copy, dot, sizeof(vox_dot));
-    int res = vox_delete_voxel (&(data->node), copy);
+    READ_DOT (dot, 2);
+    int res = vox_delete_voxel (&(data->node), dot);
     lua_pushboolean (L, res);
     return 1;
 }
@@ -91,19 +84,16 @@ static int printtree (lua_State *L)
     return 1;
 }
 
-// FIXME: use of lua_newuserdata()
 static int bbtree (lua_State *L)
 {
     struct nodedata *arg = luaL_checkudata (L, 1, "voxtrees.vox_node");
     struct vox_box bb;
-    struct vox_box *data = lua_newuserdata (L, sizeof (struct vox_box));
-
-    luaL_getmetatable (L, "voxtrees.vox_box");
-    lua_setmetatable (L, -2);
 
     vox_bounding_box (arg->node, &bb);
-    memcpy (data, &bb, sizeof(struct vox_box));
-    return 1;
+    WRITE_DOT (bb.min);
+    WRITE_DOT (bb.max);
+
+    return 2;
 }
 
 static const struct luaL_Reg tree_methods [] = {
@@ -114,57 +104,6 @@ static const struct luaL_Reg tree_methods [] = {
     {"delete", deletetree},
     {"rebuild", rebuildtree},
     {"bounding_box", bbtree},
-    {NULL, NULL}
-};
-
-static int newdot (lua_State *L)
-{
-    float x = luaL_checknumber (L, 1);
-    float y = luaL_checknumber (L, 2);
-    float z = luaL_checknumber (L, 3);
-    float *dot = lua_newuserdata (L, sizeof (vox_dot));
-    luaL_getmetatable (L, "voxtrees.vox_dot");
-    lua_setmetatable (L, -2);
-    dot[0] = x; dot[1] = y; dot[2] = z;
-    return 1;
-}
-
-static int printdot (lua_State *L)
-{
-    float *dot = luaL_checkudata (L, 1, "voxtrees.vox_dot");
-    lua_pushfstring (L, "<dot [%f,%f,%f]>",
-                     dot[0], dot[1], dot[2]);
-    return 1;
-}
-
-static const struct luaL_Reg dot_methods [] = {
-    {"__tostring", printdot},
-    {NULL, NULL}
-};
-
-static int newbox (lua_State *L)
-{
-    float *min = luaL_checkudata (L, 1, "voxtrees.vox_dot");
-    float *max = luaL_checkudata (L, 2, "voxtrees.vox_dot");
-    struct vox_box *data = lua_newuserdata (L, sizeof (struct vox_box));
-    memcpy (data->min, min, sizeof(vox_dot));
-    memcpy (data->max, max, sizeof(vox_dot));
-    luaL_getmetatable (L, "voxtrees.vox_box");
-    lua_setmetatable (L, -2);
-    return 1;
-}
-
-static int printbox (lua_State *L)
-{
-    struct vox_box *data = luaL_checkudata (L, 1, "voxtrees.vox_box");
-    lua_pushfstring (L, "<box [%f,%f,%f]-[%f,%f,%f]>",
-                     data->min[0], data->min[1], data->min[2],
-                     data->max[0], data->max[1], data->max[2]);
-    return 1;
-}
-
-static const struct luaL_Reg box_methods [] = {
-    {"__tostring", printbox},
     {NULL, NULL}
 };
 
@@ -213,7 +152,8 @@ static int lengthdotset (lua_State *L)
 static int pushdotset (lua_State *L)
 {
     struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
-    float *dot = luaL_checkudata (L, 2, "voxtrees.vox_dot");
+    vox_dot dot;
+    READ_DOT (dot, 2);
     int argc = 0;
 
     if (set->length == set->max_length)
@@ -247,7 +187,8 @@ static int newsettree (lua_State *L)
 
 static int voxelsize (lua_State *L)
 {
-    float *voxel = luaL_checkudata (L, 1, "voxtrees.vox_dot");
+    vox_dot voxel;
+    READ_DOT (voxel, 1);
     memcpy (vox_voxel, voxel, sizeof (vox_dot));
     return 0;
 }
@@ -255,7 +196,8 @@ static int voxelsize (lua_State *L)
 static int read_raw_data (lua_State *L)
 {
     const char *filename = luaL_checkstring (L, 1);
-    float *dim = luaL_checkudata (L, 2, "voxtrees.vox_dot");
+    vox_dot dim;
+    READ_DOT (dim, 2);
     unsigned int samplesize = luaL_checkinteger (L, 3);
     const char *errorstr;
     unsigned int d[3];
@@ -293,7 +235,8 @@ static int read_raw_data (lua_State *L)
 static int read_raw_data_ranged (lua_State *L)
 {
     const char *filename = luaL_checkstring (L, 1);
-    float *dim = luaL_checkudata (L, 2, "voxtrees.vox_dot");
+    vox_dot dim;
+    READ_DOT (dim, 2);
     unsigned int samplesize = luaL_checkinteger (L, 3);
     unsigned int min, max;
     if (lua_isnoneornil (L, 4)) min = 1 << (8*samplesize-1);
@@ -350,11 +293,9 @@ static int find_data_file (lua_State *L)
 
 static const struct luaL_Reg voxtrees [] = {
     {"tree", newtree},
-    {"dot", newdot},
     {"dotset", newdotset},
     {"boxtree", newdenseleaf},
     {"settree", newsettree},
-    {"box", newbox},
     {"voxelsize", voxelsize},
     {"read_raw_data", read_raw_data},
     {"read_raw_data_ranged", read_raw_data_ranged},
@@ -368,12 +309,6 @@ int luaopen_voxtrees (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, tree_methods, 0);
-
-    luaL_newmetatable(L, "voxtrees.vox_dot");
-    luaL_setfuncs (L, dot_methods, 0);
-
-    luaL_newmetatable(L, "voxtrees.vox_box");
-    luaL_setfuncs (L, box_methods, 0);
 
     luaL_newmetatable(L, "voxtrees.dotset");
     lua_pushvalue (L, -1);
