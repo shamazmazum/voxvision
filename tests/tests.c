@@ -25,7 +25,8 @@
         goto regcleanup;}                          \
     while (0)
 
-#define PREC 0.0001
+#define PRECISE 0.0001
+#define APPROX  0.5
 
 static struct vox_node *working_tree;
 static vox_dot half_voxel;
@@ -48,31 +49,31 @@ static int dot_betweenp (const struct vox_box *box, const vox_dot dot)
     return 1;
 }
 
-static int vect_eq (const vox_dot v1, const vox_dot v2)
+static int vect_eq (const vox_dot v1, const vox_dot v2, float precision)
 {
     int i;
-    float mdiff = PREC;
+    float mdiff = precision;
     for (i=0; i<3; i++)
     {
         float diff = fabsf (v1[i] - v2[i]);
         mdiff = (diff > mdiff) ? diff : mdiff;
     }
 
-    if (mdiff <= PREC) return 1;
+    if (mdiff == precision) return 1;
     else return 0;
 }
 
-static int quat_eq (const vox_quat v1, const vox_quat v2)
+static int quat_eq (const vox_quat v1, const vox_quat v2, float precision)
 {
     int i;
-    float mdiff = PREC;
+    float mdiff = precision;
     for (i=0; i<4; i++)
     {
         float diff = fabsf (v1[i] - v2[i]);
         mdiff = (diff > mdiff) ? diff : mdiff;
     }
 
-    if (mdiff <= PREC) return 1;
+    if (mdiff == precision) return 1;
     else return 0;
 }
 
@@ -85,7 +86,7 @@ static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot targe
     res[1] = dir[1]*t + origin[1];
     res[2] = dir[2]*t + origin[2];
 
-    return vect_eq (target, res);
+    return vect_eq (target, res, APPROX);
 }
 
 static void test_rotation_around_itself ()
@@ -104,13 +105,13 @@ static void test_rotation_around_itself ()
     vox_dot resz;
     
     vox_rotate_vector (basex, vectx, resx);
-    CU_ASSERT (vect_eq (resx, vectx));
+    CU_ASSERT (vect_eq (resx, vectx, PRECISE));
     
     vox_rotate_vector (basey, vecty, resy);
-    CU_ASSERT (vect_eq (resy, vecty));
+    CU_ASSERT (vect_eq (resy, vecty, PRECISE));
 
     vox_rotate_vector (basez, vectz, resz);
-    CU_ASSERT (vect_eq (resz, vectz));
+    CU_ASSERT (vect_eq (resz, vectz, PRECISE));
 }
 
 static void test_change_axis ()
@@ -131,13 +132,13 @@ static void test_change_axis ()
     vox_dot expz = {0.0, -1.0, 0.0};
     
     vox_rotate_vector (basex, vectx, vectx);
-    CU_ASSERT (vect_eq (expx, vectx));
+    CU_ASSERT (vect_eq (expx, vectx, PRECISE));
     
     vox_rotate_vector (basey, vecty, vecty);
-    CU_ASSERT (vect_eq (expy, vecty));
+    CU_ASSERT (vect_eq (expy, vecty, PRECISE));
 
     vox_rotate_vector (basez, vectz, vectz);
-    CU_ASSERT (vect_eq (expz, vectz));
+    CU_ASSERT (vect_eq (expz, vectz, PRECISE));
 }
 
 static float* vector_inv (const vox_dot dot, vox_dot res)
@@ -162,7 +163,7 @@ static void test_anticommut ()
     vox_rotate_vector (basex, vecty, res1);
     vox_rotate_vector (basey, vectx, res2);
     
-    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2)));
+    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2), PRECISE));
 }
 
 static void rot_composition ()
@@ -187,7 +188,7 @@ static void rot_composition ()
     vox_rotate_vector (base1, res1, res1);
     vox_rotate_vector (base_res, vect, res2);
 
-    CU_ASSERT (vect_eq (res1, res2));
+    CU_ASSERT (vect_eq (res1, res2, PRECISE));
 }
 
 static void rot_saves_norm ()
@@ -198,7 +199,7 @@ static void rot_saves_norm ()
     vox_dot res;
     vox_rotate_vector (base, vect, res);
 
-    CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PREC);
+    CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PRECISE);
 }
 
 static struct vox_node* prepare_rnd_set_and_tree ()
@@ -299,53 +300,53 @@ static void quat_mul ()
     vox_quat q12 = {0, 0, 1, 0};
     vox_quat e1  = {0, 0, 0, 1};
     vox_quat_mul (q11, q12, res);
-    CU_ASSERT (quat_eq (e1, res));
+    CU_ASSERT (quat_eq (e1, res, PRECISE));
 
     vox_quat q21 = {0, 0, 1, 0};
     vox_quat q22 = {0, 0, 0, 1};
     vox_quat e2  = {0, 1, 0, 0};
     vox_quat_mul (q21, q22, res);
-    CU_ASSERT (quat_eq (e2, res));
+    CU_ASSERT (quat_eq (e2, res, PRECISE));
 
     vox_quat q31 = {0, 0, 0, 1};
     vox_quat q32 = {0, 1, 0, 0};
     vox_quat e3  = {0, 0, 1, 0};
     vox_quat_mul (q31, q32, res);
-    CU_ASSERT (quat_eq (e3, res));
+    CU_ASSERT (quat_eq (e3, res, PRECISE));
 
     // And in another direction...
     vox_quat q41 = {0, 0, 1, 0};
     vox_quat q42 = {0, 1, 0, 0};
     vox_quat e4  = {0, 0, 0, -1};
     vox_quat_mul (q41, q42, res);
-    CU_ASSERT (quat_eq (e4, res));
+    CU_ASSERT (quat_eq (e4, res, PRECISE));
 
     vox_quat q51 = {0, 0, 0, 1};
     vox_quat q52 = {0, 0, 1, 0};
     vox_quat e5  = {0, -1, 0, 0};
     vox_quat_mul (q51, q52, res);
-    CU_ASSERT (quat_eq (e5, res));
+    CU_ASSERT (quat_eq (e5, res, PRECISE));
 
     vox_quat q61 = {0, 1, 0, 0};
     vox_quat q62 = {0, 0, 0, 1};
     vox_quat e6  = {0, 0, -1, 0};
     vox_quat_mul (q61, q62, res);
-    CU_ASSERT (quat_eq (e6, res));
+    CU_ASSERT (quat_eq (e6, res, PRECISE));
 
     // Neutral element
     vox_quat qn1 = {4, 3, 2, 1};
     vox_quat n =   {1, 0, 0, 0};
     vox_quat_mul (qn1, n, res);
-    CU_ASSERT (quat_eq (res, qn1));
+    CU_ASSERT (quat_eq (res, qn1, PRECISE));
     vox_quat_mul (n, qn1, res);
-    CU_ASSERT (quat_eq (res, qn1));
+    CU_ASSERT (quat_eq (res, qn1, PRECISE));
     
     // Some random quaterions
     vox_quat q1 = {4, 1, 2, 3};
     vox_quat q2 = {2, 0, 2, 0};
     vox_quat e  = {4, -4, 12, 8};
     vox_quat_mul (q1, q2, res);
-    CU_ASSERT (quat_eq (res, e));
+    CU_ASSERT (quat_eq (res, e, PRECISE));
 }
 
 static void test_tree_cons () {check_tree (working_tree);}
@@ -665,28 +666,28 @@ static void test_simp_camera ()
     camera->iface->set_window_size (camera, 100, 100);
 
     camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (pos, newpos));
+    CU_ASSERT (vect_eq (pos, newpos, PRECISE));
 
     vox_dot world_coord;
     vox_dot world_coord_expected = {0, 0, 1};
     vox_dot world_coord_expected2 = {0, 1, 0};
 
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected2));
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected2, PRECISE));
 
     angles[0] = M_PI/4; angles[1] = 0; angles[2] = 0;
     camera->iface->set_rot_angles (camera, angles);
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected));
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE));
 
     angles[0] = 0; angles[1] = M_PI/4; angles[2] = 0;
     camera->iface->rotate_camera (camera, angles);
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected)); // fixed point
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE)); // fixed point
 
     camera->iface->move_camera (camera, world_coord);
     camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (world_coord, newpos));
+    CU_ASSERT (vect_eq (world_coord, newpos, PRECISE));
 
     camera->iface->destroy_camera (camera);
 }
@@ -717,7 +718,7 @@ static void test_camera_class_coercion ()
 
     struct vox_camera *camera2 = vox_distorted_camera_iface()->construct_camera (camera);
     camera2->iface->get_position (camera2, newpos);
-    CU_ASSERT (vect_eq (pos, newpos));
+    CU_ASSERT (vect_eq (pos, newpos, PRECISE));
     CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
 }
 
