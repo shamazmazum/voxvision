@@ -89,6 +89,25 @@ static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot targe
     return vect_eq (target, res, APPROX);
 }
 
+static void test_identity ()
+{
+    vox_quat identity;
+
+    vox_quat_set_identity (identity);
+    vox_dot dot1 = {1,2,4}, rot1;
+    vox_dot dot2 = {-321,22,124}, rot2;
+    vox_dot dot3 = {-321,22,-124}, rot3;
+
+    vox_rotate_vector (identity, dot1, rot1);
+    CU_ASSERT (vect_eq (dot1, rot1, PRECISE));
+
+    vox_rotate_vector (identity, dot2, rot2);
+    CU_ASSERT (vect_eq (dot2, rot2, PRECISE));
+
+    vox_rotate_vector (identity, dot3, rot3);
+    CU_ASSERT (vect_eq (dot3, rot3, PRECISE));
+}
+
 static void test_rotation_around_itself ()
 {
     // Rotate vector around itself on 0.2 radian
@@ -736,6 +755,9 @@ int main ()
     // Working with vectors
     CU_pSuite vect_suite = CU_add_suite ("vect-ops", NULL, NULL);
     if (vect_suite == NULL) PROC_SUIT_ERROR;
+
+    test = CU_add_test (vect_suite, "identity operator", test_identity);
+    if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (vect_suite, "rotate around itself", test_rotation_around_itself);
     if (test == NULL) PROC_TEST_ERROR;

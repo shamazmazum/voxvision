@@ -26,5 +26,7 @@ void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res);
 void vox_dot_normalize (vox_dot dot);
 void vox_quat_normalize (vox_quat quat);
 
+void vox_quat_set_identity (vox_quat quat);
+
 #endif
 #endif

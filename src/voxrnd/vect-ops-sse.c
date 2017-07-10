@@ -80,4 +80,10 @@ void vox_quat_normalize (vox_quat quat)
 {
     _mm_store_ps (quat, vox_vect_normalize (_mm_load_ps (quat)));
 }
+
+void vox_quat_set_identity (vox_quat quat)
+{
+    static const vox_quat identity = {1, 0, 0, 0};
+    _mm_store_ps (quat, _mm_load_ps (identity));
+}
 #endif

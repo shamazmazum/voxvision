@@ -6,17 +6,23 @@
 
 static void vox_cross_product (const vox_dot v1, const vox_dot v2, vox_dot res)
 {
-    res[0] =  v1[1]*v2[2] - v1[2]*v2[1];
-    res[1] = -v1[0]*v2[2] + v1[2]*v2[0];
-    res[2] =  v1[0]*v2[1] - v1[1]*v2[0];
+    float i1 = v1[0], j1 = v1[1], k1 = v1[2];
+    float i2 = v2[0], j2 = v2[1], k2 = v2[2];
+
+    res[0] =  j1*k2 - k1*j2;
+    res[1] = -i1*k2 + k1*i2;
+    res[2] =  i1*j2 - j1*i2;
 }
 
 void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
 {
-    res[0] = q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2] - q1[3]*q2[3];
-    res[1] = q1[2]*q2[3] - q1[3]*q2[2] + q1[1]*q2[0] + q1[0]*q2[1];
-    res[2] = q1[3]*q2[1] - q1[1]*q2[3] + q1[2]*q2[0] + q1[0]*q2[2];
-    res[3] = q1[1]*q2[2] - q1[2]*q2[1] + q1[3]*q2[0] + q1[0]*q2[3];
+    float e1 = q1[0], i1 = q1[1], j1 = q1[2], k1 = q1[3];
+    float e2 = q2[0], i2 = q2[1], j2 = q2[2], k2 = q2[3];
+
+    res[0] = e1*e2 - i1*i2 - j1*j2 - k1*k2;
+    res[1] = j1*k2 - k1*j2 + i1*e2 + e1*i2;
+    res[2] = k1*i2 - i1*k2 + j1*e2 + e1*j2;
+    res[3] = i1*j2 - j1*i2 + k1*e2 + e1*k2;
 }
 
 void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
@@ -49,5 +55,11 @@ void vox_dot_normalize (vox_quat quat)
     norm = sqrtf (sum);
 
     for (i=0; i<3; i++) quat[i] /= norm;
+}
+
+void vox_quat_set_identity (vox_quat quat)
+{
+    memset (quat, 0, sizeof (vox_quat));
+    quat[0] = 1;
 }
 #endif

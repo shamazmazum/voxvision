@@ -66,29 +66,32 @@ static void simple_move_camera (struct vox_camera *cam, vox_dot delta)
 static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
 {
     struct vox_simple_camera *camera = (void*)cam;
+    // Basis unit vector in the camera's coordinate system
+    static const vox_dot orts[] = {
+        {1, 0, 0},
+        {0, 1, 0},
+        {0, 0, 1}
+    };
 
     int i,j;
-    vox_dot ort;
     vox_quat tmp;
+    vox_dot ort_rotated;
     /*
       From axis Z to axis X throug axis Y.
       Rotating in that order allows simple_look_at() reuse this method.
     */
-    for (i=3; i>=0; i--)
+    for (i=2; i>=0; i--)
     {
-        // Basis unit vector in the camera's coordinate system
-        memset (ort, 0, sizeof(vox_dot));
-        ort[i] = 1;
         /*
-          After rotation it is the same vector but in the world coordinate
+          After rotation ort[i] is the same vector but in the world coordinate
           system.
         */
-        vox_rotate_vector (camera->rotation, ort, ort);
+        vox_rotate_vector (camera->rotation, orts[i], ort_rotated);
         float sinang = sinf(delta[i]);
         float cosang = cosf(delta[i]);
         for (j=0; j<3; j++)
         {
-            tmp[j+1] = sinang*ort[j];
+            tmp[j+1] = sinang*ort_rotated[j];
         }
         tmp[0] = cosang;
         /*
@@ -115,12 +118,12 @@ static void simple_look_at (struct vox_camera *cam, vox_dot coord)
 
     vox_dot sub, rot;
     vox_dot_sub (camera->position, coord, sub);
-    memset (rot, 0, sizeof (vox_dot));
 
     // Reset rotation
-    cam->iface->set_rot_angles (cam, rot);
+    vox_quat_set_identity (camera->rotation);
 
     rot[0] = -atan2f (sub[2], -sqrtf (sub[0]*sub[0] + sub[1]*sub[1]))/2;
+    rot[1] = 0;
     rot[2] = -atan2f (sub[0], sub[1])/2;
 
     cam->iface->rotate_camera (cam, rot);
@@ -169,8 +172,7 @@ static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
     {
         memset (camera->position, 0, sizeof (vox_dot));
         camera->fov = 1.0;
-        memset (camera->rotation, 0, sizeof (vox_quat));
-        camera->rotation[0] = 1;
+        vox_quat_set_identity (camera->rotation);
         camera->xmul = 0; camera->ymul = 0;
     }
 
