@@ -22,7 +22,7 @@ int main()
         {
 #ifdef SSE_INTRIN
             _mm_store_ps (origin, _mm_set_ps (0, 0, 0, j-5));
-            _mm_store_ps (dir, _mm_set_ps (0, 0, 0, (float)(j-5)/10));
+            _mm_store_ps (dir, _mm_set_ps (0, 0, 1, (float)(j-5)/10));
 #else
             origin[0] = j-5;
             dir[0] = origin[0]/10;
