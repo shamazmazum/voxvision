@@ -164,10 +164,22 @@ static int cd_attach_camera (lua_State *L)
     return 0;
 }
 
+static int cd_gravity (lua_State *L)
+{
+    struct cddata *cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    vox_dot gravity;
+    READ_DOT (gravity, 2);
+
+    vox_cd_gravity (cd->cd, gravity);
+
+    return 0;
+}
+
 static const struct luaL_Reg cd_methods [] = {
     {"__gc", destroycd},
     {"__tostring", printcd},
     {"attach_camera", cd_attach_camera},
+    {"gravity", cd_gravity},
     {NULL, NULL}
 };
 

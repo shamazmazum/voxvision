@@ -39,4 +39,17 @@ void vox_cd_attach_context (struct vox_cd *cd, struct vox_rnd_ctx *ctx);
 **/
 void vox_cd_collide (struct vox_cd *cd);
 
+/**
+   \brief Add gravity to the world
+
+   \param cd a collision detection instance
+   \param gravity a gravity vector.
+
+   Each time `vox_cd_collide()` is called, all movable objects will be moved
+   towards direction specified by gravity vector until they hit a hard ground.
+
+   Gravity vector of {0,0,0} turns off gravity.
+**/
+void vox_cd_gravity (struct vox_cd *cd, const vox_dot gravity);
+
 #endif

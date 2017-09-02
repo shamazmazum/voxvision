@@ -30,6 +30,11 @@ void vox_cd_attach_context (struct vox_cd *cd, struct vox_rnd_ctx *ctx)
     cd->ctx = ctx;
 }
 
+void vox_cd_gravity (struct vox_cd *cd, const vox_dot gravity)
+{
+    // This function is a stub
+}
+
 void vox_cd_collide (struct vox_cd *cd)
 {
     struct vox_camera *camera = cd->camera;

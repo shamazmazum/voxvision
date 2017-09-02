@@ -16,6 +16,7 @@ VOXRND_@voxvision_VERSION@ {
             vox_cd_attach_camera;
             vox_cd_attach_context;
             vox_cd_collide;
+            vox_cd_gravity;
 
 # For the tests
             vox_quat_mul;
