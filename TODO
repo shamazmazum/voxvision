@@ -1,0 +1,15 @@
+TODO list for unforseen future:
+
+Hard and medium changes:
+1. Introduce a new tree node type which holds holes in space instead of solid voxels.
+   1.1 Rewrite insertion/deletion and search algorithms.
+2. Level of details. Maybe do not render those voxels which are only a few pixels in width.
+3. Render image with 4x4 squares. Exploit "locality" in each square.
+   3.1 Do something with possible quality degradation.
+4. Add some FPS games experience.
+   4.1 Write a new camera with 5 degrees of freedom (with one rotation axis "locked").
+   4.2 Maybe write utility functions for fast replacement of camera methods. Maybe write a dummy camera.
+   4.3 Add gravity to collision detector.
+
+Easy changes:
+1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application).
