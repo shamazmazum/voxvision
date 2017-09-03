@@ -5,6 +5,7 @@
 #endif
 #include <stdlib.h>
 #include "renderer.h"
+#include "copy_helper.h"
 #include "../voxtrees/search.h"
 
 static void color_coeff (const struct vox_node *tree, float mul[], float add[])
@@ -32,12 +33,33 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], fl
     return color;
 }
 
+static void allocate_squares (struct vox_rnd_ctx *ctx)
+{
+    int w,h, squares_num;
+
+    w = ctx->surface->w >> 2;
+    h = ctx->surface->h >> 2;
+    squares_num = w*h;
+    ctx->square_output = aligned_alloc (16, squares_num*sizeof(square));
+    ctx->squares_num = squares_num;
+    ctx->ws = w;
+    ctx->hs = h;
+}
+
+// FIXME: This may be only temporary solution.
+static int bad_geometry (int width, int height)
+{
+    return (width&0xf) || (height&0x3);
+}
+
 struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
 {
+    if (bad_geometry (surface->w, surface->h)) return NULL;
     struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
     ctx->surface = surface;
     ctx->type = VOX_CTX_WO_WINDOW;
+    allocate_squares (ctx);
 
     return ctx;
 }
@@ -48,6 +70,7 @@ struct vox_rnd_ctx* vox_make_context_and_window (int width, int height)
     int bpp;
     Uint32 Rmask, Gmask, Bmask, Amask;
 
+    if (bad_geometry (width, height)) return NULL;
     if (!(SDL_WasInit (0) & SDL_INIT_VIDEO)) return NULL;
     ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
@@ -61,6 +84,8 @@ struct vox_rnd_ctx* vox_make_context_and_window (int width, int height)
     if (ctx->surface == NULL) goto failure;
 
     ctx->type = VOX_CTX_W_WINDOW;
+    allocate_squares (ctx);
+
     return ctx;
 
 failure:
@@ -74,6 +99,7 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
     if (ctx->texture != NULL) SDL_DestroyTexture (ctx->texture);
     if (ctx->renderer != NULL) SDL_DestroyRenderer (ctx->renderer);
     if (ctx->window != NULL) SDL_DestroyWindow (ctx->window);
+    if (ctx->square_output != NULL) free (ctx->square_output);
 }
 
 void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
@@ -93,35 +119,35 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
 void vox_render (struct vox_rnd_ctx *ctx)
 {
     SDL_Surface *surface = ctx->surface;
-    Uint32 *pixels = surface->pixels;
-    int w = surface->w;
-    int h = surface->h;
+    square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
-    int n = w*h;
+    int ws = ctx->ws;
 
     /*
       Render the scene running multiple tasks in parallel.
-      Each task renders a stipe 1x4 pixels (when not crossing window border).
+      Each task renders a square 4x4.
       Inside each task we try to render the next pixel using previous leaf node,
       not root scene node, if possible
     */
-    dispatch_apply (n>>4, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
-                    ^(size_t p1) {
-                        const struct vox_node *leaf;
+    dispatch_apply (ctx->squares_num, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+                    ^(size_t cs) {
+                        const struct vox_node *leaf = NULL;
                         vox_dot dir, inter, origin;
-                        int p2, p;
-                        p = p1 << 4;
-                        camera->iface->get_position (camera, origin);
-                        for (p2=0; p2<16; p2++)
-                        {
-                            if (p >= n) break;
-                            int i = p/w;
-                            int j = p%w;
 
-                            camera->iface->screen2world (camera, dir, j, i);
+                        int i, xstart, ystart;
+                        ystart = cs / ws;
+                        xstart = cs % ws;
+                        ystart <<= 2; xstart <<= 2;
+
+                        camera->iface->get_position (camera, origin);
+                        for (i=0; i<16; i++)
+                        {
+                            int y = i/4;
+                            int x = i%4;
+
+                            camera->iface->screen2world (camera, dir, x+xstart, y+ystart);
 #if 1
-                            if ((p2&3) == 0) leaf = NULL;
-                            else if ((leaf != NULL) && (leaf != ctx->scene))
+                            if (leaf != NULL)
                                 leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
                             if (leaf == NULL)
                                 leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
@@ -131,20 +157,19 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             if (leaf != NULL)
                             {
                                 Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
-                                pixels[p] = color;
+                                output[cs][i] = color;
                             }
-                            p++;
                         }
                     });
 }
 
-int vox_redraw (struct vox_rnd_ctx *ctx)
+void vox_redraw (struct vox_rnd_ctx *ctx)
 {
-    if (ctx->type == VOX_CTX_WO_WINDOW) return 0;
+    copy_squares (ctx->square_output, ctx->surface->pixels, ctx->ws, ctx->hs);
+    if (ctx->type == VOX_CTX_WO_WINDOW) return;
 
     SDL_UpdateTexture (ctx->texture, NULL, ctx->surface->pixels, ctx->surface->pitch);
-    SDL_FillRect (ctx->surface, NULL, 0);
+    memset (ctx->square_output, 0, ctx->squares_num*sizeof(square));
     SDL_RenderCopy (ctx->renderer, ctx->texture, NULL, NULL);
     SDL_RenderPresent (ctx->renderer);
-    return 1;
 }

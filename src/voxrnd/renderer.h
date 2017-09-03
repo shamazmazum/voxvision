@@ -10,6 +10,8 @@
 #include "camera.h"
 
 #ifdef VOXRND_SOURCE
+typedef Uint32 square[16] __attribute__((aligned(16)));
+
 enum vox_context_type
 {
     VOX_CTX_WO_WINDOW,
@@ -26,7 +28,8 @@ struct vox_rnd_ctx
     struct vox_node *scene;
     struct vox_camera *camera;
 
-    int type;
+    square *square_output;
+    int type, squares_num, ws, hs;
     float mul[3];
     float add[3];
 };
@@ -68,6 +71,9 @@ struct vox_rnd_ctx
    surface. vox_render() will render frames to that surface. User must free it
    with vox_destroy_context() after use. The underlying surface will not be
    freed.
+
+   NB: Surface width must be multiple of 16 and surface heigth must be multiple
+   of 4. If this does not hold, function silently returns NULL.
 **/
 struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface);
 
@@ -81,6 +87,9 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface);
    \param width Width of the window.
    \param height Height of the window.
    \return Context or NULL in case of SDL error.
+
+   NB: width must be multiple of 16 and heigth must be multiple
+   of 4. If this does not hold, function silently returns NULL.
 **/
 struct vox_rnd_ctx* vox_make_context_and_window (int width, int height);
 
@@ -89,11 +98,8 @@ struct vox_rnd_ctx* vox_make_context_and_window (int width, int height);
 
    This function will redraw window after call to vox_render() if context has a
    window.
-
-   \return 1 in case of success, 0 otherwise (in example, if the context has not
-   the window.
 **/
-int vox_redraw (struct vox_rnd_ctx *ctx);
+void vox_redraw (struct vox_rnd_ctx *ctx);
 
 /**
    \brief Scene setter for renderer context

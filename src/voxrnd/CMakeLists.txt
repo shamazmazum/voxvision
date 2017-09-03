@@ -9,7 +9,15 @@ include_directories (${GCD_INCLUDE_DIR})
 add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 
-set (VOXRND_SOURCES simple-camera.c distorted-camera.c renderer.c vect-ops.c vect-ops-sse.c fps-control.c cd.c)
+set (VOXRND_SOURCES
+  simple-camera.c
+  distorted-camera.c
+  renderer.c
+  vect-ops.c
+  vect-ops-sse.c
+  fps-control.c
+  cd.c
+  copy_helper.c)
 add_library (voxrnd SHARED ${VOXRND_SOURCES})
 set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}
