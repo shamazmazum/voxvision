@@ -13,3 +13,4 @@ Hard and medium changes:
 
 Easy changes:
 1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application).
+2. Screen geometry must not bring destortion in rendered scene.
