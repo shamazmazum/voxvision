@@ -25,7 +25,7 @@ addfrommodule ("table", ["insert", "maxn", "remove", "sort"])
 addfrommodule ("math", ["sin", "cos", "tan",
                         "asin", "acos", "atan", "atan2",
                         "abs", "exp", "floor", "ceil",
-                        "huge", "log", "log10",
+                        "huge", "log", "log10", "sqrt",
                         "max", "min", "pi", "pow",
                         "random", "randomseed"])
 addfrommodule ("os", ["clock", "difftime", "time"])
