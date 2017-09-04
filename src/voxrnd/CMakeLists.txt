@@ -17,7 +17,8 @@ set (VOXRND_SOURCES
   vect-ops-sse.c
   fps-control.c
   cd.c
-  copy-helper.c)
+  copy-helper.c
+  rndstat.c)
 add_library (voxrnd SHARED ${VOXRND_SOURCES})
 set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}
@@ -29,7 +30,7 @@ if (GCD_FOUND)
 target_link_libraries (voxrnd ${GCD_LIBRARY})
 endif (GCD_FOUND)
 
-install (FILES camera.h renderer.h simple-camera.h distorted-camera.h fps-control.h cd.h
+install (FILES camera.h renderer.h simple-camera.h distorted-camera.h fps-control.h cd.h rndstat.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)

@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "geom.h"
 #include "search.h"
-#include "statistics.h"
+#include "treestat.h"
 
 const struct vox_node*
 vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,

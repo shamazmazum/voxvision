@@ -6,7 +6,7 @@
 
 #include "tree.h"
 #include "geom.h"
-#include "statistics.h"
+#include "treestat.h"
 
 vox_dot vox_voxel = {1.0, 1.0, 1.0};
 

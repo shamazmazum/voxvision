@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <dlfcn.h>
-#include "statistics.h"
+#include "treestat.h"
 #include "tree.h"
 
 struct statistics gstats; // Initialized with zeros

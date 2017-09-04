@@ -17,7 +17,8 @@ VOXRND_@voxvision_VERSION@ {
             vox_cd_attach_context;
             vox_cd_collide;
             vox_cd_gravity;
-
+            voxrnd_print_statistics;
+            voxrnd_clear_statistics;
 # For the tests
             vox_quat_mul;
             vox_rotate_vector;

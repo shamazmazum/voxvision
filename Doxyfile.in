@@ -706,6 +706,7 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                =  @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd/vect-ops.h
+EXCLUDE                += @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd/copy-helper.h
 EXCLUDE                += @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine/modules
 EXCLUDE                += @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine/modules.h
 
