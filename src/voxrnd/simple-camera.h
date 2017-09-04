@@ -16,12 +16,10 @@ struct vox_simple_camera
 {
     struct vox_camera_interface *iface; /**< \brief Simple camera methods **/
 #ifdef VOXRND_SOURCE
-    float xmul, ymul;
-
+    float xsub, ysub;
     vox_dot position;
     vox_quat rotation;
-
-    float fov;
+    float mul, fov;
 #endif
 };
 

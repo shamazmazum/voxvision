@@ -9,12 +9,13 @@ static struct vox_camera* distorted_construct_camera (const struct vox_camera *c
 static void distorted_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
     const struct vox_simple_camera *camera = (void*)cam;
-    float xmul = camera->xmul;
-    float ymul = camera->ymul;
+    float mul = camera->mul;
+    float xsub = camera->xsub;
+    float ysub = camera->ysub;
 
-    assert (xmul != 0 && ymul != 0);
-    float psi = xmul*sx - camera->fov;
-    float phi = ymul*sy - camera->fov;
+    assert (mul != 0 && xsub != 0 && ysub != 0);
+    float psi = mul*sx - xsub;
+    float phi = mul*sy - ysub;
 
     float x1 = cos(phi)*sin(psi);
     float x2 = cos(phi)*cos(psi);

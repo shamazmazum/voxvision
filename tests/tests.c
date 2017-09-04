@@ -741,6 +741,20 @@ static void test_camera_class_coercion ()
     CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
 }
 
+static void test_camera_class_construction ()
+{
+    vox_dot pos = {10,110,1110}, newpos;
+    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    camera->iface->set_position (camera, pos);
+    camera->iface->set_window_size (camera, 100, 100);
+    camera->iface->set_fov (camera, 16);
+
+    struct vox_camera *camera2 = vox_simple_camera_iface()->construct_camera (camera);
+    camera2->iface->get_position (camera2, newpos);
+    CU_ASSERT (vect_eq (pos, newpos, PRECISE));
+    CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
+}
+
 int main ()
 {
     CU_pTest test;
@@ -823,7 +837,9 @@ int main ()
 
     test = CU_add_test (rnd_suite, "Camera class coercion", test_camera_class_coercion);
     if (test == NULL) PROC_TEST_ERROR;
-    
+
+    test = CU_add_test (rnd_suite, "Camera class construction", test_camera_class_construction);
+    if (test == NULL) PROC_TEST_ERROR;
 
     printf ("Creating working set and working tree\n");
     working_tree = prepare_rnd_set_and_tree ();

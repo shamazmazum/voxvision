@@ -10,17 +10,18 @@
 static void simple_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
     const struct vox_simple_camera *camera = (void*)cam;
-    float xmul = camera->xmul;
-    float ymul = camera->ymul;
+    float mul = camera->mul;
+    float xsub = camera->xsub;
+    float ysub = camera->ysub;
 
-    assert (xmul != 0 && ymul != 0);
+    assert (mul != 0 && xsub != 0 && ysub != 0);
 #ifdef SSE_INTRIN
-    _mm_store_ps (ray, _mm_set_ps (0, camera->ymul*sy - camera->fov,
-                                   1, camera->xmul*sx - camera->fov));
+    _mm_store_ps (ray, _mm_set_ps (0, mul*sy - ysub,
+                                   1, mul*sx - xsub));
 #else
-    ray[0] = camera->xmul*sx - camera->fov;
+    ray[0] = mul*sx - xsub;
     ray[1] = 1.0;
-    ray[2] = camera->ymul*sy - camera->fov;
+    ray[2] = mul*sy - ysub;
 #endif
 
     vox_rotate_vector (camera->rotation, ray, ray);
@@ -133,8 +134,18 @@ static void simple_set_window_size (struct vox_camera *cam, int w, int h)
 {
     struct vox_simple_camera *camera = (void*)cam;
 
-    camera->xmul = 2*camera->fov/w;
-    camera->ymul = 2*camera->fov/h;
+    if (w > h)
+    {
+        camera->xsub = camera->fov;
+        camera->ysub = camera->fov*h/w;
+        camera->mul  = camera->fov*2/w;
+    }
+    else
+    {
+        camera->ysub = camera->fov;
+        camera->xsub = camera->fov*w/h;
+        camera->mul  = camera->fov*2/h;
+    }
 }
 
 static void simple_destroy_camera (struct vox_camera *cam)
@@ -158,23 +169,16 @@ static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
 
     camera = aligned_alloc (16, sizeof (struct vox_simple_camera));
     iface = malloc (sizeof (struct vox_camera_interface));
-    camera->iface = iface;
 
     if (old_camera != NULL)
-    {
-        vox_dot_copy (camera->position, old_camera->position);
-        camera->fov = old_camera->fov;
-        vox_quat_copy (camera->rotation, old_camera->rotation);
-        camera->xmul = old_camera->xmul;
-        camera->ymul = old_camera->ymul;
-    }
+        memcpy (camera, old_camera, sizeof (struct vox_simple_camera));
     else
     {
-        memset (camera->position, 0, sizeof (vox_dot));
+        memset (camera, 0, sizeof (struct vox_simple_camera));
         camera->fov = 1.0;
         vox_quat_set_identity (camera->rotation);
-        camera->xmul = 0; camera->ymul = 0;
     }
+    camera->iface = iface;
 
     vox_simple_camera_iface()->coerce_class ((struct vox_camera*)camera);
     return (struct vox_camera*)camera;
