@@ -50,9 +50,7 @@ static void print_depth_hist()
 
     printf ("Depth level /  Number of leafs\n");
     STAILQ_FOREACH (elm, &depth_hist, link)
-    {
         printf ("%11i %18lu\n", i++, elm->number);
-    }
 }
 
 static void print_fill_ratio_hist()
@@ -62,9 +60,7 @@ static void print_fill_ratio_hist()
 
     printf ("Fill ratio             / Number of leafs\n");
     for (i=0; i<FILL_RATIO_LEN; i++)
-    {
         printf ("%4.1f%% <= ratio < %5.1f%% %18lu\n", i*delta, (i+1)*delta, gstats.fill_ratio_hist[i]);
-    }
 }
 
 void voxtrees_clear_statistics ()
