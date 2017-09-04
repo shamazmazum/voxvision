@@ -10,6 +10,7 @@ Hard and medium changes:
    4.1 Write a new camera with 5 degrees of freedom (with one rotation axis "locked").
    4.2 Maybe write utility functions for fast replacement of camera methods. Maybe write a dummy camera.
    4.3 Add gravity to collision detector.
+5. Maybe store the camera's basis in its structure. Rotate using this basis (for much more fast rotation).
 
 Easy changes:
 1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application).
