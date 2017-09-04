@@ -8,16 +8,15 @@
 #define _STATISTICS_H_
 #ifdef VOXTREES_SOURCE
 #ifdef STATISTICS
-#define DEPTH_MAX 20
 #define FILL_RATIO_LEN 10
 #include <stdint.h>
+#include <sys/queue.h>
 
 struct vox_box box;
 struct statistics
 {
     uint64_t leaf_nodes;
     uint64_t inner_nodes;
-    uint64_t depth_hist[DEPTH_MAX];
     uint64_t empty_nodes;
 
     uint64_t rti_calls;
@@ -42,6 +41,7 @@ struct statistics
 extern struct statistics gstats;
 
 void update_fill_ratio_hist (const struct vox_box *box, size_t n);
+void update_depth_hist (int depth);
 
 int _once ();
 int _recursion_depth();

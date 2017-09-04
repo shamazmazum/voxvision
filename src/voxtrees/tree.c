@@ -267,7 +267,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         /* Empty nodes are leafs too */
         gstats.empty_nodes++;
         gstats.leaf_nodes++;
-        gstats.depth_hist[_recursion_depth()]++;
+        update_depth_hist (_recursion_depth());
     }
     else
     {
@@ -280,7 +280,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
             else update_fill_ratio_hist (&(node->bounding_box), n);
             gstats.leaf_nodes++;
-            gstats.depth_hist[_recursion_depth()]++;
+            update_depth_hist (_recursion_depth());
         }
         else gstats.inner_nodes++;
     }
