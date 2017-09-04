@@ -5,7 +5,7 @@
 #endif
 #include <stdlib.h>
 #include "renderer.h"
-#include "copy_helper.h"
+#include "copy-helper.h"
 #include "../voxtrees/search.h"
 
 static void color_coeff (const struct vox_node *tree, float mul[], float add[])

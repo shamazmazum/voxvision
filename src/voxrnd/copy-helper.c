@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "copy_helper.h"
+#include "copy-helper.h"
 
 // Copy rendered 4x4 squares into flat output array
 void copy_squares (square *src, uint32_t *dist, unsigned int ws, unsigned int hs)

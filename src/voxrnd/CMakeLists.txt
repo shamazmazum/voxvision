@@ -17,7 +17,7 @@ set (VOXRND_SOURCES
   vect-ops-sse.c
   fps-control.c
   cd.c
-  copy_helper.c)
+  copy-helper.c)
 add_library (voxrnd SHARED ${VOXRND_SOURCES})
 set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}
