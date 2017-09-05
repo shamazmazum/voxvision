@@ -12,6 +12,7 @@ Hard and medium changes:
        Maybe write a dummy camera.
    4.3 Add gravity to collision detector.
 5. Maybe store the camera's basis in its structure. Rotate using this basis (for much more fast rotation).
+6. Replace counters with Dtrace probes in statistics.
 
 Easy changes:
 1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application).
