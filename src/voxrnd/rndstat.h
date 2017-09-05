@@ -13,7 +13,8 @@
 struct statistics
 {
     uint64_t renderer_called;
-    uint64_t local_unsuccessful;
+    uint64_t pixels_traced;
+    uint64_t leaf_mispredicts;
 };
 
 extern struct statistics gstats;

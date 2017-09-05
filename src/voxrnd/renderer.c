@@ -148,12 +148,13 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             int x = i%4;
 
                             camera->iface->screen2world (camera, dir, x+xstart, y+ystart);
+                            WITH_STAT (gstats.pixels_traced++);
 #if 1
                             if (leaf != NULL)
                                 leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
                             if (leaf == NULL) {
                                 leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
-                                WITH_STAT (gstats.local_unsuccessful++);
+                                WITH_STAT (gstats.leaf_mispredicts++);
                             }
 #else
                             leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);

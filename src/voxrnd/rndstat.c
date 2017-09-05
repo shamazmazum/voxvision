@@ -10,9 +10,12 @@ void voxrnd_print_statistics()
         "\x1b[35mVoxrnd library statistics\x1b[0m:\n"
         "\x1b[31mRendering\x1b[0m:\n"
         "vox_render() calls: %lu\n"
-        "Unsuccessful searches in leaf nodes: %lu\n",
+        "Pixels traced: %lu\n"
+        "Leaf nodes mispredicted: %lu (%lu%%)\n",
         gstats.renderer_called,
-        gstats.local_unsuccessful);
+        gstats.pixels_traced,
+        gstats.leaf_mispredicts,
+        (gstats.pixels_traced)? 100*gstats.leaf_mispredicts/gstats.pixels_traced: 0);
 }
 
 void voxrnd_clear_statistics()
