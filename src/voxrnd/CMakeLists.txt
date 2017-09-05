@@ -10,6 +10,7 @@ add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 
 set (VOXRND_SOURCES
+  camera.c
   simple-camera.c
   distorted-camera.c
   renderer.c

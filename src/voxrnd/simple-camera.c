@@ -158,7 +158,7 @@ static void simple_destroy_camera (struct vox_camera *cam)
 
 static void simple_coerce_class (struct vox_camera *cam)
 {
-    memcpy (cam->iface, vox_simple_camera_iface(), sizeof (struct vox_camera_interface));
+    inherit_interface (cam, vox_simple_camera_iface ());
 }
 
 static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)

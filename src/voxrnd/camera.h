@@ -7,7 +7,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <stdarg.h>
 #include "../voxvision.h"
 
 struct vox_camera;
@@ -153,5 +152,10 @@ struct vox_camera
 {
     struct vox_camera_interface *iface; /**< \brief camera methods **/
 };
+
+#ifdef VOXRND_SOURCE
+void inherit_interface (struct vox_camera *camera, const struct vox_camera_interface *iface);
+#endif
+
 
 #endif

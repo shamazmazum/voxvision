@@ -8,7 +8,8 @@ Hard and medium changes:
    3.1 Do something with possible quality degradation.
 4. Add some FPS games experience.
    4.1 Write a new camera with 5 degrees of freedom (with one rotation axis "locked").
-   4.2 Maybe write utility functions for fast replacement of camera methods. Maybe write a dummy camera.
+   4.2 Maybe write utility functions for fast replacement of camera methods. (DONE: 05 sep 2017).
+       Maybe write a dummy camera.
    4.3 Add gravity to collision detector.
 5. Maybe store the camera's basis in its structure. Rotate using this basis (for much more fast rotation).
 
