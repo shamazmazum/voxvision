@@ -508,7 +508,7 @@ again:
           If tree is an empty leaf, allocate a regular leaf node and store
           the voxel there.
         */
-        VOXTREES_LEAF_INSERTION();
+        WITH_STAT (VOXTREES_LEAF_INSERTION());
         dots = alloca (sizeof (vox_dot) + 16);
         dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
         vox_dot_copy (dots[0], voxel);
@@ -518,7 +518,7 @@ again:
 
     if (tree->flags & DENSE_LEAF)
     {
-        VOXTREES_DENSE_INSERTION();
+        WITH_STAT (VOXTREES_DENSE_INSERTION());
         if (tree->dots_num < VOX_MAX_DOTS)
         {
             /*
@@ -536,7 +536,7 @@ again:
     }
     else if (tree->flags & LEAF)
     {
-        VOXTREES_LEAF_INSERTION();
+        WITH_STAT (VOXTREES_LEAF_INSERTION());
         // We have enough space to add a voxel
         if (tree->dots_num < VOX_MAX_DOTS)
         {
@@ -740,7 +740,7 @@ again:
 
     if (tree->flags & LEAF)
     {
-        VOXTREES_LEAF_DELETION();
+        WITH_STAT (VOXTREES_LEAF_DELETION());
         for (i=0; i<tree->dots_num; i++)
             if (vox_dot_equalp (tree->data.dots[i], voxel)) break;
         assert (i < tree->dots_num);
@@ -750,7 +750,7 @@ again:
     }
     else if (tree->flags & DENSE_LEAF)
     {
-        VOXTREES_DENSE_DELETION();
+        WITH_STAT (VOXTREES_DENSE_DELETION());
         // Downgrade to an ordinary leaf
         if (tree->dots_num <= VOX_MAX_DOTS)
         {

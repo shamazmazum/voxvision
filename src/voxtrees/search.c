@@ -22,7 +22,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     if (!(VOX_FULLP (tree)) ||
         !(hit_box (&(tree->bounding_box), origin, dir, bb_inter)))
     {
-        VOXTREES_RTI_EARLY_EXIT();
+        WITH_STAT (VOXTREES_RTI_EARLY_EXIT());
         goto end;
     }
     /*
@@ -32,7 +32,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     {
         leaf = tree;
         vox_dot_copy (res, bb_inter);
-        VOXTREES_RTI_EARLY_EXIT();
+        WITH_STAT (VOXTREES_RTI_EARLY_EXIT());
         goto end;
     }
 
@@ -51,7 +51,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         {
             vox_dot_copy (voxel->min, dots[i]);
             vox_dot_add (voxel->min, vox_voxel, voxel->max);
-            VOXTREES_RTI_VOXEL_HIT();
+            WITH_STAT (VOXTREES_RTI_VOXEL_HIT());
             if (hit_box (voxel, bb_inter, dir, far_inter))
             {
                 dist_far = vox_abs_metric (bb_inter, far_inter);
@@ -66,7 +66,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                 {
                     vox_dot_copy (res, far_inter);
                     leaf = tree;
-                    VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1);
+                    WITH_STAT (VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1));
                     goto end;
                 }
                 if ((leaf && (dist_far < dist_closest)) || (!leaf))
@@ -104,7 +104,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     if ((leaf = vox_ray_tree_intersection (inner->children[subspace], bb_inter, dir,
                                            res)))
     {
-        VOXTREES_RTI_FIRST_SUBSPACE();
+        WITH_STAT (VOXTREES_RTI_FIRST_SUBSPACE());
         goto end;
     }
     
@@ -158,7 +158,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                                                res)))
             goto end;
     }
-    VOXTREES_RTI_WORST_CASE();
+    WITH_STAT (VOXTREES_RTI_WORST_CASE());
 
 end:
     return leaf;
