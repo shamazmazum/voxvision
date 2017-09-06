@@ -19,11 +19,17 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 option (SSE_INTRIN "Enable SSE intrinsic" ON)
 option (WITH_GCD "Enable GCD" ON)
+option (WITH_DTRACE "Enable Dtrace" OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+  set (WITH_DTRACE ON)
+endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+
+if (WITH_DTRACE)
   add_definitions (-DSTATISTICS)
   set (WITH_GCD OFF)
-endif (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+  find_package (Dtrace REQUIRED)
+endif (WITH_DTRACE)
 
 find_package (SDL2 REQUIRED)
 find_package (IniParser)

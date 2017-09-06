@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "renderer.h"
 #include "copy-helper.h"
-#include "rndstat.h"
+#include "probes.h"
 #include "../voxtrees/search.h"
 
 static void color_coeff (const struct vox_node *tree, float mul[], float add[])
@@ -123,7 +123,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
     int ws = ctx->ws;
-    WITH_STAT (gstats.renderer_called++);
+    WITH_STAT (VOXRND_RENDERER_CALLED());
 
     /*
       Render the scene running multiple tasks in parallel.
@@ -148,13 +148,13 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             int x = i%4;
 
                             camera->iface->screen2world (camera, dir, x+xstart, y+ystart);
-                            WITH_STAT (gstats.pixels_traced++);
+                            WITH_STAT (VOXRND_PIXEL_TRACED());
 #if 1
                             if (leaf != NULL)
                                 leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
                             if (leaf == NULL) {
                                 leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
-                                WITH_STAT (gstats.leaf_mispredicts++);
+                                WITH_STAT (VOXRND_LEAF_MISPREDICTION());
                             }
 #else
                             leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);

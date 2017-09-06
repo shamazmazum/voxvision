@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <voxengine.h>
 #include <voxtrees/treestat.h>
-#include <voxrnd/rndstat.h>
 #include <SDL2/SDL.h>
 
 static void usage()
@@ -63,7 +62,6 @@ int main (int argc, char *argv[])
     }
 end:
     vox_destroy_engine (engine);
-    voxrnd_print_statistics ();
     
     return 0;
 }

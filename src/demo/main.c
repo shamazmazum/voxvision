@@ -348,7 +348,6 @@ end:
     if (fps_controller != NULL) vox_destroy_fps_controller (fps_controller);
     if (cd != NULL) free (cd);
     voxtrees_print_statistics ();
-    voxrnd_print_statistics ();
 
     return 0;
 }
