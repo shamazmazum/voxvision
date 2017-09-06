@@ -12,3 +12,8 @@ voxrnd$target:::leaf-misprediction
 {
     @c3["Leaf mispredictions"] = count();
 }
+
+voxrnd$target:::ignored-prediction
+{
+    @c4["Ignored&verified predictions"] = count();
+}

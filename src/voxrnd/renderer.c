@@ -133,6 +133,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
     dispatch_apply (ctx->squares_num, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                     ^(size_t cs) {
                         const struct vox_node *leaf = NULL;
+                        WITH_STAT (const struct vox_node *old_leaf);
                         vox_dot dir, inter, origin;
 
                         int i, xstart, ystart;
@@ -149,11 +150,18 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             camera->iface->screen2world (camera, dir, x+xstart, y+ystart);
                             WITH_STAT (VOXRND_PIXEL_TRACED());
 #if 1
+                            WITH_STAT (old_leaf = leaf);
                             if (leaf != NULL)
                                 leaf = vox_ray_tree_intersection (leaf,  origin, dir, inter);
                             if (leaf == NULL) {
                                 leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
-                                WITH_STAT (VOXRND_LEAF_MISPREDICTION());
+#ifdef STATISTICS
+                                if (old_leaf != NULL)
+                                {
+                                    if (leaf != NULL) VOXRND_LEAF_MISPREDICTION();
+                                    else VOXRND_IGNORED_PREDICTION();
+                                }
+#endif
                             }
 #else
                             leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, inter);
