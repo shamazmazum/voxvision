@@ -20,9 +20,10 @@ static void update_fill_ratio (const struct vox_box *box, size_t n)
     for (i=0; i<VOX_N; i++) size[i] = box->max[i] - box->min[i];
     bb_volume = size[0]*size[1]*size[2];
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-    vox_volume *= n;
-    int ratio = 100*vox_volume/bb_volume;
+    int ratio = 100*n*vox_volume/bb_volume;
+    int holes = (bb_volume - n*vox_volume) / vox_volume;
     VOXTREES_FILL_RATIO (ratio);
+    VOXTREES_HOLES (holes);
 }
 #endif
 
@@ -240,8 +241,6 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     struct vox_node *node  = NULL;
     int leafp, densep;
 
-    VOXTREES_MAKE_TREE_CALL();
-
     if (n > 0)
     {
         struct vox_box box;
@@ -285,7 +284,6 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         /* Empty nodes are leafs too */
         VOXTREES_EMPTY_NODE();
         VOXTREES_LEAF_NODE();
-        //update_depth_hist (_recursion_depth());
     }
     else
     {
@@ -298,12 +296,10 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
             else update_fill_ratio (&(node->bounding_box), n);
             VOXTREES_LEAF_NODE();
-//            update_depth_hist (_recursion_depth());
         }
         else VOXTREES_INNER_NODE();
     }
 #endif
-    VOXTREES_MAKE_TREE_RETURN();
     return node;
 }
 

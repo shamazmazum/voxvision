@@ -123,7 +123,6 @@ void vox_render (struct vox_rnd_ctx *ctx)
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
     int ws = ctx->ws;
-    WITH_STAT (VOXRND_RENDERER_CALLED());
 
     /*
       Render the scene running multiple tasks in parallel.

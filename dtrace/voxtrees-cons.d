@@ -1,7 +1,6 @@
 BEGIN
 {
     self->make_tree_rec_level = 0;
-    self->rti_rec_level = 0;
 }
 
 voxtrees$target:::empty-node
@@ -50,12 +49,12 @@ voxtrees$target:::dense-deletion
     @dense_deletion["Deletions from dense nodes"] = count();
 }
 
-voxtrees$target:::make-tree-call
+pid$target:libvoxtrees*:vox_make_tree:entry
 {
     self->make_tree_rec_level++;
 }
 
-voxtrees$target:::make-tree-return
+pid$target:libvoxtrees*:vox_make_tree:return
 {
     self->make_tree_rec_level--;
 }
@@ -65,48 +64,9 @@ voxtrees$target:::fill-ratio
     @fill_ratio_hist["Fill ratio histogram"] = lquantize(arg0, 0, 100, 10);
 }
 
-voxtrees$target:::rti-call
+voxtrees$target:::holes
 {
-    self->rti_rec_level++;
-}
-
-voxtrees$target:::rti-call
-/ self->rti_rec_level == 1 /
-{
-    @rti_calls["RTI calls"] = count();
-}
-
-voxtrees$target:::rti-return
-{
-    self->rti_rec_level--;
-}
-
-voxtrees$target:::rti-early-exit
-/ self->rti_rec_level == 1 /
-{
-    @rti_early_exit["RTI early exits"] = count();
-}
-
-voxtrees$target:::rti-voxel-hit
-{
-    @rit_voxel_hit["RTI voxel hits"] = count();
-}
-
-voxtrees$target:::rti-voxels-skipped
-{
-    @rit_voxels_skipped["RTI voxel skipped"] = sum(arg0);
-}
-
-voxtrees$target:::rti-first-subspace
-/ self->rti_rec_level == 1 /
-{
-    @rti_first_subspace["RTI first subspace"] = count();
-}
-
-voxtrees$target:::rti-worst-case
-/ self->rti_rec_level == 1 /
-{
-    @rti_worst_case["RTI worst cases"] = count();
+    @holes["Holes in leaf nodes"] = sum(arg0);
 }
 
 END

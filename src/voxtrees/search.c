@@ -15,9 +15,6 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     int *plane_inter_idx, tmp2;
     const struct vox_node *leaf = NULL;
 
-//    WITH_STAT_ONCE (gstats.rti_calls++);
-    VOXTREES_RTI_CALL();
-
     /*
      * After hit_box call we can take bb_inter as a new ray origin.
      * This will help us with little optimization technik.
@@ -164,7 +161,6 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     VOXTREES_RTI_WORST_CASE();
 
 end:
-    VOXTREES_RTI_RETURN();
     return leaf;
 }
 

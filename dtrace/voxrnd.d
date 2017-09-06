@@ -3,7 +3,7 @@ voxrnd$target:::pixel-traced
     @c1["Pixels traced"] = count();
 }
 
-voxrnd$target:::renderer-called
+pid$target:libvoxrnd*:vox_render:entry
 {
     @c2["Renderer called"] = count();
 }
