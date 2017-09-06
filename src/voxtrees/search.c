@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "geom.h"
 #include "search.h"
-#include "treestat.h"
+#include "probes.h"
 
 const struct vox_node*
 vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
@@ -15,7 +15,8 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     int *plane_inter_idx, tmp2;
     const struct vox_node *leaf = NULL;
 
-    WITH_STAT_ONCE (gstats.rti_calls++);
+//    WITH_STAT_ONCE (gstats.rti_calls++);
+    VOXTREES_RTI_CALL();
 
     /*
      * After hit_box call we can take bb_inter as a new ray origin.
@@ -24,7 +25,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     if (!(VOX_FULLP (tree)) ||
         !(hit_box (&(tree->bounding_box), origin, dir, bb_inter)))
     {
-        WITH_STAT_ONCE (gstats.rti_early_exits++);
+        VOXTREES_RTI_EARLY_EXIT();
         goto end;
     }
     /*
@@ -34,7 +35,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     {
         leaf = tree;
         vox_dot_copy (res, bb_inter);
-        WITH_STAT_ONCE (gstats.rti_early_exits++);
+        VOXTREES_RTI_EARLY_EXIT();
         goto end;
     }
 
@@ -53,7 +54,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         {
             vox_dot_copy (voxel->min, dots[i]);
             vox_dot_add (voxel->min, vox_voxel, voxel->max);
-            WITH_STAT (gstats.rti_voxels_hit++);
+            VOXTREES_RTI_VOXEL_HIT();
             if (hit_box (voxel, bb_inter, dir, far_inter))
             {
                 dist_far = vox_abs_metric (bb_inter, far_inter);
@@ -68,7 +69,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                 {
                     vox_dot_copy (res, far_inter);
                     leaf = tree;
-                    WITH_STAT (gstats.rti_voxels_skipped += tree->dots_num-i-1);
+                    VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1);
                     goto end;
                 }
                 if ((leaf && (dist_far < dist_closest)) || (!leaf))
@@ -106,7 +107,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     if ((leaf = vox_ray_tree_intersection (inner->children[subspace], bb_inter, dir,
                                            res)))
     {
-        WITH_STAT_ONCE (gstats.rti_first_subspace++);
+        VOXTREES_RTI_FIRST_SUBSPACE();
         goto end;
     }
     
@@ -160,9 +161,10 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                                                res)))
             goto end;
     }
-    WITH_STAT_ONCE (gstats.rti_worst_cases++);
+    VOXTREES_RTI_WORST_CASE();
 
 end:
+    VOXTREES_RTI_RETURN();
     return leaf;
 }
 

@@ -189,9 +189,6 @@ int main (int argc, char *argv[])
         goto end;
     }
 
-    voxtrees_print_statistics ();
-    voxtrees_clear_statistics ();
-
 #if USE_GCD
     // Synchronous tree operations queue and group
     tree_queue = dispatch_queue_create ("tree ops", 0);
@@ -347,7 +344,6 @@ end:
 #endif
     if (fps_controller != NULL) vox_destroy_fps_controller (fps_controller);
     if (cd != NULL) free (cd);
-    voxtrees_print_statistics ();
 
     return 0;
 }

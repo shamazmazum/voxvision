@@ -15,8 +15,6 @@ VOXTREES_@voxvision_VERSION@ {
             vox_bounding_box;
             vox_abs_metric;
             vox_sqr_metric;
-            voxtrees_print_statistics;
-            voxtrees_clear_statistics;
             vox_set_voxel_size;
             vox_read_raw_data;
             vox_find_data_file;

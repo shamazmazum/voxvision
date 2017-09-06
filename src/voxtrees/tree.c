@@ -6,9 +6,25 @@
 
 #include "tree.h"
 #include "geom.h"
-#include "treestat.h"
+#include "probes.h"
 
 vox_dot vox_voxel = {1.0, 1.0, 1.0};
+
+#ifdef STATISTICS
+static void update_fill_ratio (const struct vox_box *box, size_t n)
+{
+    float bb_volume, vox_volume;
+    vox_dot size;
+    int i;
+
+    for (i=0; i<VOX_N; i++) size[i] = box->max[i] - box->min[i];
+    bb_volume = size[0]*size[1]*size[2];
+    vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
+    vox_volume *= n;
+    int ratio = 100*vox_volume/bb_volume;
+    VOXTREES_FILL_RATIO (ratio);
+}
+#endif
 
 #ifdef SSE_INTRIN
 static void find_center (const vox_dot set[], size_t n, vox_dot res)
@@ -224,6 +240,8 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     struct vox_node *node  = NULL;
     int leafp, densep;
 
+    VOXTREES_MAKE_TREE_CALL();
+
     if (n > 0)
     {
         struct vox_box box;
@@ -265,9 +283,9 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     if (!(VOX_FULLP (node)))
     {
         /* Empty nodes are leafs too */
-        gstats.empty_nodes++;
-        gstats.leaf_nodes++;
-        update_depth_hist (_recursion_depth());
+        VOXTREES_EMPTY_NODE();
+        VOXTREES_LEAF_NODE();
+        //update_depth_hist (_recursion_depth());
     }
     else
     {
@@ -275,16 +293,17 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         {
             if (node->flags & DENSE_LEAF)
             {
-                gstats.dense_leafs++;
-                gstats.dense_dots+=n;
+                VOXTREES_DENSE_LEAF();
+                VOXTREES_DENSE_DOTS (n);
             }
-            else update_fill_ratio_hist (&(node->bounding_box), n);
-            gstats.leaf_nodes++;
-            update_depth_hist (_recursion_depth());
+            else update_fill_ratio (&(node->bounding_box), n);
+            VOXTREES_LEAF_NODE();
+//            update_depth_hist (_recursion_depth());
         }
-        else gstats.inner_nodes++;
+        else VOXTREES_INNER_NODE();
     }
 #endif
+    VOXTREES_MAKE_TREE_RETURN();
     return node;
 }
 
@@ -493,7 +512,7 @@ again:
           If tree is an empty leaf, allocate a regular leaf node and store
           the voxel there.
         */
-        WITH_STAT (gstats.leaf_insertions++);
+        VOXTREES_LEAF_INSERTION();
         dots = alloca (sizeof (vox_dot) + 16);
         dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
         vox_dot_copy (dots[0], voxel);
@@ -503,7 +522,7 @@ again:
 
     if (tree->flags & DENSE_LEAF)
     {
-        WITH_STAT (gstats.dense_insertions++);
+        VOXTREES_DENSE_INSERTION();
         if (tree->dots_num < VOX_MAX_DOTS)
         {
             /*
@@ -521,7 +540,7 @@ again:
     }
     else if (tree->flags & LEAF)
     {
-        WITH_STAT (gstats.leaf_insertions++);
+        VOXTREES_LEAF_INSERTION();
         // We have enough space to add a voxel
         if (tree->dots_num < VOX_MAX_DOTS)
         {
@@ -725,7 +744,7 @@ again:
 
     if (tree->flags & LEAF)
     {
-        WITH_STAT (gstats.leaf_deletions++);
+        VOXTREES_LEAF_DELETION();
         for (i=0; i<tree->dots_num; i++)
             if (vox_dot_equalp (tree->data.dots[i], voxel)) break;
         assert (i < tree->dots_num);
@@ -735,7 +754,7 @@ again:
     }
     else if (tree->flags & DENSE_LEAF)
     {
-        WITH_STAT (gstats.dense_deletions++);
+        VOXTREES_DENSE_DELETION();
         // Downgrade to an ordinary leaf
         if (tree->dots_num <= VOX_MAX_DOTS)
         {

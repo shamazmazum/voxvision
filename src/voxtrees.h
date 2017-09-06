@@ -8,7 +8,6 @@
 #include "voxtrees/tree.h"
 #include "voxtrees/search.h"
 #include "voxtrees/geom.h"
-#include "voxtrees/treestat.h"
 #include "voxtrees/datareader.h"
 
 #endif

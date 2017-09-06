@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <voxengine.h>
-#include <voxtrees/treestat.h>
 #include <SDL2/SDL.h>
 
 static void usage()
@@ -48,7 +47,6 @@ int main (int argc, char *argv[])
     if (engine == NULL) return 1;
     vox_fps_controller_t fps_controller = vox_make_fps_controller (fps);
     vox_engine_load_script (engine, script);
-    voxtrees_print_statistics ();
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
 
