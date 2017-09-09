@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -42,7 +43,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
          * If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
          * with voxels stored in the leaf and return closest one.
          */
-        float dist_closest, dist_far;
+        float dist_closest = INFINITY, dist_far;
         vox_dot *dots = tree->data.dots;
         struct vox_box *voxel = alloca (sizeof (struct vox_box));
         vox_dot far_inter;
@@ -69,7 +70,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                     WITH_STAT (VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1));
                     goto end;
                 }
-                if ((leaf && (dist_far < dist_closest)) || (!leaf))
+                if (dist_far < dist_closest)
                 {
                     dist_closest = dist_far;
                     vox_dot_copy (res, far_inter);
