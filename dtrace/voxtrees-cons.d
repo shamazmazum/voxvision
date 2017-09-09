@@ -1,3 +1,6 @@
+#pragma D option aggsortkey
+#pragma D option aggsortkeypos=1
+
 BEGIN
 {
     self->make_tree_rec_level = 0;
