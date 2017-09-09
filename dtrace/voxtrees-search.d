@@ -3,9 +3,9 @@ BEGIN
     self->rti_rec_level = 0;
 }
 
-voxtrees$target:::rti-voxel-hit
+voxtrees$target:::rti-voxels-traversed
 {
-    @rit_voxel_hit["RTI voxel hits"] = count();
+    @rit_voxel_hit["RTI voxels traversed"] = sum(arg0);
 }
 
 voxtrees$target:::rti-voxels-skipped

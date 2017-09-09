@@ -6,7 +6,7 @@ provider voxtrees {
     probe rti__early__exit();
     probe rti__first__subspace();
     probe rti__worst__case();
-    probe rti__voxel__hit();
+    probe rti__voxels__traversed(int);
     probe rti__voxels__skipped (int);
 
     probe fill__ratio (int);
