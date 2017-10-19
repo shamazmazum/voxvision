@@ -292,11 +292,11 @@ int main (int argc, char *argv[])
                     {
                     case 0:
                         camera_type = 1;
-                        vox_distorted_camera_iface()->coerce_class (camera);
+                        vox_use_camera_methods (camera, vox_distorted_camera_iface());
                         break;
                     case 1:
                         camera_type = 0;
-                        vox_simple_camera_iface()->coerce_class (camera);
+                        vox_use_camera_methods (camera, vox_simple_camera_iface());
                         break;
                     }
                 }

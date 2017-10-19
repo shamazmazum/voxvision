@@ -127,13 +127,6 @@ struct vox_camera_interface
 
        \param camera can be NULL or another camera instance.
     **/
-    void (*coerce_class) (struct vox_camera *camera);
-    /**<
-       \brief Change class of an existing camera instance.
-
-       If the camera's class and a new class are not related, expect undefined
-       behaviour. This is a class method.
-    **/
 
     void (*destroy_camera) (struct vox_camera *camera);
     /**<
@@ -153,9 +146,26 @@ struct vox_camera
     struct vox_camera_interface *iface; /**< \brief camera methods **/
 };
 
-#ifdef VOXRND_SOURCE
-void inherit_interface (struct vox_camera *camera, const struct vox_camera_interface *iface);
-#endif
+/**
+   \brief Use defined camera methods from another interface implementation.
 
+   This functions overwrites camera methods of the given camera with new methods
+   from interface `iface` if they are defined (that means they hold non-NULL
+   value).
+**/
+void vox_use_camera_methods (struct vox_camera *camera, const struct vox_camera_interface *iface);
+
+/**
+   \brief Initialize camera.
+
+   This function allocates space for and initializes camera's `iface` field with
+   dummy methods, so you do not have to write an implementation for EVERY camera
+   method to implement the interface. You can implement SOME methods and use
+   `vox_use_camera_methods` to overwrite dummy methods later.
+
+   Also, dummy interface implements `destroy_camera` method that calls `free` on
+   the caller's `iface` field and the caller itself.
+**/
+void vox_init_camera (struct vox_camera *camera);
 
 #endif

@@ -148,39 +148,24 @@ static void simple_set_window_size (struct vox_camera *cam, int w, int h)
     }
 }
 
-static void simple_destroy_camera (struct vox_camera *cam)
-{
-    struct vox_simple_camera *camera = (void*)cam;
-
-    free (camera->iface);
-    free (camera);
-}
-
-static void simple_coerce_class (struct vox_camera *cam)
-{
-    inherit_interface (cam, vox_simple_camera_iface ());
-}
-
 static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
 {
     struct vox_simple_camera *camera;
     const struct vox_simple_camera *old_camera = (void*)cam;
-    struct vox_camera_interface *iface;
 
     camera = aligned_alloc (16, sizeof (struct vox_simple_camera));
-    iface = malloc (sizeof (struct vox_camera_interface));
 
     if (old_camera != NULL)
         memcpy (camera, old_camera, sizeof (struct vox_simple_camera));
     else
     {
         memset (camera, 0, sizeof (struct vox_simple_camera));
+        vox_init_camera ((struct vox_camera*)camera);
         camera->fov = 1.0;
         vox_quat_set_identity (camera->rotation);
     }
-    camera->iface = iface;
 
-    vox_simple_camera_iface()->coerce_class ((struct vox_camera*)camera);
+    vox_use_camera_methods ((struct vox_camera*)camera, vox_simple_camera_iface ());
     return (struct vox_camera*)camera;
 }
 
@@ -209,8 +194,6 @@ static struct vox_camera_interface vox_simple_camera_interface =
     .look_at = simple_look_at,
     .set_window_size = simple_set_window_size,
     .construct_camera = simple_construct_camera,
-    .destroy_camera = simple_destroy_camera,
-    .coerce_class = simple_coerce_class,
     .get_fov = simple_get_fov,
     .set_fov = simple_set_fov
 };
