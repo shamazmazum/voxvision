@@ -1,11 +1,8 @@
 #include <math.h>
-#include <stdlib.h>
 #include <assert.h>
-#include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
 #include "simple-camera.h"
-#include "renderer.h"
 
 static void simple_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
