@@ -196,11 +196,10 @@ int main (int argc, char *argv[])
     tree_group = dispatch_group_create ();
 #endif
 
-    camera = vox_simple_camera_iface()->construct_camera (NULL);
+    camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
     camera->iface->set_position (camera, origin);
     camera->iface->set_fov (camera, fov);
     camera->iface->set_rot_angles (camera, angles);
-    int camera_type = 0;
     int width = global_settings.window_width;
     int height = global_settings.window_height;
     ctx = vox_make_context_and_window (width, height);
@@ -285,20 +284,6 @@ int main (int argc, char *argv[])
                 {
                     suitable_shot_name (shot_name);
                     SDL_SaveBMP (ctx->surface, shot_name);
-                }
-                else if (event.key.keysym.scancode == global_controls.toggle_camera)
-                {
-                    switch (camera_type)
-                    {
-                    case 0:
-                        camera_type = 1;
-                        vox_use_camera_methods (camera, vox_distorted_camera_iface());
-                        break;
-                    case 1:
-                        camera_type = 0;
-                        vox_use_camera_methods (camera, vox_simple_camera_iface());
-                        break;
-                    }
                 }
                 break;
             case SDL_QUIT:

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <voxtrees.h>
-#include <voxrnd/simple-camera.h>
+#include <voxrnd/camera.h>
 #include <gettime.h>
 
 #define N 250
@@ -12,7 +12,7 @@ int main ()
     int i,sx,sy;
     double time;
     vox_dot ray;
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
     camera->iface->set_window_size (camera, w, h);
 
     time = gettime();

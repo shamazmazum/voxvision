@@ -9,7 +9,7 @@ function init ()
    local tree = vt.read_raw_data (vt.find_data_file "skull.dat", {256,256,256}, 1, test)
    print (#tree)
 
-   local camera = vr.simple_camera()
+   local camera = vr.camera "simple-camera"
    camera:set_position {100,60,-100}
    camera:set_rot_angles {0.7, 0, 0}
    return {tree = tree, camera = camera}

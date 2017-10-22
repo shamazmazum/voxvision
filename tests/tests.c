@@ -9,8 +9,6 @@
 #include <math.h>
 
 #include <voxrnd/camera.h>
-#include <voxrnd/simple-camera.h>
-#include <voxrnd/distorted-camera.h>
 #include <voxrnd/vect-ops.h>
 #include <voxtrees.h>
 #include <voxtrees/geom.h>
@@ -680,7 +678,7 @@ static void test_simp_camera ()
 {
     vox_dot pos = {0,0,0}, newpos;
     vox_dot angles;
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
     camera->iface->set_position (camera, pos);
     camera->iface->set_window_size (camera, 100, 100);
 
@@ -717,7 +715,7 @@ static void test_camera_look_at ()
     vox_dot look_at = {0,0,0};
     vox_dot dir;
 
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
     camera->iface->set_window_size (camera, 100, 100);
     camera->iface->set_position (camera, pos);
     camera->iface->look_at (camera, look_at);
@@ -727,29 +725,15 @@ static void test_camera_look_at ()
     camera->iface->destroy_camera (camera);
 }
 
-static void test_camera_class_coercion ()
-{
-    vox_dot pos = {10,110,1110}, newpos;
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
-    camera->iface->set_position (camera, pos);
-    camera->iface->set_window_size (camera, 100, 100);
-    camera->iface->set_fov (camera, 16);
-
-    struct vox_camera *camera2 = vox_distorted_camera_iface()->construct_camera (camera);
-    camera2->iface->get_position (camera2, newpos);
-    CU_ASSERT (vect_eq (pos, newpos, PRECISE));
-    CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
-}
-
 static void test_camera_class_construction ()
 {
     vox_dot pos = {10,110,1110}, newpos;
-    struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
     camera->iface->set_position (camera, pos);
     camera->iface->set_window_size (camera, 100, 100);
     camera->iface->set_fov (camera, 16);
 
-    struct vox_camera *camera2 = vox_simple_camera_iface()->construct_camera (camera);
+    struct vox_camera *camera2 = vox_camera_methods ("simple-camera")->construct_camera (camera);
     camera2->iface->get_position (camera2, newpos);
     CU_ASSERT (vect_eq (pos, newpos, PRECISE));
     CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
@@ -833,9 +817,6 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (rnd_suite, "Simple camera look_at test", test_camera_look_at);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (rnd_suite, "Camera class coercion", test_camera_class_coercion);
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (rnd_suite, "Camera class construction", test_camera_class_construction);

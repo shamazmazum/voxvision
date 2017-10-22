@@ -11,8 +11,6 @@ endif (GCD_FOUND)
 
 set (VOXRND_SOURCES
   camera.c
-  simple-camera.c
-  distorted-camera.c
   renderer.c
   vect-ops.c
   vect-ops-sse.c
@@ -50,7 +48,12 @@ if (GCD_FOUND)
 target_link_libraries (voxrnd ${GCD_LIBRARY})
 endif (GCD_FOUND)
 
-install (FILES camera.h renderer.h simple-camera.h distorted-camera.h fps-control.h cd.h
+add_library (simple-camera-module SHARED simple-camera.c)
+set_target_properties (simple-camera-module PROPERTIES OUTPUT_NAME simple-camera PREFIX "")
+
+install (FILES camera.h renderer.h fps-control.h cd.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)
+install (TARGETS simple-camera-module LIBRARY
+         DESTINATION share/voxvision/modules)

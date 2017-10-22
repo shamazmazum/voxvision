@@ -82,24 +82,27 @@ static int look_at (lua_State *L)
     return 0;
 }
 
-static int new_simple_camera (lua_State *L)
+static int new_camera (lua_State *L)
 {
-    struct cameradata *data = lua_newuserdata (L, sizeof (struct cameradata));
-    data->camera = vox_simple_camera_iface()->construct_camera (NULL);
-    data->iface = data->camera->iface;
-    luaL_getmetatable (L, "voxrnd.camera");
-    lua_setmetatable (L, -2);
-    return 1;
-}
+    const char *name = luaL_checkstring (L, 1);
+    struct vox_camera_interface *iface = vox_camera_methods (name);
+    struct cameradata *data;
+    int nret = 0;
 
-static int new_distorted_camera (lua_State *L)
-{
-    struct cameradata *data = lua_newuserdata (L, sizeof (struct cameradata));
-    data->camera = vox_distorted_camera_iface()->construct_camera (NULL);
-    data->iface = data->camera->iface;
-    luaL_getmetatable (L, "voxrnd.camera");
-    lua_setmetatable (L, -2);
-    return 1;
+    if (iface != NULL) {
+        data = lua_newuserdata (L, sizeof (struct cameradata));
+        data->camera = iface->construct_camera (NULL);
+        data->iface = data->camera->iface;
+        luaL_getmetatable (L, "voxrnd.camera");
+        lua_setmetatable (L, -2);
+        nret = 1;
+    } else {
+        lua_pushnil (L);
+        lua_pushstring (L, "Cannot load camera");
+        nret = 2;
+    }
+
+    return nret;
 }
 
 static int destroycamera (lua_State *L)
@@ -184,8 +187,7 @@ static const struct luaL_Reg cd_methods [] = {
 };
 
 static const struct luaL_Reg voxrnd [] = {
-    {"simple_camera", new_simple_camera},
-    {"distorted_camera", new_distorted_camera},
+    {"camera", new_camera},
     {"cd", new_cd},
     {NULL, NULL}
 };

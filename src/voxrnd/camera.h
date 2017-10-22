@@ -168,4 +168,16 @@ void vox_use_camera_methods (struct vox_camera *camera, const struct vox_camera_
 **/
 void vox_init_camera (struct vox_camera *camera);
 
+/**
+   \brief Get camera methods.
+
+   If needed, the camera is loaded as a shared object from local or global
+   module directories or from directory specified in `VOXVISION_MODULES`
+   environment variable. To get a pointer to the camera's methods, a function
+   `get_methods` is called from that shared object.
+
+   \return A pointer to the camera's methods or NULL if no camera module was
+           found.
+**/
+struct vox_camera_interface* vox_camera_methods (const char *name);
 #endif

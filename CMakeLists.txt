@@ -5,7 +5,7 @@ project (voxvision)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules")
 
 set (voxvision_VERSION_MAJOR 0)
-set (voxvision_VERSION_MINOR 23)
+set (voxvision_VERSION_MINOR 24)
 set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")
@@ -61,10 +61,6 @@ endif(DOXYGEN_FOUND)
 find_package (CUnit)
 if(CUNIT_FOUND)
   add_subdirectory (tests)
-  add_custom_target (check
-    run-tests
-    COMMENT "Run tests"
-    )
 endif(CUNIT_FOUND)
 
 install (DIRECTORY data/ DESTINATION share/voxvision/data

@@ -5,8 +5,7 @@
 #ifndef __VOXRND__
 #define __VOXRND__
 
-#include "voxrnd/simple-camera.h"
-#include "voxrnd/distorted-camera.h"
+#include "voxrnd/camera.h"
 #include "voxrnd/renderer.h"
 #include "voxrnd/fps-control.h"
 #include "voxrnd/cd.h"

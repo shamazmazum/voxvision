@@ -2,7 +2,18 @@
 #include <assert.h>
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
-#include "simple-camera.h"
+#include "camera.h"
+
+struct vox_simple_camera
+{
+    struct vox_camera_interface *iface; /**< \brief Simple camera methods **/
+    float xsub, ysub;
+    vox_dot position;
+    vox_quat rotation;
+    float mul, fov;
+};
+
+struct vox_camera_interface* get_methods ();
 
 static void simple_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
 {
@@ -162,7 +173,7 @@ static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
         vox_quat_set_identity (camera->rotation);
     }
 
-    vox_use_camera_methods ((struct vox_camera*)camera, vox_simple_camera_iface ());
+    vox_use_camera_methods ((struct vox_camera*)camera, get_methods ());
     return (struct vox_camera*)camera;
 }
 
@@ -195,7 +206,7 @@ static struct vox_camera_interface vox_simple_camera_interface =
     .set_fov = simple_set_fov
 };
 
-struct vox_camera_interface* vox_simple_camera_iface ()
+struct vox_camera_interface* get_methods ()
 {
     return &vox_simple_camera_interface;
 }

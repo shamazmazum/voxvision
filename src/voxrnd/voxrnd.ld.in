@@ -1,6 +1,5 @@
 VOXRND_@voxvision_VERSION@ {
-    global: vox_simple_camera_iface;
-            vox_distorted_camera_iface;
+    global: vox_camera_methods;
             vox_make_context_from_surface;
             vox_make_context_and_window;
             vox_redraw;
@@ -17,9 +16,10 @@ VOXRND_@voxvision_VERSION@ {
             vox_cd_gravity;
             vox_use_camera_methods;
             vox_init_camera;
-# For the tests
+# For the camera modules
             vox_quat_mul;
             vox_rotate_vector;
             vox_quat_set_identity;
+            vox_quat_normalize;
     local: *;
 };

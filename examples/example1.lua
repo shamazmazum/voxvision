@@ -21,7 +21,7 @@ function init ()
    print (#t)
 
    -- Create a new simple camera
-   local camera = vr.simple_camera()
+   local camera = vr.camera "simple-camera"
    -- These methods are like methods in vox_camera_interface
    camera:set_position {25,-100,25}
    camera:look_at {25,25,25}
