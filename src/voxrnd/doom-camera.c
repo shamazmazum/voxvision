@@ -101,24 +101,18 @@ static void doom_rotate_camera (struct vox_camera *cam, const vox_dot delta)
     camera->cosphi = cosf (camera->phi);
 }
 
-/*
-static void simple_look_at (struct vox_camera *cam, vox_dot coord)
+static void doom_look_at (struct vox_camera *cam, const vox_dot coord)
 {
-    struct vox_simple_camera *camera = (void*)cam;
+    struct vox_doom_camera *camera = (void*)cam;
 
-    vox_dot sub, rot;
-    vox_dot_sub (camera->position, coord, sub);
+    vox_dot sub;
+    vox_dot_sub (coord, camera->position, sub);
 
-    // Reset rotation
-    vox_quat_set_identity (camera->rotation);
-
-    rot[0] = -atan2f (sub[2], -sqrtf (sub[0]*sub[0] + sub[1]*sub[1]))/2;
-    rot[1] = 0;
-    rot[2] = -atan2f (sub[0], sub[1])/2;
-
-    cam->iface->rotate_camera (cam, rot);
+    camera->k = sub[2] / hypotf (sub[0], sub[1]);
+    camera->phi = -atan2f (sub[0], sub[1]);
+    camera->cosphi = cosf (camera->phi);
+    camera->sinphi = sinf (camera->phi);
 }
-*/
 
 static void doom_set_window_size (struct vox_camera *cam, int w, int h)
 {
@@ -181,7 +175,7 @@ static struct vox_camera_interface vox_doom_camera_interface =
     .set_rot_angles = doom_set_rot_angles,
     .move_camera = doom_move_camera,
     .rotate_camera = doom_rotate_camera,
-//    .look_at = fivex_look_at,
+    .look_at = doom_look_at,
     .set_window_size = doom_set_window_size,
     .construct_camera = doom_construct_camera,
     .get_fov = doom_get_fov,
