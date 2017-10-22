@@ -30,7 +30,7 @@ struct vox_camera_interface
        \param sy screen y coordinate
      */
 
-    void (*rotate_camera) (struct vox_camera *camera, vox_dot delta);
+    void (*rotate_camera) (struct vox_camera *camera, const vox_dot delta);
     /**<
        \brief Rotate the camera.
 
@@ -42,7 +42,7 @@ struct vox_camera_interface
               elements.
     */
 
-    void (*move_camera) (struct vox_camera *camera, vox_dot delta);
+    void (*move_camera) (struct vox_camera *camera, const vox_dot delta);
     /**<
        \brief Move the camera.
 
@@ -50,7 +50,7 @@ struct vox_camera_interface
               camera's coordinate system). Must contain 3 elements.
     */
 
-    void (*look_at) (struct vox_camera *camera, vox_dot coord);
+    void (*look_at) (struct vox_camera *camera, const vox_dot coord);
     /**<
        \brief Look at the object.
 
@@ -63,7 +63,7 @@ struct vox_camera_interface
      * Setters/getters
      * ---------------
      */
-    void (*set_rot_angles) (struct vox_camera *camera, vox_dot angles);
+    void (*set_rot_angles) (struct vox_camera *camera, const vox_dot angles);
     /**< \brief set camera rotation angles
 
          Rotation angles are in the world coordinate system
@@ -78,7 +78,7 @@ struct vox_camera_interface
        \param res where result is stored
     */
 
-    void (*set_position) (struct vox_camera *camera, vox_dot pos);
+    void (*set_position) (struct vox_camera *camera, const vox_dot pos);
     /**<
        \brief Set camera position.
 

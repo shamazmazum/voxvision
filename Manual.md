@@ -162,19 +162,21 @@ to attach your scene (currently it's just a tree) and a camera to your
 context. This can be done by calling `vox_context_set_scene()` and
 `vox_context_set_camera()`. If you render directly to window, you must call
 `vox_redraw()` after `vox_render()` to redraw the window. `vox_render()` can be
-called from any thread and `vox_redraw()` only from main (that one which called
-`SDL_Init()`).
+called from any thread and `vox_redraw()` only from the main one (that one which
+called `SDL_Init()`).
 You can create the camera using constructor from a structure called camera
 interface. **voxrnd** currently provides 2 camera classes, and therefore 2
 implementations of camera interface. You can get an implementation of camera
-interface by calling camera interface getter. One is `vox_simple_camera_iface()`
-and the other is `vox_distorted_camera_iface()`. The first camera class features
-a simple camera with 6 degrees of freedom, and the second is like the first, but
-produces distorted projection like one produced by circular fish-eye camera.
+interface by calling camera methods getter, `vox_camera_methods()`. It accepts a
+camera name as its only argument. Possible camera names are: `"simple-camera"`
+and `"doom-camera"`. The first camera, despite the name, is fully functional
+camera with six degrees of freedom, and the second is an old-fashioned but fast
+doom-like camera with five degrees of freedom.
 
 To create a simple camera you must write something like this:
 ~~~~~~~~~~~~~~~~~~~~{.c}
-struct vox_camera* camera = vox_simple_camera_iface()->construct_camera (NULL);
+struct vox_camera* camera = vox_camera_methods
+   ("simple-camera")->construct_camera (NULL); 
 ~~~~~~~~~~~~~~~~~~~~
 `construct_camera()` here is a constructor. It's argument is another camera instance
 or `NULL`. If it is not `NULL`, a newly created camera will inherit all internal
@@ -197,9 +199,9 @@ struct vox_node *tree = vox_make_tree (voxels, n);
 vox_dot origin = {0,0,0}; // Camera's origin
 float fov = 1.2; // Camera's field of view
 // Make a default camera
-struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
 camera->iface->set_position (camera, origin);
-cmaera->iface->set_fov (camera, fov);
+camera->iface->set_fov (camera, fov);
 struct vox_rnd_ctx *ctx =
      vox_make_context_from_surface (surface);
 vox_context_set_scene (ctx, tree);
@@ -218,7 +220,7 @@ Another example is:
 ~~~~~~~~~~~~~~~~~~~~{.c}
 struct vox_node *tree = vox_make_tree (voxels, n);
 // Make a default camera as earlier
-struct vox_camera *camera = vox_simple_camera_iface()->construct_camera (NULL);
+struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
 // Make 800x600 window
 struct vox_rnd_ctx *ctx =
      vox_make_context_and_window (800, 600);
@@ -238,17 +240,25 @@ Let's talk more about cameras and their interfaces. There are few structures to 
 with cameras. The first is `struct vox_camera`. It is a generic camera class. All
 interface functions accept objects of this class as their first
 argument. Constructors also return objects of this type. There are more specified
-camera classes as `struct vox_simple_camera` or `struct vox_distorted_camera`. There
-is also `struct vox_camera_interface` structure. It contains a camera interface, in
-other words, a set of functions, visible both to the library and to the user and
-which any camera class must implement to define a working camera.
+camera classes, which are implemented as shared modules (plug-ins). As mentioned
+before, standard modules are `simple-camera` and `doom-camera`. There is also
+`struct vox_camera_interface` structure. It contains a camera interface
+implementation, in other words, a set of functions, visible both to the library
+and to the user and which any camera class must implement to define a working
+camera. Of course, often you may wish to implement two or more camera classes,
+which share their data layout (defined by the same structure), but implement
+camera interface differently (like FPS camera and third-person view
+camera). Then you can "inherit" some of the basic methods (like setting camera's
+position or field of view) using `vox_use_camera_methods()` function, which
+takes `struct vox_camera_interface` structure and copies all defined methods
+from it to a specified camera.
 
 There are two types of methods in camera interface. The first is class methods, like
-a camera constructor. The common pattern to call them is using camera interface
-getter:
+a camera constructor. The common pattern to call them is using camera methods
+getter, `vox_camera_methods()`:
 ~~~~~~~~~~~~~~~~~~~~{.c}
-camera_interface_getter()->class_method (args); // The pattern
-vox_simple_camera_iface()->construct_camera (NULL); // An example
+vox_camera_methods (cam_name)->class_method (args); // The pattern
+vox_camera_methods ("doom-camera")->construct_camera (NULL); // An example
 ~~~~~~~~~~~~~~~~~~~~
 The second is instance methods. The pattern for them is:
 ~~~~~~~~~~~~~~~~~~~~{.c}
@@ -262,7 +272,7 @@ As you can see, each camera object contains a copy of `struct vox_camera_interfa
 structure where an implementation of camera interface is stored. To call an instance
 method you must always use `camera->iface` to refer to the camera's methods. To call
 a class method you can use both `camera->iface` (if you already have an instance of
-that class) or camera interface getter.
+that class) or camera methods getter.
 
 The goal which is achieved by keeping camera interface and camera implementation
 apart is to make it possible for user to define his/her own camera classes. You can
@@ -384,7 +394,7 @@ function init ()
    print (#t)
 
    -- Create a new simple camera
-   local camera = vr.simple_camera()
+   local camera = vr.camera "simple-camera"
    -- These methods are like methods in vox_camera_interface
    camera:set_position {25,-100,25}
    camera:look_at {25,25,25}
@@ -433,7 +443,7 @@ function init ()
    -- And add a voxel to it
    t:insert {0,0,0}
 
-   local camera = vr.simple_camera()
+   local camera = vr.camera "simple-camera"
    camera:set_position {0,-10,0}
 
    --[[

@@ -18,8 +18,6 @@ struct controls global_controls =
 
     .insert         = SDL_SCANCODE_I,
     .delete         = SDL_SCANCODE_O,
-
-    .toggle_camera  = SDL_SCANCODE_T
 };
 
 // And the same for the settings.
@@ -55,8 +53,6 @@ int load_configuration (const char *filename)
 
     set_control (dict, "Controls:Insert", &global_controls.insert);
     set_control (dict, "Controls:Delete", &global_controls.delete);
-
-    set_control (dict, "Controls:ToggleCamera", &global_controls.toggle_camera);
 
     global_settings.xspeed = iniparser_getdouble (dict, "Controls:MouseXSpeed", global_settings.yspeed);
     global_settings.yspeed = iniparser_getdouble (dict, "Controls:MouseYSpeed", global_settings.yspeed);

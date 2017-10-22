@@ -17,8 +17,6 @@ struct controls
 
     int insert;
     int delete;
-
-    int toggle_camera;
 };
 extern struct controls global_controls;
 

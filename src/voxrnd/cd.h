@@ -7,6 +7,13 @@
 
 #include "renderer.h"
 
+/**
+   @struct vox_cd
+   \brief Opaque structure for collision detector.
+
+   User cannot do anything with it directly and must use `vox_cd_*` functions
+   instead.
+**/
 struct vox_cd;
 
 /**

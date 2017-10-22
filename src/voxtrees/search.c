@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "tree.h"
 #include "geom.h"
 #include "search.h"
 #include "probes.h"

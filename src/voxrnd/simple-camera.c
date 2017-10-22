@@ -1,5 +1,6 @@
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
 #include "camera.h"
@@ -41,13 +42,13 @@ static void simple_get_position (const struct vox_camera *cam, vox_dot res)
     vox_dot_copy (res, camera->position);
 }
 
-static void simple_set_position (struct vox_camera *cam, vox_dot pos)
+static void simple_set_position (struct vox_camera *cam, const vox_dot pos)
 {
     struct vox_simple_camera *camera = (void*)cam;
     vox_dot_copy (camera->position, pos);
 }
 
-static void simple_set_rot_angles (struct vox_camera *cam, vox_dot angles)
+static void simple_set_rot_angles (struct vox_camera *cam, const vox_dot angles)
 {
     struct vox_simple_camera *camera = (void*)cam;
 
@@ -65,14 +66,16 @@ static void simple_set_rot_angles (struct vox_camera *cam, vox_dot angles)
     vox_quat_mul (r[2], tmp, camera->rotation);
 }
 
-static void simple_move_camera (struct vox_camera *cam, vox_dot delta)
+static void simple_move_camera (struct vox_camera *cam, const vox_dot delta)
 {
+    vox_dot deltatr;
     struct vox_simple_camera *camera = (void*)cam;
-    vox_rotate_vector (camera->rotation, delta, delta);
-    vox_dot_add (camera->position, delta, camera->position);
+
+    vox_rotate_vector (camera->rotation, delta, deltatr);
+    vox_dot_add (camera->position, deltatr, camera->position);
 }
 
-static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
+static void simple_rotate_camera (struct vox_camera *cam, const vox_dot delta)
 {
     struct vox_simple_camera *camera = (void*)cam;
     // Basis unit vector in the camera's coordinate system
@@ -121,7 +124,7 @@ static void simple_rotate_camera (struct vox_camera *cam, vox_dot delta)
     vox_quat_normalize (camera->rotation);
 }
 
-static void simple_look_at (struct vox_camera *cam, vox_dot coord)
+static void simple_look_at (struct vox_camera *cam, const vox_dot coord)
 {
     struct vox_simple_camera *camera = (void*)cam;
 

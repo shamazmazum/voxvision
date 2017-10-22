@@ -43,6 +43,7 @@ struct vox_node
 };
 #else /* VOXTREES_SOURCE */
 /**
+   @struct vox_node
    \brief Voxel tree/node data structure.
 
    Implementation of this structure is hidden from user. You must use
