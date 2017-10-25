@@ -24,15 +24,7 @@ static void simple_screen2world (const struct vox_camera *cam, vox_dot ray, int 
     float ysub = camera->ysub;
 
     assert (mul != 0 && xsub != 0 && ysub != 0);
-#ifdef SSE_INTRIN
-    _mm_store_ps (ray, _mm_set_ps (0, mul*sy - ysub,
-                                   1, mul*sx - xsub));
-#else
-    ray[0] = mul*sx - xsub;
-    ray[1] = 1.0;
-    ray[2] = mul*sy - ysub;
-#endif
-
+    vox_dot_set (ray, mul*sx - xsub, 1, mul*sy - ysub);
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 
@@ -141,11 +133,8 @@ static void simple_look_at (struct vox_camera *cam, const vox_dot coord)
 
     // Reset rotation
     vox_quat_set_identity (camera->rotation);
-
-    rot[0] = atan2f (sub[2], hypotf (sub[0], sub[1]));
-    rot[1] = 0;
-    rot[2] = -atan2f (sub[0], sub[1]);
-
+    vox_dot_set (rot, atan2f (sub[2], hypotf (sub[0], sub[1])),
+                 0, -atan2f (sub[0], sub[1]));
     cam->iface->rotate_camera (cam, rot);
 }
 

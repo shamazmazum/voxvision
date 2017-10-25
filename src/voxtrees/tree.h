@@ -21,9 +21,6 @@
 typedef struct
 {
     vox_dot center; /**< \brief Center of subdivision */
-#ifndef SSE_INTRIN
-    int unused;
-#endif
     struct vox_node *children[VOX_NS]; /**< \brief Children of this node */
 } vox_inner_data;
 
@@ -32,9 +29,6 @@ struct vox_node
     struct vox_box bounding_box;
     unsigned int flags;
     unsigned int dots_num;
-#ifdef SSE_INTRIN
-    int unused[2];
-#endif
     union
     {
         vox_dot *dots;

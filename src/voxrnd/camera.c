@@ -21,13 +21,7 @@ void vox_use_camera_methods (struct vox_camera *camera, const struct vox_camera_
 
 static void dummy_vector (const struct vox_camera *camera, vox_dot ray, ...)
 {
-#ifdef SSE_INTRIN
-    _mm_store_ps (ray, _mm_set_ps1 (0));
-#else
-    ray[0] = 0;
-    ray[1] = 0;
-    ray[2] = 0;
-#endif
+    vox_dot_set (ray, 0, 0, 0);
 }
 
 static void dummy_void (struct vox_camera *camera, ...)

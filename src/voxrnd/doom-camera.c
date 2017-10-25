@@ -28,13 +28,7 @@ static void transform_vector (const struct vox_doom_camera *camera, const vox_do
     float ytr = dot[1]*cosphi + dot[0]*sinphi;
     float ztr = dot[2];
 
-#ifdef SSE_INTRIN
-    _mm_store_ps (res, _mm_set_ps (0, ztr, ytr, xtr));
-#else
-    res[0] = xtr;
-    res[1] = ytr;
-    res[2] = ztr;
-#endif
+    vox_dot_set (res, xtr, ytr, ztr);
 }
 
 static void doom_screen2world (const struct vox_camera *cam, vox_dot ray, int sx, int sy)
