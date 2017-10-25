@@ -12,5 +12,5 @@ target_link_libraries (run-tests m voxtrees voxrnd ${CUNIT_LIBRARY})
 add_custom_target (check
   env "VOXVISION_MODULES=${CMAKE_BINARY_DIR}/src/voxrnd" ./run-tests
   COMMENT "Run tests"
-  DEPENDS run-tests
+  DEPENDS run-tests doom-camera-module simple-camera-module
   )

@@ -58,8 +58,12 @@ static void simple_set_rot_angles (struct vox_camera *cam, const vox_dot angles)
 
     for (i=0; i<3; i++)
     {
-        r[i][i+1] = sinf(angles[i]);
-        r[i][0] = cosf(angles[i]);
+        /*
+         * NB: We divide angles by 2 because rotation function rotates
+         * by doubled angle.
+         */
+        r[i][i+1] = sinf(angles[i]/2);
+        r[i][0] = cosf(angles[i]/2);
     }
 
     vox_quat_mul (r[1], r[0], tmp);
@@ -99,8 +103,12 @@ static void simple_rotate_camera (struct vox_camera *cam, const vox_dot delta)
           system.
         */
         vox_rotate_vector (camera->rotation, orts[i], ort_rotated);
-        float sinang = sinf(delta[i]);
-        float cosang = cosf(delta[i]);
+        /*
+         * NB: We divide angles by 2 because rotation function rotates
+         * by doubled angle.
+         */
+        float sinang = sinf(delta[i]/2);
+        float cosang = cosf(delta[i]/2);
         for (j=0; j<3; j++)
         {
             tmp[j+1] = sinang*ort_rotated[j];
@@ -129,14 +137,14 @@ static void simple_look_at (struct vox_camera *cam, const vox_dot coord)
     struct vox_simple_camera *camera = (void*)cam;
 
     vox_dot sub, rot;
-    vox_dot_sub (camera->position, coord, sub);
+    vox_dot_sub (coord, camera->position, sub);
 
     // Reset rotation
     vox_quat_set_identity (camera->rotation);
 
-    rot[0] = -atan2f (sub[2], -sqrtf (sub[0]*sub[0] + sub[1]*sub[1]))/2;
+    rot[0] = atan2f (sub[2], hypotf (sub[0], sub[1]));
     rot[1] = 0;
-    rot[2] = -atan2f (sub[0], sub[1])/2;
+    rot[2] = -atan2f (sub[0], sub[1]);
 
     cam->iface->rotate_camera (cam, rot);
 }

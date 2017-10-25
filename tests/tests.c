@@ -674,54 +674,107 @@ static void test_tree_C676d50c2 ()
     CU_ASSERT (leaf != NULL);
 }
 
-static void test_simp_camera ()
+static void test_camera (const char *name)
 {
+    printf (" %s...", name);
+    struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL);
     vox_dot pos = {0,0,0}, newpos;
-    vox_dot angles;
-    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
-    camera->iface->set_position (camera, pos);
-    camera->iface->set_window_size (camera, 100, 100);
+    vox_dot rotate_z = {0, 0, M_PI/2};
+    vox_dot rotate_identity = {0, M_PI/2, 0};
 
+    vox_dot world_coord;
+    vox_dot world_coord_expected = {-1, 0, 0};
+    vox_dot move_vector = {0, 1, 0};
+
+    /* Check setter/getter */
+    camera->iface->set_position (camera, pos);
     camera->iface->get_position (camera, newpos);
     CU_ASSERT (vect_eq (pos, newpos, PRECISE));
 
-    vox_dot world_coord;
-    vox_dot world_coord_expected = {0, 0, 1};
-    vox_dot world_coord_expected2 = {0, 1, 0};
+    camera->iface->set_window_size (camera, 100, 100);
 
+    /* At first, camera must look in direction (0, 1, 0). */
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected2, PRECISE));
+    CU_ASSERT (vect_eq (world_coord, move_vector, PRECISE));
 
-    angles[0] = M_PI/4; angles[1] = 0; angles[2] = 0;
-    camera->iface->set_rot_angles (camera, angles);
+    /*
+     * We rotate camera around Z axis on angle pi/2 , so it looks now in
+     * direction (1, 0, 0).
+     */
+    camera->iface->set_rot_angles (camera, rotate_z);
     camera->iface->screen2world (camera, world_coord, 50, 50);
     CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE));
 
-    angles[0] = 0; angles[1] = M_PI/4; angles[2] = 0;
-    camera->iface->rotate_camera (camera, angles);
+    /*
+     * The center of the screen is a fixed point for any rotation around Y
+     * axis.
+     */
+    camera->iface->rotate_camera (camera, rotate_identity);
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE)); // fixed point
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE));
 
-    camera->iface->move_camera (camera, world_coord);
+    /*
+     * Now move camera in direction (0, 1, 0) and get the same result,
+     * world_coord_expected.
+     */
+    camera->iface->move_camera (camera, move_vector);
     camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (world_coord, newpos, PRECISE));
+    CU_ASSERT (vect_eq (world_coord_expected, newpos, PRECISE));
 
     camera->iface->destroy_camera (camera);
 }
 
-static void test_camera_look_at ()
+static void test_cameras()
+{
+    test_camera ("simple-camera");
+    test_camera ("doom-camera");
+}
+
+static void test_camera_look_at (const char *name)
 {
     vox_dot pos = {-100, 20, -20};
     vox_dot look_at = {0,0,0};
     vox_dot dir;
 
-    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
+    printf (" %s...", name);
+    struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL);
     camera->iface->set_window_size (camera, 100, 100);
     camera->iface->set_position (camera, pos);
     camera->iface->look_at (camera, look_at);
     camera->iface->screen2world (camera, dir, 50, 50);
 
     CU_ASSERT (hit_dot (pos, dir, look_at));
+    camera->iface->destroy_camera (camera);
+}
+
+static void test_cameras_look_at ()
+{
+    test_camera_look_at ("simple-camera");
+    test_camera_look_at ("doom-camera");
+}
+
+static void test_camera_look_at_bug ()
+{
+    vox_dot look_at = {0, 1, 0}; /* Default look_at vector */
+    vox_dot pos = {0, 0, 0};
+    vox_dot move_vector1 = {1, 0, 0};
+    vox_dot expected_pos1 = {1, 0, 0};
+    vox_dot move_vector2 = {1, 0, 0};
+    vox_dot expected_pos2 = {1, 0, 0};
+    vox_dot pos_act;
+
+    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
+    camera->iface->set_position (camera, pos);
+    camera->iface->look_at (camera, look_at);
+    camera->iface->move_camera (camera, move_vector1);
+    camera->iface->get_position (camera, pos_act);
+    CU_ASSERT (vect_eq (expected_pos1, pos_act, PRECISE));
+
+    camera->iface->set_position (camera, pos);
+    camera->iface->look_at (camera, look_at);
+    camera->iface->move_camera (camera, move_vector2);
+    camera->iface->get_position (camera, pos_act);
+    CU_ASSERT (vect_eq (expected_pos2, pos_act, PRECISE));
     camera->iface->destroy_camera (camera);
 }
 
@@ -813,10 +866,13 @@ int main ()
     CU_pSuite rnd_suite = CU_add_suite ("voxrnd", NULL, NULL);
     if (vox_suite == NULL) PROC_SUIT_ERROR;
 
-    test = CU_add_test (rnd_suite, "Simple camera", test_simp_camera);
+    test = CU_add_test (rnd_suite, "Cameras generic tests", test_cameras);
     if (test == NULL) PROC_TEST_ERROR;
 
-    test = CU_add_test (rnd_suite, "Simple camera look_at test", test_camera_look_at);
+    test = CU_add_test (rnd_suite, "Cameras look_at test", test_cameras_look_at);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (rnd_suite, "Simple camera look_at bug (issue 1)", test_camera_look_at_bug);
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (rnd_suite, "Camera class construction", test_camera_class_construction);

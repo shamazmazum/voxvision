@@ -83,6 +83,12 @@ static int check_file (const char* filename)
 
 static int find_module (const char *name, char *fullpath)
 {
+    // Then as last resort try environment variable VOXVISION_MODULES
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s/%s.so", getenv ("VOXVISION_MODULES"), name) >= MAXPATHLEN)
+        return 0;
+    if (check_file (fullpath)) return 1;
+
     // At first, try to find data file in system-wide data directory.
     if (snprintf (fullpath, MAXPATHLEN,
                   "%s%s.so", VOX_MODULE_PATH, name) >= MAXPATHLEN)
@@ -92,12 +98,6 @@ static int find_module (const char *name, char *fullpath)
     // Then check at ~/.voxvision
     if (snprintf (fullpath, MAXPATHLEN,
                   "%s/.voxvision/%s.so", getenv ("HOME"), name) >= MAXPATHLEN)
-        return 0;
-    if (check_file (fullpath)) return 1;
-
-    // Then as last resort try environment variable VOXVISION_MODULES
-    if (snprintf (fullpath, MAXPATHLEN,
-                  "%s/%s.so", getenv ("VOXVISION_MODULES"), name) >= MAXPATHLEN)
         return 0;
     if (check_file (fullpath)) return 1;
 
