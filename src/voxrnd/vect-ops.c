@@ -35,6 +35,16 @@ void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
     for (i=0; i<VOX_N; i++) res[i] = vector[i] + base[0]*tmp[i] + tmp2[i];
 }
 
+void vox_rotate_vector_q (const vox_quat base, const vox_quat vector, vox_quat res)
+{
+    vox_dot tmp, tmp2;
+    int i;
+    vox_cross_product ((float*)(base+1), (float*)(vector+1), tmp);
+    for (i=0; i<VOX_N; i++) tmp[i] *= 2.0;
+    vox_cross_product ((float*)(base+1), tmp, tmp2);
+    for (i=0; i<VOX_N; i++) res[i+1] = vector[i+1] + base[0]*tmp[i] + tmp2[i];
+}
+
 void vox_quat_normalize (vox_quat quat)
 {
     int i;

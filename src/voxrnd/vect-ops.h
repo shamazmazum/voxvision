@@ -18,6 +18,12 @@
 **/
 void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res);
 
+/*
+ * Same as `vox_rotate_vector()`, but expects and returns vector coordinates as
+ * in quaternion data layout.
+ */
+void vox_rotate_vector_q (const vox_quat base, const vox_quat vector, vox_quat res);
+
 /**
    \brief Return multiplication of 2 quaternions
 **/

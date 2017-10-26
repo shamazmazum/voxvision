@@ -16,7 +16,7 @@ Hard and medium changes:
 6. Replace counters with Dtrace probes in statistics. (DONE: 06 sep 2017)
 7. Investigate a huge slowdown in example1.lua after the commit: 69406f4fb (Remove lua vox_dot and vox_box types...)
    (DONE: 12 sep 2017)
-8. Investigate camera axes inversion after call to look_at method in simple camera.
+8. Investigate camera axes inversion after call to look_at method in simple camera. (DONE: 25 oct 2017)
 
 Easy changes:
 1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application).

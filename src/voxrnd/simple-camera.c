@@ -43,23 +43,18 @@ static void simple_set_position (struct vox_camera *cam, const vox_dot pos)
 static void simple_set_rot_angles (struct vox_camera *cam, const vox_dot angles)
 {
     struct vox_simple_camera *camera = (void*)cam;
+    vox_quat r[3];
 
-    int i;
-    vox_quat r[3], tmp;
-    memset (r, 0, sizeof(vox_quat)*3);
+    /*
+     * NB: We divide angles by 2 because rotation function rotates
+     * by doubled angle.
+     */
+    vox_quat_set (r[0], cosf (angles[0]/2), sinf (angles[0]/2), 0, 0);
+    vox_quat_set (r[1], cosf (angles[1]/2), 0, sinf (angles[1]/2), 0);
+    vox_quat_set (r[2], cosf (angles[2]/2), 0, 0, sinf (angles[2]/2));
 
-    for (i=0; i<3; i++)
-    {
-        /*
-         * NB: We divide angles by 2 because rotation function rotates
-         * by doubled angle.
-         */
-        r[i][i+1] = sinf(angles[i]/2);
-        r[i][0] = cosf(angles[i]/2);
-    }
-
-    vox_quat_mul (r[1], r[0], tmp);
-    vox_quat_mul (r[2], tmp, camera->rotation);
+    vox_quat_mul (r[1], r[0], camera->rotation);
+    vox_quat_mul (r[2], camera->rotation, camera->rotation);
 }
 
 static void simple_move_camera (struct vox_camera *cam, const vox_dot delta)
@@ -75,15 +70,14 @@ static void simple_rotate_camera (struct vox_camera *cam, const vox_dot delta)
 {
     struct vox_simple_camera *camera = (void*)cam;
     // Basis unit vector in the camera's coordinate system
-    static const vox_dot orts[] = {
-        {1, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1}
+    static const vox_quat orts[] = {
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
     };
 
-    int i,j;
-    vox_quat tmp;
-    vox_dot ort_rotated;
+    int i;
+    vox_quat ort_rotated;
     /*
       From axis Z to axis X throug axis Y.
       Rotating in that order allows simple_look_at() reuse this method.
@@ -94,24 +88,30 @@ static void simple_rotate_camera (struct vox_camera *cam, const vox_dot delta)
           After rotation ort[i] is the same vector but in the world coordinate
           system.
         */
-        vox_rotate_vector (camera->rotation, orts[i], ort_rotated);
+        vox_rotate_vector_q (camera->rotation, orts[i], ort_rotated);
         /*
          * NB: We divide angles by 2 because rotation function rotates
          * by doubled angle.
          */
         float sinang = sinf(delta[i]/2);
         float cosang = cosf(delta[i]/2);
+
+#ifdef SSE_INTRIN
+        __v4sf tmp = _mm_set1_ps (sinang) * _mm_load_ps (ort_rotated);
+        tmp = _mm_blend_ps (tmp, _mm_set1_ps (cosang), 1);
+        _mm_store_ps (ort_rotated, tmp);
+#else
+        int j;
         for (j=0; j<3; j++)
-        {
-            tmp[j+1] = sinang*ort_rotated[j];
-        }
-        tmp[0] = cosang;
+            ort_rotated[j+1] = sinang*ort_rotated[j+1];
+        ort_rotated[0] = cosang;
+#endif
         /*
-          Now, tmp is a rotation around camera's i-th axis in the world
-          coordinate system. Apply this rotation by multiplying tmp and
-          camera->rotation quaternions.
+         * Now, ort_rotated is a rotation around camera's i-th axis in the world
+         * coordinate system. Apply this rotation by multiplying tmp and
+         * camera->rotation quaternions.
         */
-        vox_quat_mul (tmp, camera->rotation, camera->rotation);
+        vox_quat_mul (ort_rotated, camera->rotation, camera->rotation);
     }
 
     /*

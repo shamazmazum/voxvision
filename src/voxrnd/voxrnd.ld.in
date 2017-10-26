@@ -19,6 +19,7 @@ VOXRND_@voxvision_VERSION@ {
 # For the camera modules
             vox_quat_mul;
             vox_rotate_vector;
+            vox_rotate_vector_q;
             vox_quat_set_identity;
             vox_quat_normalize;
     local: *;
