@@ -73,6 +73,18 @@ struct vox_rnd_ctx* vox_make_context_and_window (int width, int height)
 
     if (bad_geometry (width, height)) return NULL;
     if (!(SDL_WasInit (0) & SDL_INIT_VIDEO)) return NULL;
+    /*
+     * Kludge: This is a workaround for buggy graphics stack on FreeBSD. At
+     * least on FreeBSD 11.1 and mesa 17.2.2 I can get SDL initialized even
+     * without X session, but it fails to load GL library.
+     *
+     * The next call actually is just a detector if we are in X session or not.
+     *
+     * By the way, it is not needed if using proprietary nvidia drivers.
+     */
+#ifdef __FreeBSD__
+    if (SDL_GL_LoadLibrary (NULL) < 0) return NULL;
+#endif
     ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
     if (SDL_CreateWindowAndRenderer (width, height, 0, &ctx->window, &ctx->renderer)) goto failure;
