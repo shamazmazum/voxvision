@@ -135,8 +135,8 @@ static const struct luaL_Reg camera_methods [] = {
 
 static int new_cd (lua_State *L)
 {
-    struct cddata *data = lua_newuserdata (L, sizeof (struct cddata));
-    data->cd = vox_make_cd ();
+    struct vox_cd **data = lua_newuserdata (L, sizeof (struct vox_cd**));
+    *data = vox_make_cd ();
     luaL_getmetatable (L, "voxrnd.cd");
     lua_setmetatable (L, -2);
     return 1;
@@ -150,30 +150,30 @@ static int printcd (lua_State *L)
 
 static int destroycd (lua_State *L)
 {
-    struct cddata *cd = luaL_checkudata (L, 1, "voxrnd.cd");
-    free (cd->cd);
+    struct vox_cd **cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    free (*cd);
 
     return 0;
 }
 
 static int cd_attach_camera (lua_State *L)
 {
-    struct cddata *cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    struct vox_cd **cd = luaL_checkudata (L, 1, "voxrnd.cd");
     struct cameradata *camera = luaL_checkudata (L, 2, "voxrnd.camera");
     float radius = luaL_checknumber (L, 3);
 
-    vox_cd_attach_camera (cd->cd, camera->camera, radius);
+    vox_cd_attach_camera (*cd, camera->camera, radius);
 
     return 0;
 }
 
 static int cd_gravity (lua_State *L)
 {
-    struct cddata *cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    struct vox_cd **cd = luaL_checkudata (L, 1, "voxrnd.cd");
     vox_dot gravity;
     READ_DOT (gravity, 2);
 
-    vox_cd_gravity (cd->cd, gravity);
+    vox_cd_gravity (*cd, gravity);
 
     return 0;
 }

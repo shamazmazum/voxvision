@@ -154,14 +154,14 @@ static void execute_init (struct vox_engine *engine)
     lua_getfield (L, 1, "camera");
     lua_getfield (L, 1, "cd");
     
-    struct nodedata *ndata = luaL_checkudata (L, 2, "voxtrees.vox_node");
+    struct vox_node **node = luaL_checkudata (L, 2, "voxtrees.vox_node");
     struct cameradata *cdata = luaL_checkudata (L, 3, "voxrnd.camera");
-    struct cddata *cd = NULL;
+    struct vox_cd **cd = NULL;
     if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, "voxrnd.cd");
 
     engine->camera = cdata->camera;
-    engine->tree = ndata->node;
-    if (cd != NULL) engine->cd = cd->cd;
+    engine->tree = *node;
+    if (cd != NULL) engine->cd = *cd;
 
     lua_pop (L, 3);
 
