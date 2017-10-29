@@ -203,27 +203,49 @@ static const struct luaL_Reg cd_methods [] = {
 
 static int l_scene_proxy (lua_State *L)
 {
+    /*
+     * Because this object is associated engine-global context, it's a good idea
+     * to implement it like a singleton.
+     */
     struct vox_node **ndata = luaL_checkudata (L, 1, TREE_META);
-    struct scene_proxydata *data = lua_newuserdata (L, sizeof (struct scene_proxydata));
-
     luaL_getmetatable (L, SCENE_PROXY_META);
-    lua_setmetatable (L, -2);
+    lua_getfield (L, -1, "__self");
+    struct scene_proxydata *data = luaL_testudata (L, -1, SCENE_PROXY_META);
+    if (data != NULL) {
+        /* The object is already created, just set a new tree. */
+        data->tree = *ndata;
 
-    /*
-     * Store reference to the tree in the proxy's metatable to prevent GC from
-     * destroying it.
-     */
-    luaL_getmetatable (L, SCENE_PROXY_META);
-    lua_pushvalue (L, 1);
-    lua_setfield (L, -2, "__tree");
-    lua_pop (L, 1);
+        /* Updata lua reference */
+        lua_pushvalue (L, 1);
+        lua_setfield (L, -3, "__tree");
+    } else {
+        /* Pop __self */
+        lua_pop (L, 1);
+        data = lua_newuserdata (L, sizeof (struct scene_proxydata));
+        /* Copy metatable */
+        lua_pushvalue (L, -2);
+        lua_setmetatable (L, -2);
 
-    /*
-     * Fill C-side internal fields.
-     */
-    data->tree = *ndata;
-    data->scene_group = dispatch_group_create ();
-    data->scene_sync_queue = dispatch_queue_create ("scene operations", 0);
+        /*
+         * Fill C-side internal fields.
+         */
+        data->tree = *ndata;
+        data->scene_group = dispatch_group_create ();
+        data->scene_sync_queue = dispatch_queue_create ("scene operations", 0);
+
+        /*
+         * Store reference to the tree in the proxy's metatable to prevent GC from
+         * destroying it.
+         */
+
+        /* Copy tree */
+        lua_pushvalue (L, 1);
+        lua_setfield (L, -3, "__tree");
+
+        /* Copy self */
+        lua_pushvalue (L, -1);
+        lua_setfield (L, -3, "__self");
+    }
     return 1;
 }
 
@@ -345,6 +367,11 @@ static int l_scene_proxy_ray_intersection (lua_State *L)
     return 1;
 }
 
+/*
+ * Unfortunately, this is not actually a proxy, as it does not translate all
+ * method calls to underlying tree. It just overwrites some methods of the tree
+ * with a thread-safe equivalents, prohibiting the others.
+ */
 static const struct luaL_Reg scene_proxy_methods [] = {
     {"__tostring", l_scene_proxy_tostring},
     {"__gc", l_scene_proxy_destroy},

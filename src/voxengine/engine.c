@@ -108,6 +108,12 @@ static int l_request_quit (lua_State *L)
     return 0;
 }
 
+static int l_write_protect (lua_State *L)
+{
+    luaL_error (L, "Table %p is write protected", lua_topointer (L, 1));
+    return 0;
+}
+
 static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
@@ -200,8 +206,20 @@ static void execute_init (struct vox_engine *engine)
     engine->camera = cdata->camera;
     if (cd != NULL) engine->cd = *cd;
 
-    // Remove tree, camera and cd from the stack
+    /* Remove tree, camera and cd from the stack */
     lua_pop (L, 3);
+
+    /* Set write protection on the world table. */
+    lua_newtable (L);
+    lua_newtable (L);
+    lua_pushcfunction (L, l_write_protect);
+    lua_setfield (L, -2, "__newindex");
+    /* push the world table */
+    lua_pushvalue (L, -3);
+    lua_setfield (L, -2, "__index");
+    lua_setmetatable (L, -2);
+    /* Remove the world from the stack, leaving a proxy table. */
+    lua_remove (L, 1);
 
     vox_context_set_scene (engine->ctx, engine->tree);
     vox_context_set_camera (engine->ctx, engine->camera);
