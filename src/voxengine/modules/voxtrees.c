@@ -96,6 +96,20 @@ static int bbtree (lua_State *L)
     return 2;
 }
 
+static int l_tree_ray_intersection (lua_State *L)
+{
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
+    vox_dot origin, dir, res;
+    READ_DOT (origin, 2);
+    READ_DOT (dir, 3);
+
+    const struct vox_node *leaf = vox_ray_tree_intersection (*data, origin, dir, res);
+    if (leaf != NULL) WRITE_DOT (res);
+    else lua_pushnil (L);
+
+    return 1;
+}
+
 static const struct luaL_Reg tree_methods [] = {
     {"__len", counttree},
     {"__tostring", printtree},
@@ -104,6 +118,7 @@ static const struct luaL_Reg tree_methods [] = {
     {"delete", deletetree},
     {"rebuild", rebuildtree},
     {"bounding_box", bbtree},
+    {"ray_intersection", l_tree_ray_intersection},
     {NULL, NULL}
 };
 

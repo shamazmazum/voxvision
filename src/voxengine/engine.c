@@ -87,6 +87,19 @@ static void prepare_safe_environment (lua_State *L)
 #include <safe_environment.h>
 }
 
+static int l_get_geometry (lua_State *L)
+{
+    lua_pushlightuserdata (L, &engine_key);
+    lua_gettable (L, LUA_REGISTRYINDEX);
+    struct vox_engine **data = lua_touserdata (L, -1);
+    struct vox_engine *engine = *data;
+
+    lua_pushinteger (L, engine->width);
+    lua_pushinteger (L, engine->height);
+
+    return 2;
+}
+
 static int l_request_quit (lua_State *L)
 {
     lua_pushlightuserdata (L, &quit_key);
@@ -121,9 +134,11 @@ static void initialize_lua (struct vox_engine *engine)
     // Also add some safe functions
     prepare_safe_environment (L);
 
-    // Add some (one by now) core functions
+    // Add some core functions
     lua_pushcfunction (L, l_request_quit);
     lua_setfield (L, -2, "request_quit");
+    lua_pushcfunction (L, l_get_geometry);
+    lua_setfield (L, -2, "get_geometry");
 
     // And load lua modules
     load_lua_module (L, "voxutils");

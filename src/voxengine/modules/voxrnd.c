@@ -2,6 +2,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 #include <voxrnd.h>
+#include <voxtrees.h>
 #include <stdlib.h>
 #include "../modules.h"
 
@@ -82,6 +83,19 @@ static int look_at (lua_State *L)
     return 0;
 }
 
+static int l_camera_screen2world (lua_State *L)
+{
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
+    int x = luaL_checkinteger (L, 2);
+    int y = luaL_checkinteger (L, 3);
+    vox_dot res;
+
+    camera->iface->screen2world (camera->camera, res, x, y);
+    WRITE_DOT (res);
+
+    return 1;
+}
+
 static int new_camera (lua_State *L)
 {
     const char *name = luaL_checkstring (L, 1);
@@ -130,6 +144,7 @@ static const struct luaL_Reg camera_methods [] = {
     {"rotate_camera", rotate_camera},
     {"move_camera", move_camera},
     {"look_at", look_at},
+    {"screen2world", l_camera_screen2world},
     {NULL, NULL}
 };
 
@@ -240,8 +255,8 @@ static int l_scene_proxy_insert (lua_State *L)
     /*
      * Enqueue insertion to a synchronous queue associated with the tree. The
      * insertion will be performed when there are no other jobs in the tree
-     * group. For example if there is tree rebuilding in progress, wait for its
-     * completion first, and then insert a voxel.
+     * group. For example if there is tree rebuilding or rendering in progress,
+     * wait for its completion first, and then insert a voxel.
      */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
             vox_dot dot;
@@ -303,12 +318,40 @@ static int l_scene_proxy_rebuild (lua_State *L)
     return 0;
 }
 
+static int l_scene_proxy_ray_intersection (lua_State *L)
+{
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
+    __block const struct vox_node *leaf;
+    float o1, o2, o3;
+    float d1, d2, d3;
+    READ_DOT_3 (2, o1, o2, o3);
+    READ_DOT_3 (3, d1, d2, d3);
+
+    __block float r1, r2, r3;
+    /*
+     * To operate on a consistent state, enqueue search operation in sync
+     * queue.
+     */
+    dispatch_sync (data->scene_sync_queue, ^{
+            vox_dot origin, dir, res;
+            vox_dot_set (origin, o1, o2, o3);
+            vox_dot_set (dir, d1, d2, d3);
+            leaf = vox_ray_tree_intersection (data->tree, origin, dir, res);
+            r1 = res[0]; r2 = res[1]; r3 = res[2];
+        });
+
+    if (leaf != NULL) WRITE_DOT_3 (r1, r2, r3);
+    else lua_pushnil (L);
+    return 1;
+}
+
 static const struct luaL_Reg scene_proxy_methods [] = {
     {"__tostring", l_scene_proxy_tostring},
     {"__gc", l_scene_proxy_destroy},
     {"rebuild", l_scene_proxy_rebuild},
     {"insert", l_scene_proxy_insert},
     {"delete", l_scene_proxy_delete},
+    {"ray_intersection", l_scene_proxy_ray_intersection},
     {NULL, NULL}
 };
 

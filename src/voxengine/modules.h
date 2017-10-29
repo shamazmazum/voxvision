@@ -37,6 +37,16 @@
         lua_seti (L, -2, 1);                                \
     } while (0)
 
+#define WRITE_DOT_3(x,y,z) do {                             \
+        lua_newtable (L);                                   \
+        lua_pushnumber (L, x);                              \
+        lua_pushnumber (L, y);                              \
+        lua_pushnumber (L, z);                              \
+        lua_seti (L, -4, 3);                                \
+        lua_seti (L, -3, 2);                                \
+        lua_seti (L, -2, 1);                                \
+    } while (0)
+
 struct cameradata
 {
     struct vox_camera *camera;
