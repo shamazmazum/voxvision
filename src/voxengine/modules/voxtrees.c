@@ -13,7 +13,7 @@ static int newtree (lua_State *L)
 {
     struct vox_node **data = lua_newuserdata (L, sizeof (struct vox_node**));
     *data = NULL;
-    luaL_getmetatable (L, "voxtrees.vox_node");
+    luaL_getmetatable (L, TREE_META);
     lua_setmetatable (L, -2);
     return 1;
 }
@@ -25,14 +25,14 @@ static int newdenseleaf (lua_State *L)
     READ_DOT (box.max, 2);
 
     newtree (L);
-    struct vox_node **data = luaL_checkudata (L, -1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
     *data = vox_make_dense_leaf (&box);
     return 1;
 }
 
 static int destroytree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_destroy_tree (*data);
     *data = NULL;
     return 0;
@@ -40,14 +40,14 @@ static int destroytree (lua_State *L)
 
 static int counttree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     lua_pushinteger (L, vox_voxels_in_tree (*data));
     return 1;
 }
 
 static int inserttree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_dot dot;
 
     READ_DOT (dot, 2);
@@ -58,7 +58,7 @@ static int inserttree (lua_State *L)
 
 static int rebuildtree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     struct vox_node *newtree = vox_rebuild_tree (*data);
     vox_destroy_tree (*data);
     *data = newtree;
@@ -67,7 +67,7 @@ static int rebuildtree (lua_State *L)
 
 static int deletetree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_dot dot;
 
     READ_DOT (dot, 2);
@@ -78,7 +78,7 @@ static int deletetree (lua_State *L)
 
 static int printtree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     lua_pushfstring (L, "<tree %p, %d voxels>", *data,
                      vox_voxels_in_tree (*data));
     return 1;
@@ -86,7 +86,7 @@ static int printtree (lua_State *L)
 
 static int bbtree (lua_State *L)
 {
-    struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     struct vox_box bb;
 
     vox_bounding_box (*data, &bb);
@@ -116,7 +116,7 @@ static int newdotset (lua_State *L)
 {
     unsigned int len = luaL_checkinteger (L, 1);
     struct dotset *set = lua_newuserdata (L, sizeof (struct dotset));
-    luaL_getmetatable (L, "voxtrees.dotset");
+    luaL_getmetatable (L, DOTSET_META);
     lua_setmetatable (L, -2);
     set->length = 0;
     set->max_length = len;
@@ -127,7 +127,7 @@ static int newdotset (lua_State *L)
 
 static int printdotset (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
+    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     lua_pushfstring (L, "<dot array, %d dots>", set->length);
 
     return 1;
@@ -135,7 +135,7 @@ static int printdotset (lua_State *L)
 
 static int destroydotset (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
+    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     free (set->array);
 
     return 0;
@@ -143,7 +143,7 @@ static int destroydotset (lua_State *L)
 
 static int lengthdotset (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
+    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     lua_pushinteger (L, set->length);
 
     return 1;
@@ -151,7 +151,7 @@ static int lengthdotset (lua_State *L)
 
 static int pushdotset (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
+    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     vox_dot dot;
     READ_DOT (dot, 2);
     int argc = 0;
@@ -176,10 +176,10 @@ static const struct luaL_Reg dotset_methods [] = {
 
 static int newsettree (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, "voxtrees.dotset");
+    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     newtree (L);
 
-    struct vox_node **data = luaL_checkudata (L, -1, "voxtrees.vox_node");
+    struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
     *data = vox_make_tree (set->array, set->length);
 
     return 1;
@@ -219,7 +219,7 @@ static int read_raw_data (lua_State *L)
     {
         res = 1;
         newtree (L);
-        struct vox_node **data = luaL_checkudata (L, -1, "voxtrees.vox_node");
+        struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
         *data = tree;
     }
     else
@@ -257,7 +257,7 @@ static int read_raw_data_ranged (lua_State *L)
     {
         res = 1;
         newtree (L);
-        struct vox_node **data = luaL_checkudata (L, -1, "voxtrees.vox_node");
+        struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
         *data = tree;
     }
     else
@@ -305,12 +305,12 @@ static const struct luaL_Reg voxtrees [] = {
 
 int luaopen_voxtrees (lua_State *L)
 {
-    luaL_newmetatable(L, "voxtrees.vox_node");
+    luaL_newmetatable(L, TREE_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, tree_methods, 0);
 
-    luaL_newmetatable(L, "voxtrees.dotset");
+    luaL_newmetatable(L, DOTSET_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, dotset_methods, 0);

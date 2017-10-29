@@ -11,23 +11,27 @@
 #include "modules.h"
 #include "engine.h"
 
+static int engine_key;
+static int quit_key;
+
 static int engine_panic (lua_State *L)
 {
-    struct vox_engine *engine;
+    struct vox_engine **data;
 
     fprintf (stderr,
              "%s\n"
              "Unhandeled error, quiting. Doublecheck your scripts\n",
              lua_tostring (L, -1));
 
-    lua_getfield (L, LUA_REGISTRYINDEX, "voxengine");
-    engine = lua_topointer (L, -1);
+    lua_pushlightuserdata (L, &engine_key);
+    lua_gettable (L, LUA_REGISTRYINDEX);
+    data = lua_touserdata (L, -1);
 
-    vox_destroy_engine (engine);
+    vox_destroy_engine (*data);
     exit(0);
 }
 
-// Load module, but do not add inot environment
+// Load module, but do not add returned table to environment
 static void load_module_restricted (lua_State *L, const char *modname)
 {
     char path[MAXPATHLEN];
@@ -43,7 +47,7 @@ static void load_module_restricted (lua_State *L, const char *modname)
         luaL_error (L, "Module path name is too long");
 
     void *init_func = dlsym (handle, init);
-    if (init_func == NULL) luaL_error (L, "Cannot cannot find initfunction %s", init);
+    if (init_func == NULL) luaL_error (L, "Cannot cannot find init function %s", init);
 
     luaL_requiref (L, modname, init_func, 0);
 }
@@ -71,7 +75,7 @@ static void load_lua_module (lua_State *L, const char *modname)
 
 static void set_safe_environment (lua_State *L)
 {
-    // Function is on top of the stack
+    // Function to be executed is on top of the stack
     lua_getglobal (L, "voxvision");
     // FIXME: _ENV is upvalue #1
     lua_setupvalue (L, -2, 1);
@@ -85,8 +89,9 @@ static void prepare_safe_environment (lua_State *L)
 
 static int l_request_quit (lua_State *L)
 {
+    lua_pushlightuserdata (L, &quit_key);
     lua_pushboolean (L, 1);
-    lua_setfield (L, LUA_REGISTRYINDEX, "quit_requested");
+    lua_settable (L, LUA_REGISTRYINDEX);
     return 0;
 }
 
@@ -97,11 +102,13 @@ static void initialize_lua (struct vox_engine *engine)
 
     luaL_openlibs (L);
     // Put engine in the registry and set panic handler
-    lua_pushlightuserdata (L, engine);
-    lua_setfield (L, LUA_REGISTRYINDEX, "voxengine");
+    lua_pushlightuserdata (L, &engine_key);
+    struct vox_engine **data = lua_newuserdata (L, sizeof (struct vox_engine*));
+    *data = engine;
+    lua_settable (L, LUA_REGISTRYINDEX);
     lua_atpanic (L, engine_panic);
 
-    // Environment is on top of the stack
+    // Place our safe environment is on top of the stack
     lua_newtable (L);
     // Copy environment in global variable
     lua_pushvalue (L, -1);
@@ -120,6 +127,8 @@ static void initialize_lua (struct vox_engine *engine)
 
     // And load lua modules
     load_lua_module (L, "voxutils");
+
+    // Remove the environment from the stack, it is in "voxvision" global now
     lua_pop (L, 1);
 }
 
@@ -153,24 +162,30 @@ static void execute_init (struct vox_engine *engine)
     lua_getfield (L, 1, "tree");
     lua_getfield (L, 1, "camera");
     lua_getfield (L, 1, "cd");
-    
-    struct scene_proxydata *scene = luaL_testudata (L, 2, "voxrnd.scene_proxy");
+
+    /*
+     * "tree" field can contain the tree itself, or a thread-safe proxy. The
+     * latter can be used to perform insert, delete and rebuild calls in the
+     * tick() function in a thread-safe manner.
+     */
+    struct scene_proxydata *scene = luaL_testudata (L, 2, SCENE_PROXY_META);
     struct vox_node **ndata;
     if (scene != NULL) {
         engine->tree = scene->tree;
         engine->rendering_queue = scene->scene_sync_queue;
         scene->context = engine->ctx;
     } else {
-        ndata = luaL_checkudata (L, 2, "voxtrees.vox_node");
+        ndata = luaL_checkudata (L, 2, TREE_META);
         engine->tree = *ndata;
     }
-    struct cameradata *cdata = luaL_checkudata (L, 3, "voxrnd.camera");
+    struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
     struct vox_cd **cd = NULL;
-    if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, "voxrnd.cd");
+    if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, CD_META);
 
     engine->camera = cdata->camera;
     if (cd != NULL) engine->cd = *cd;
 
+    // Remove tree, camera and cd from the stack
     lua_pop (L, 3);
 
     vox_context_set_scene (engine->ctx, engine->tree);
@@ -196,6 +211,8 @@ void vox_engine_load_script (struct vox_engine *engine, const char *script)
                     lua_tostring (L, -1));
 
     execute_init (engine);
+
+    // Check that we have only the world table on the stack
     assert (lua_gettop (engine->L) == 1);
 }
 
@@ -276,7 +293,8 @@ int vox_engine_quit_requested (struct vox_engine *engine)
     lua_State *L = engine->L;
     int quit;
 
-    lua_getfield (L, LUA_REGISTRYINDEX, "quit_requested");
+    lua_pushlightuserdata (L, &quit_key);
+    lua_gettable (L, LUA_REGISTRYINDEX);
     quit = lua_toboolean (L, -1);
     lua_pop (L, 1);
 
@@ -287,6 +305,12 @@ int vox_engine_tick (struct vox_engine *engine)
 {
     if (!engine->script_executed) return 0;
 
+    /*
+     * If we have a queue associated with the tree (this is so if we use
+     * thread-safe scene proxy in the world table), enqueue the rendering
+     * operation to that queue and wait for its completion. This will assure us
+     * that the tree is in consistent state while the rendering is performed.
+     */
     if (engine->rendering_queue != NULL) {
         dispatch_sync (engine->rendering_queue, ^{
                 vox_render (engine->ctx);

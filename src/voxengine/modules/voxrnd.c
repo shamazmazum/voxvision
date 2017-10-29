@@ -7,7 +7,7 @@
 
 static int get_position (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     vox_dot position;
     camera->iface->get_position (camera->camera, position);
     WRITE_DOT (position);
@@ -17,7 +17,7 @@ static int get_position (lua_State *L)
 
 static int set_position (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     vox_dot position;
     READ_DOT (position, 2);
     camera->iface->set_position (camera->camera, position);
@@ -27,7 +27,7 @@ static int set_position (lua_State *L)
 
 static int get_fov (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     lua_pushnumber (L, camera->iface->get_fov (camera->camera));
 
     return 1;
@@ -35,7 +35,7 @@ static int get_fov (lua_State *L)
 
 static int set_fov (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     float fov = luaL_checknumber (L, 2);
     camera->iface->set_fov (camera->camera, fov);
 
@@ -44,7 +44,7 @@ static int set_fov (lua_State *L)
 
 static int set_rot_angles (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     vox_dot angles;
     READ_DOT (angles, 2);
     camera->iface->set_rot_angles (camera->camera, angles);
@@ -54,7 +54,7 @@ static int set_rot_angles (lua_State *L)
 
 static int rotate_camera (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     vox_dot delta;
     READ_DOT (delta, 2);
     camera->iface->rotate_camera (camera->camera, delta);
@@ -64,7 +64,7 @@ static int rotate_camera (lua_State *L)
 
 static int move_camera (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     vox_dot delta;
     READ_DOT (delta, 2);
     camera->iface->move_camera (camera->camera, delta);
@@ -74,7 +74,7 @@ static int move_camera (lua_State *L)
 
 static int look_at (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     vox_dot coord;
     READ_DOT (coord, 2);
     camera->iface->look_at (camera->camera, coord);
@@ -93,7 +93,7 @@ static int new_camera (lua_State *L)
         data = lua_newuserdata (L, sizeof (struct cameradata));
         data->camera = iface->construct_camera (NULL);
         data->iface = data->camera->iface;
-        luaL_getmetatable (L, "voxrnd.camera");
+        luaL_getmetatable (L, CAMERA_META);
         lua_setmetatable (L, -2);
         nret = 1;
     } else {
@@ -107,7 +107,7 @@ static int new_camera (lua_State *L)
 
 static int destroycamera (lua_State *L)
 {
-    struct cameradata *camera = luaL_checkudata (L, 1, "voxrnd.camera");
+    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
     camera->iface->destroy_camera (camera->camera);
 
     return 0;
@@ -115,7 +115,7 @@ static int destroycamera (lua_State *L)
 
 static int printcamera (lua_State *L)
 {
-    lua_pushfstring (L, "<camera>");
+    lua_pushfstring (L, "<camera %p>", lua_topointer (L, 1));
     return 1;
 }
 
@@ -137,20 +137,20 @@ static int new_cd (lua_State *L)
 {
     struct vox_cd **data = lua_newuserdata (L, sizeof (struct vox_cd**));
     *data = vox_make_cd ();
-    luaL_getmetatable (L, "voxrnd.cd");
+    luaL_getmetatable (L, CD_META);
     lua_setmetatable (L, -2);
     return 1;
 }
 
 static int printcd (lua_State *L)
 {
-    lua_pushfstring (L, "<collision detector>");
+    lua_pushfstring (L, "<collision detector %p>", lua_topointer (L, 1));
     return 1;
 }
 
 static int destroycd (lua_State *L)
 {
-    struct vox_cd **cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
     free (*cd);
 
     return 0;
@@ -158,8 +158,8 @@ static int destroycd (lua_State *L)
 
 static int cd_attach_camera (lua_State *L)
 {
-    struct vox_cd **cd = luaL_checkudata (L, 1, "voxrnd.cd");
-    struct cameradata *camera = luaL_checkudata (L, 2, "voxrnd.camera");
+    struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
+    struct cameradata *camera = luaL_checkudata (L, 2, CAMERA_META);
     float radius = luaL_checknumber (L, 3);
 
     vox_cd_attach_camera (*cd, camera->camera, radius);
@@ -169,7 +169,7 @@ static int cd_attach_camera (lua_State *L)
 
 static int cd_gravity (lua_State *L)
 {
-    struct vox_cd **cd = luaL_checkudata (L, 1, "voxrnd.cd");
+    struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
     vox_dot gravity;
     READ_DOT (gravity, 2);
 
@@ -188,17 +188,17 @@ static const struct luaL_Reg cd_methods [] = {
 
 static int l_scene_proxy (lua_State *L)
 {
-    struct vox_node **ndata = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct vox_node **ndata = luaL_checkudata (L, 1, TREE_META);
     struct scene_proxydata *data = lua_newuserdata (L, sizeof (struct scene_proxydata));
 
-    luaL_getmetatable (L, "voxrnd.scene_proxy");
+    luaL_getmetatable (L, SCENE_PROXY_META);
     lua_setmetatable (L, -2);
 
     /*
      * Store reference to the tree in the proxy's metatable to prevent GC from
      * destroying it.
      */
-    luaL_getmetatable (L, "voxrnd.scene_proxy");
+    luaL_getmetatable (L, SCENE_PROXY_META);
     lua_pushvalue (L, 1);
     lua_setfield (L, -2, "__tree");
     lua_pop (L, 1);
@@ -214,7 +214,7 @@ static int l_scene_proxy (lua_State *L)
 
 static int l_scene_proxy_destroy (lua_State *L)
 {
-    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
     dispatch_release (data->scene_sync_queue);
     dispatch_release (data->scene_group);
 
@@ -230,13 +230,19 @@ static int l_scene_proxy_tostring (lua_State *L)
 static int l_scene_proxy_insert (lua_State *L)
 {
     struct vox_node **ndata;
-    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
     float x,y,z;
     READ_DOT_3 (2, x, y, z);
 
     lua_getfield (L, 1, "__tree");
-    ndata = luaL_checkudata (L, -1, "voxtrees.vox_node");
+    ndata = luaL_checkudata (L, -1, TREE_META);
 
+    /*
+     * Enqueue insertion to a synchronous queue associated with the tree. The
+     * insertion will be performed when there are no other jobs in the tree
+     * group. For example if there is tree rebuilding in progress, wait for its
+     * completion first, and then insert a voxel.
+     */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
             vox_dot dot;
             vox_dot_set (dot, x, y, z);
@@ -251,13 +257,14 @@ static int l_scene_proxy_insert (lua_State *L)
 static int l_scene_proxy_delete (lua_State *L)
 {
     struct vox_node **ndata;
-    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
     float x,y,z;
     READ_DOT_3 (2, x, y, z);
 
     lua_getfield (L, 1, "__tree");
-    ndata = luaL_checkudata (L, -1, "voxtrees.vox_node");
+    ndata = luaL_checkudata (L, -1, TREE_META);
 
+    /* See the comment for l_scene_proxy_insert */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
             vox_dot dot;
             vox_dot_set (dot, x, y, z);
@@ -272,11 +279,15 @@ static int l_scene_proxy_delete (lua_State *L)
 static int l_scene_proxy_rebuild (lua_State *L)
 {
     struct vox_node **ndata;
-    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
 
     lua_getfield (L, 1, "__tree");
-    ndata = luaL_checkudata (L, -1, "voxtrees.vox_node");
+    ndata = luaL_checkudata (L, -1, TREE_META);
 
+    /*
+     * Asynchronously rebuild the tree and then enqueue the new tree for
+     * replacement.
+     */
     dispatch_group_async (data->scene_group,
                           dispatch_get_global_queue
                           (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
@@ -310,17 +321,17 @@ static const struct luaL_Reg voxrnd [] = {
 
 int luaopen_voxrnd (lua_State *L)
 {
-    luaL_newmetatable(L, "voxrnd.camera");
+    luaL_newmetatable(L, CAMERA_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, camera_methods, 0);
 
-    luaL_newmetatable(L, "voxrnd.cd");
+    luaL_newmetatable(L, CD_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, cd_methods, 0);
 
-    luaL_newmetatable(L, "voxrnd.scene_proxy");
+    luaL_newmetatable(L, SCENE_PROXY_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, scene_proxy_methods, 0);

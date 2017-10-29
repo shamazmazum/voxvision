@@ -28,13 +28,13 @@
     } while (0)
 
 #define WRITE_DOT(dot) do {                                 \
-    lua_newtable (L);                                       \
-    lua_pushnumber (L, dot[0]);                             \
-    lua_pushnumber (L, dot[1]);                             \
-    lua_pushnumber (L, dot[2]);                             \
-    lua_seti (L, -4, 3);                                    \
-    lua_seti (L, -3, 2);                                    \
-    lua_seti (L, -2, 1);                                    \
+        lua_newtable (L);                                   \
+        lua_pushnumber (L, dot[0]);                         \
+        lua_pushnumber (L, dot[1]);                         \
+        lua_pushnumber (L, dot[2]);                         \
+        lua_seti (L, -4, 3);                                \
+        lua_seti (L, -3, 2);                                \
+        lua_seti (L, -2, 1);                                \
     } while (0)
 
 struct cameradata
@@ -50,5 +50,11 @@ struct scene_proxydata
     dispatch_group_t scene_group;
     dispatch_queue_t scene_sync_queue;
 };
+
+#define TREE_META "voxtrees.vox_node"
+#define DOTSET_META "voxtrees.dotset"
+#define CAMERA_META "voxrnd.camera"
+#define CD_META "voxrnd.cd"
+#define SCENE_PROXY_META "voxrnd.scene_proxy"
 
 #endif
