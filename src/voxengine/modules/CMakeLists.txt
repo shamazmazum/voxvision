@@ -5,7 +5,6 @@ include_directories (${LUA_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}/..
   ${CMAKE_CURRENT_BINARY_DIR}/..
   ${CMAKE_CURRENT_BINARY_DIR})
-add_definitions (-fblocks)
 
 add_library (voxtrees-wrapper SHARED voxtrees.c)
 set_target_properties (voxtrees-wrapper PROPERTIES OUTPUT_NAME voxtrees PREFIX "")

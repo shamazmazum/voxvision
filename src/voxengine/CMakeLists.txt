@@ -17,13 +17,16 @@ add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 add_subdirectory (modules)
 
-add_definitions (-fblocks -DVOXENGINE_SOURCE)
+add_definitions (-DVOXENGINE_SOURCE)
 add_library (voxengine SHARED engine.c safe_environment)
 set_target_properties (voxengine PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
   LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld
   LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld")
 target_link_libraries (voxengine ${LUA_LIBRARIES} BlocksRuntime)
+if (GCD_FOUND)
+target_link_libraries (voxengine ${GCD_LIBRARY})
+endif (GCD_FOUND)
 
 install (TARGETS voxengine LIBRARY
          DESTINATION lib)
