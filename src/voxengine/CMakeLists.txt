@@ -10,6 +10,11 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxengine.ld.in ${CMAKE_CURRENT_BINA
 include_directories (${LUA_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}/..
   ${CMAKE_CURRENT_BINARY_DIR})
+
+if (GCD_FOUND)
+include_directories (${GCD_INCLUDE_DIR})
+add_definitions (-DUSE_GCD)
+endif (GCD_FOUND)
 add_subdirectory (modules)
 
 add_definitions (-fblocks -DVOXENGINE_SOURCE)

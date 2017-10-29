@@ -186,9 +186,125 @@ static const struct luaL_Reg cd_methods [] = {
     {NULL, NULL}
 };
 
+static int l_scene_proxy (lua_State *L)
+{
+    struct vox_node **ndata = luaL_checkudata (L, 1, "voxtrees.vox_node");
+    struct scene_proxydata *data = lua_newuserdata (L, sizeof (struct scene_proxydata));
+
+    luaL_getmetatable (L, "voxrnd.scene_proxy");
+    lua_setmetatable (L, -2);
+
+    /*
+     * Store reference to the tree in the proxy's metatable to prevent GC from
+     * destroying it.
+     */
+    luaL_getmetatable (L, "voxrnd.scene_proxy");
+    lua_pushvalue (L, 1);
+    lua_setfield (L, -2, "__tree");
+    lua_pop (L, 1);
+
+    /*
+     * Fill C-side internal fields.
+     */
+    data->tree = *ndata;
+    data->scene_group = dispatch_group_create ();
+    data->scene_sync_queue = dispatch_queue_create ("scene operations", 0);
+    return 1;
+}
+
+static int l_scene_proxy_destroy (lua_State *L)
+{
+    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    dispatch_release (data->scene_sync_queue);
+    dispatch_release (data->scene_group);
+
+    return 0;
+}
+
+static int l_scene_proxy_tostring (lua_State *L)
+{
+    lua_pushfstring (L, "<async scene proxy %p>", lua_topointer (L, 1));
+    return 1;
+}
+
+static int l_scene_proxy_insert (lua_State *L)
+{
+    struct vox_node **ndata;
+    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    float x,y,z;
+    READ_DOT_3 (2, x, y, z);
+
+    lua_getfield (L, 1, "__tree");
+    ndata = luaL_checkudata (L, -1, "voxtrees.vox_node");
+
+    dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
+            vox_dot dot;
+            vox_dot_set (dot, x, y, z);
+            vox_insert_voxel (&(data->tree), dot);
+            *ndata = data->tree;
+            vox_context_set_scene (data->context, data->tree);
+        });
+
+    return 0;
+}
+
+static int l_scene_proxy_delete (lua_State *L)
+{
+    struct vox_node **ndata;
+    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+    float x,y,z;
+    READ_DOT_3 (2, x, y, z);
+
+    lua_getfield (L, 1, "__tree");
+    ndata = luaL_checkudata (L, -1, "voxtrees.vox_node");
+
+    dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
+            vox_dot dot;
+            vox_dot_set (dot, x, y, z);
+            vox_delete_voxel (&(data->tree), dot);
+            *ndata = data->tree;
+            vox_context_set_scene (data->context, data->tree);
+        });
+
+    return 0;
+}
+
+static int l_scene_proxy_rebuild (lua_State *L)
+{
+    struct vox_node **ndata;
+    struct scene_proxydata *data = luaL_checkudata (L, 1, "voxrnd.scene_proxy");
+
+    lua_getfield (L, 1, "__tree");
+    ndata = luaL_checkudata (L, -1, "voxtrees.vox_node");
+
+    dispatch_group_async (data->scene_group,
+                          dispatch_get_global_queue
+                          (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+                              struct vox_node *new_tree = vox_rebuild_tree (data->tree);
+                              dispatch_sync (data->scene_sync_queue, ^{
+                                      vox_destroy_tree (data->tree);
+                                      data->tree = new_tree;
+                                      /* Update lua reference */
+                                      *ndata = new_tree;
+                                      vox_context_set_scene (data->context, new_tree);
+                                  });
+                          });
+    return 0;
+}
+
+static const struct luaL_Reg scene_proxy_methods [] = {
+    {"__tostring", l_scene_proxy_tostring},
+    {"__gc", l_scene_proxy_destroy},
+    {"rebuild", l_scene_proxy_rebuild},
+    {"insert", l_scene_proxy_insert},
+    {"delete", l_scene_proxy_delete},
+    {NULL, NULL}
+};
+
 static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
+    {"scene_proxy", l_scene_proxy},
     {NULL, NULL}
 };
 
@@ -203,6 +319,11 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, cd_methods, 0);
+
+    luaL_newmetatable(L, "voxrnd.scene_proxy");
+    lua_pushvalue (L, -1);
+    lua_setfield (L, -2, "__index");
+    luaL_setfuncs (L, scene_proxy_methods, 0);
 
     luaL_newlib (L, voxrnd);
     return 1;

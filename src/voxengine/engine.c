@@ -154,13 +154,21 @@ static void execute_init (struct vox_engine *engine)
     lua_getfield (L, 1, "camera");
     lua_getfield (L, 1, "cd");
     
-    struct vox_node **node = luaL_checkudata (L, 2, "voxtrees.vox_node");
+    struct scene_proxydata *scene = luaL_testudata (L, 2, "voxrnd.scene_proxy");
+    struct vox_node **ndata;
+    if (scene != NULL) {
+        engine->tree = scene->tree;
+        engine->rendering_queue = scene->scene_sync_queue;
+        scene->context = engine->ctx;
+    } else {
+        ndata = luaL_checkudata (L, 2, "voxtrees.vox_node");
+        engine->tree = *ndata;
+    }
     struct cameradata *cdata = luaL_checkudata (L, 3, "voxrnd.camera");
     struct vox_cd **cd = NULL;
     if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, "voxrnd.cd");
 
     engine->camera = cdata->camera;
-    engine->tree = *node;
     if (cd != NULL) engine->cd = *cd;
 
     lua_pop (L, 3);
@@ -279,7 +287,12 @@ int vox_engine_tick (struct vox_engine *engine)
 {
     if (!engine->script_executed) return 0;
 
-    vox_render (engine->ctx);
+    if (engine->rendering_queue != NULL) {
+        dispatch_sync (engine->rendering_queue, ^{
+                vox_render (engine->ctx);
+            });
+    }
+    else vox_render (engine->ctx);
     vox_redraw (engine->ctx);
 
     execute_tick (engine);

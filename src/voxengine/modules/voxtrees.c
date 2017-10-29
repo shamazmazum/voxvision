@@ -79,7 +79,7 @@ static int deletetree (lua_State *L)
 static int printtree (lua_State *L)
 {
     struct vox_node **data = luaL_checkudata (L, 1, "voxtrees.vox_node");
-    lua_pushfstring (L, "<tree, %d voxels>",
+    lua_pushfstring (L, "<tree %p, %d voxels>", *data,
                      vox_voxels_in_tree (*data));
     return 1;
 }

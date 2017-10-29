@@ -1,5 +1,10 @@
 #ifndef MODULES_H
 #define MODULES_H
+#ifdef USE_GCD
+#include <dispatch/dispatch.h>
+#else
+#include "../gcd-stubs.c"
+#endif
 
 #define READ_DOT(dot,idx) do {                    \
         lua_geti (L, idx, 1);                     \
@@ -9,6 +14,16 @@
         float t2 = luaL_checknumber (L, -2);      \
         float t3 = luaL_checknumber (L, -1);      \
         vox_dot_set (dot, t1, t2, t3);            \
+        lua_pop (L, 3);                           \
+    } while (0)
+
+#define READ_DOT_3(idx, x, y, z) do {             \
+        lua_geti (L, idx, 1);                     \
+        lua_geti (L, idx, 2);                     \
+        lua_geti (L, idx, 3);                     \
+        x = luaL_checknumber (L, -3);             \
+        y = luaL_checknumber (L, -2);             \
+        z = luaL_checknumber (L, -1);             \
         lua_pop (L, 3);                           \
     } while (0)
 
@@ -26,6 +41,14 @@ struct cameradata
 {
     struct vox_camera *camera;
     struct vox_camera_interface *iface;
+};
+
+struct scene_proxydata
+{
+    struct vox_node *tree;
+    struct vox_rnd_ctx *context;
+    dispatch_group_t scene_group;
+    dispatch_queue_t scene_sync_queue;
 };
 
 #endif

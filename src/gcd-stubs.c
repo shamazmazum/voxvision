@@ -2,6 +2,8 @@
   GCD stubs for platforms which does not have it.
 */
 
+#ifndef __GCD_STUBS__
+#define __GCD_STUBS__
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -41,3 +43,19 @@ static inline void dispatch_group_notify (dispatch_group_t group, dispatch_queue
 {
     block();
 }
+
+static inline void dispatch_release (void *obj)
+{
+}
+
+static inline dispatch_queue_t dispatch_queue_create (const char *name, int flags)
+{
+    return NULL;
+}
+
+static inline dispatch_group_t dispatch_group_create ()
+{
+    return NULL;
+}
+
+#endif

@@ -5,6 +5,11 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 #include <SDL2/SDL.h>
+#ifdef USE_GCD
+#include <dispatch/dispatch.h>
+#else
+#include "../gcd-stubs.c"
+#endif
 
 #include "../voxtrees/tree.h"
 #include "../voxrnd/camera.h"
@@ -22,6 +27,7 @@ struct vox_engine {
     struct vox_cd *cd;
 
     int width, height, script_executed;
+    dispatch_queue_t rendering_queue;
 };
 #else /* VOXENGINE_SOURCE */
 
