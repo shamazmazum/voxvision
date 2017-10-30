@@ -19,6 +19,7 @@ function init ()
    -- 4 is camera's body radius
    cd:attach_camera (camera, 4)
 
+   -- Do not forget to specify collision detector in the world table
    return {tree = tree, camera = camera, cd = cd}
 end
 
