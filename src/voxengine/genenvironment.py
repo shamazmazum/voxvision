@@ -20,8 +20,8 @@ def addfrommodule (modname, names):
         print 'lua_pop (L, 1);'
     print ('')
 
-addfrommodule (None, ["pairs", "ipairs", "print", "next", "unpack", "tostring", "tonumber"])
-addfrommodule ("table", ["insert", "maxn", "remove", "sort"])
+addfrommodule (None, ["pairs", "ipairs", "print", "next", "tostring", "tonumber"])
+addfrommodule ("table", ["insert", "maxn", "remove", "sort", "unpack"])
 addfrommodule ("math", ["sin", "cos", "tan",
                         "asin", "acos", "atan", "atan2",
                         "abs", "exp", "floor", "ceil",
