@@ -57,8 +57,8 @@ struct vox_engine {
 
    \param width Width of the window.
    \param height Height of the window.
-   \param script control script in lua
-   \return pointer to created engine on success or NULL.
+   \param script Control script in lua
+   \return Pointer to created engine on success or NULL.
 **/
 struct vox_engine* vox_create_engine (int width, int height, const char *script);
 
@@ -66,6 +66,10 @@ struct vox_engine* vox_create_engine (int width, int height, const char *script)
    \brief Return type for `vox_engine_tick`
 **/
 typedef int vox_engine_status;
+
+/**
+   \brief Return true if quit was requested from the control script.
+**/
 #define vox_engine_quit_requested(stat) (!(stat))
 
 /**
@@ -75,7 +79,7 @@ typedef int vox_engine_status;
    information. This function is usually called inside an infinite loop in the
    main program.
 
-   \return engine status (e.g. quit requested).
+   \return Engine status (e.g. quit requested).
 **/
 vox_engine_status vox_engine_tick (struct vox_engine *engine);
 
