@@ -32,7 +32,7 @@ function tick (world, time)
          quit = true
       end
    end
-   if quit then request_quit() end
+   if quit then return nil end
 
    -- Get keyboard state
    local keystate = vs.getKeyboardState()
@@ -57,4 +57,6 @@ function tick (world, time)
    world.camera:rotate_camera (rot)
 
    previous_time = time
+
+   return true
 end

@@ -26,7 +26,7 @@ struct vox_engine {
     lua_State *L;
     struct vox_cd *cd;
 
-    int width, height, script_executed;
+    int width, height;
     dispatch_queue_t rendering_queue;
 };
 #else /* VOXENGINE_SOURCE */
@@ -52,25 +52,21 @@ struct vox_engine {
    \brief Create voxengine.
 
    This function creates a lua engine: initializes SDL, opens a window,
-   initializes lua environment, loads needed modules and so on. See the main
-   page of documentation for more informantion.
+   initializes lua environment, loads needed modules and lua control script and
+   so on. See the main page of documentation for more informantion.
 
    \param width Width of the window.
    \param height Height of the window.
+   \param script control script in lua
    \return pointer to created engine on success or NULL.
 **/
-struct vox_engine* vox_create_engine (int width, int height);
+struct vox_engine* vox_create_engine (int width, int height, const char *script);
 
 /**
-   \brief Load lua script.
-
-   This function loads lua control script, unloading the previous one, if such
-   script exists. FIXME: Panics and quits on failure.
-
-   \param engine An initialized engine
-   \param script Script file name
+   \brief Return type for `vox_engine_tick`
 **/
-void vox_engine_load_script (struct vox_engine *engine, const char *script);
+typedef int vox_engine_status;
+#define vox_engine_quit_requested(stat) (!(stat))
 
 /**
    \brief Engine tick function.
@@ -79,19 +75,9 @@ void vox_engine_load_script (struct vox_engine *engine, const char *script);
    information. This function is usually called inside an infinite loop in the
    main program.
 
-   \return 1 if tick is performed, 0 otherwise (e.g. script is not loaded,
-   nothing to do).
+   \return engine status (e.g. quit requested).
 **/
-int vox_engine_tick (struct vox_engine *engine);
-
-/**
-   \brief Is quit was requested?
-
-   This function checks if `request_quit()` was called in lua script.
-
-   \return 1 if quit was requested, 0 otherwise.
-**/
-int vox_engine_quit_requested (struct vox_engine *engine);
+vox_engine_status vox_engine_tick (struct vox_engine *engine);
 
 /**
    \brief Destroy an engine.

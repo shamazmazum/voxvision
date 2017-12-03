@@ -313,32 +313,34 @@ Voxengine
 **Voxengine** is somewhat a combine library, integrating all other libraries of
 voxvision, SDL2 and lua scripting. A lifecycle of an application which uses
 **voxengine** can be similar to the following:
-    1. You create an engine by calling `vox_create_engine()`.
-    2. You load your lua control script by calling `vox_engine_load_script()`.
+    1. You create an engine by calling `vox_create_engine()` passing your lua
+        control script as a parameter.
     2. In infinite loop you call `vox_engine_tick()` to render a new frame and
        update the engine's state. Optionally you can do anything you want to do
        in this loop, e.g. use FPS counter.
     3. You check if lua control script has requested to stop the engine by
-       calling `vox_engine_quit_requested()`.
+       calling `vox_engine_quit_requested()` passing the status returned by
+       `vox_engine_tick()` as a parameter.
     4. In case you deside to quit, jump out of the loop and call
        `vox_destroy_engine()`.
     5. Do all SDL event handling in lua script using **luasdl2** written by
-       Tangent128 (see below). If you wish to quit, call `request_quit()`.
+       Tangent128 (see below). If you wish to quit, return `false` from `tick()`
+       function, otherwise return `true` (see below).
 
 Here is an example:
 ~~~~~~~~~~~~~~~{.c}
 int main (int argc, char *argv[])
 {
     // Creating an engine and a window with dimensions 800x600
-    struct vox_engine *engine = vox_create_engine (800, 600);
+    struct vox_engine *engine = vox_create_engine (800, 600, script);
     if (engine == NULL) {
         // vox_create_engine reports an error.
         // Quit here
         return 1;
     }
     while (1) {
-        vox_engine_tick (engine);
-        if (vox_engine_quit_requested (engine)) goto done;
+        vox_engine_status status = vox_engine_tick (engine);
+        if (vox_engine_quit_requested (status)) goto done;
     }
 
 done:
@@ -414,7 +416,7 @@ function tick (world, time)
       end
    end
    -- Call request_quit when you wish to shut down the engine
-   if quit then request_quit() end
+   if quit then return nil end
 
    -- You can rotate camera or modify tree in tick() function
    local camera = world.camera
@@ -422,15 +424,18 @@ function tick (world, time)
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
    camera:set_position (dot)
    camera:look_at {25,25,25}
+
+   return true
 end
 ~~~~~~~~~~~~~~~
 
 Another function seen in this example is `tick`. It is called once in the main loop
 when `vox_engine_tick()` is called and used to update the scene. It accepts 2
 arguments: your world and time in milliseconds from the start of the
-program. This function is optional. If you do not supply it, **voxengine** will
-do basic SDL event handling by itself. Here is another example which brings more
-interaction with user:
+program. It must always return `true` unless you want to quit. This function is
+optional. If you do not supply it, **voxengine** will do basic SDL event
+handling by itself. Here is another example which brings more interaction with
+user:
 
 ~~~~~~~~~~~~~~~{.lua}
 vt = voxtrees
@@ -467,7 +472,7 @@ function tick (world, time)
          quit = true
       end
    end
-   if quit then request_quit() end
+   if quit then return nil end
 
    -- Here you can get the keyboard state with 'getKeyboardState' function
    local keystate = vs.getKeyboardState()
@@ -499,6 +504,8 @@ function tick (world, time)
    elseif keystate[vs.scancode.Down] then
       camera:rotate_camera {0.05,0,0}
    end
+
+   return true
 end
 ~~~~~~~~~~~~~~~
 

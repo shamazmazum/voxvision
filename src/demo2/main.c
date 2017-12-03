@@ -43,20 +43,20 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    struct vox_engine *engine = vox_create_engine (width, height);
+    struct vox_engine *engine = vox_create_engine (width, height, script);
     if (engine == NULL) return 1;
     vox_fps_controller_t fps_controller = vox_make_fps_controller (fps);
-    vox_engine_load_script (engine, script);
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
+    vox_engine_status status;
 
     while (1)
     {
-        vox_engine_tick (engine);
+        status = vox_engine_tick (engine);
         struct vox_fps_info fps_info = fps_controller();
         if (vox_fpsstatus_updated (fps_info.status))
             printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
-        if (vox_engine_quit_requested (engine)) goto end;
+        if (vox_engine_quit_requested (status)) goto end;
     }
 end:
     vox_destroy_engine (engine);

@@ -59,7 +59,7 @@ function tick (world, time)
       end
    end
    -- Call request_quit when you wish to shut down the engine
-   if quit then request_quit() end
+   if quit then return false end
 
    -- You can rotate camera or modify tree in tick() function
    local camera = world.camera
@@ -67,4 +67,6 @@ function tick (world, time)
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
    camera:set_position (dot)
    camera:look_at {25,25,25}
+
+   return true
 end

@@ -37,7 +37,7 @@ function tick (world, time)
          quit = true
       end
    end
-   if quit then request_quit() end
+   if quit then return nil end
 
    -- Get a random dot on XY plane
    local x,y = math.random (100), math.random (100)
@@ -54,4 +54,6 @@ function tick (world, time)
       world.tree:rebuild ()
       rebuild_time = time
    end
+
+   return true
 end

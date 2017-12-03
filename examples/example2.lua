@@ -24,7 +24,7 @@ function tick (world, time)
          quit = true
       end
    end
-   if quit then request_quit() end
+   if quit then return nil end
 
    -- Get keyboard state
    local keystate = vs.getKeyboardState()
@@ -54,4 +54,6 @@ function tick (world, time)
    elseif keystate[vs.scancode.Down] then
       camera:rotate_camera {0.05,0,0}
    end
+
+   return true
 end
