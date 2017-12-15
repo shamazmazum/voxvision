@@ -1,47 +1,48 @@
 #include <unistd.h>
+#include <stdlib.h>
 #include <voxengine.h>
 #include <SDL2/SDL.h>
 
 static void usage()
 {
     fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] -s script\n");
+    exit (EXIT_FAILURE);
 }
 
 int main (int argc, char *argv[])
 {
     int ch, width = 800, height = 600, fps = 30;
     const char *script = NULL;
+    char *endptr;
     while ((ch = getopt (argc, argv, "w:h:s:f:")) != -1)
     {
         switch (ch)
         {
         case 'w':
-            width = strtol (optarg, NULL, 10);
+            width = strtol (optarg, &endptr, 10);
+            if (*endptr != '\0') usage();
             break;
         case 'h':
-            height = strtol (optarg, NULL, 10);
+            height = strtol (optarg, &endptr, 10);
+            if (*endptr != '\0') usage();
             break;
         case 's':
             script = optarg;
             break;
         case 'f':
-            fps = strtol (optarg, NULL, 10);
+            fps = strtol (optarg, &endptr, 10);
+            if (*endptr != '\0') usage();
             break;
         case '?':
         default:
             usage();
-            return 1;
         }
     }
 
     argc -= optind;
     argv += optind;
 
-    if (script == NULL)
-    {
-        usage ();
-        return 1;
-    }
+    if (script == NULL) usage ();
 
     struct vox_engine *engine = vox_create_engine (width, height, script);
     if (engine == NULL) return 1;
