@@ -7,10 +7,13 @@ include_directories (${CUNIT_INCLUDE_DIR}
 # Allow tests to see internals
 add_definitions (-DVOXTREES_SOURCE -DVOXRND_SOURCE -fblocks)
 add_executable (run-tests EXCLUDE_FROM_ALL tests.c)
+add_definitions (-DDATAPATH="${CMAKE_SOURCE_DIR}/data")
+add_executable (run-new-tests EXCLUDE_FROM_ALL new-tests.c)
 target_link_libraries (run-tests m voxtrees voxrnd ${CUNIT_LIBRARY})
+target_link_libraries (run-new-tests voxtrees-ng  ${CUNIT_LIBRARY})
 
 add_custom_target (check
-  env "VOXVISION_MODULES=${CMAKE_BINARY_DIR}/src/voxrnd" ./run-tests
+  env "VOXVISION_MODULES=${CMAKE_BINARY_DIR}/src/voxrnd" ./run-tests && ./run-new-tests
   COMMENT "Run tests"
-  DEPENDS run-tests doom-camera-module simple-camera-module
+  DEPENDS run-tests run-new-tests doom-camera-module simple-camera-module
   )

@@ -1,0 +1,34 @@
+#ifndef _GEOM_H_
+#define _GEOM_H_
+#include "types.h"
+
+#define vox_dot_add(a,b,res) do { \
+        res[0] = a[0] + b[0];     \
+        res[1] = a[1] + b[1];     \
+        res[2] = a[2] + b[2];     \
+    }                             \
+    while (0);
+
+#define vox_dot_sub(a,b,res) do { \
+        res[0] = a[0] - b[0];     \
+        res[1] = a[1] - b[1];     \
+        res[2] = a[2] - b[2];     \
+    }                             \
+    while (0);
+
+#define vox_dot_mul(a,b,res) do { \
+        res[0] = a[0] * b[0];     \
+        res[1] = a[1] * b[1];     \
+        res[2] = a[2] * b[2];     \
+    }                             \
+    while (0);
+
+int dot_inside_box (const struct vox_box *box, const vox_dot dot, int strong);
+int box_inside_box (const struct vox_box *outer, const struct vox_box *inner, int strong);
+int voxel_inside_box (const struct vox_box *box, const vox_dot voxel, int strong);
+
+void subspace_box (const struct vox_box *space, const vox_dot center,
+                   struct vox_box *subspace, int subspace_idx);
+int subspace_idx (const vox_dot center, const vox_dot dot);
+
+#endif

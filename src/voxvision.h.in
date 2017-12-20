@@ -80,5 +80,6 @@ struct vox_box
 };
 #include <string.h>
 #define vox_box_copy(b1, b2) memcpy ((b1), (b2), sizeof (struct vox_box))
+#define vox_box_equalp(b1, b2) (memcmp ((b1), (b2), sizeof (struct vox_box)) == 0)
 
 #endif

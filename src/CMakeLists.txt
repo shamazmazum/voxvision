@@ -7,6 +7,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
 add_definitions (-fblocks)
 add_subdirectory (voxtrees)
+add_subdirectory (voxtrees-ng)
 add_subdirectory (voxrnd)
 if (INIPARSER_FOUND)
 add_subdirectory (demo)
