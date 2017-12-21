@@ -35,7 +35,7 @@ static void test_data_loading ()
 static void test_tree_cons ()
 {
     tree = vox_make_tree (map);
-    CU_ASSERT (map != NULL);
+    CU_ASSERT (tree != NULL);
 }
 
 static unsigned int voxels_in_map (struct vox_map_3d *map)
