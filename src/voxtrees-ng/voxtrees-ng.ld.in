@@ -1,0 +1,4 @@
+VOXTREES_NG_@voxvision_VERSION@ {
+    # FIXME: Decide what to export later
+    global: *;
+};

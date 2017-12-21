@@ -1,7 +1,11 @@
 #include <assert.h>
 #include <math.h>
+#include <stdlib.h>
 #include "tree.h"
 #include "geom.h"
+#ifdef STATISTICS
+#include <voxtrees-ng-dtrace.h>
+#endif
 
 #define HOLLOW 0
 #define SOLID 1
@@ -136,7 +140,9 @@ static unsigned int box_volume (const struct vox_box *box)
 {
     vox_dot tmp;
     vox_dot_sub (box->max, box->min, tmp);
-    return tmp[0]*tmp[1]*tmp[2]/(vox_voxel[0]*vox_voxel[1]*vox_voxel[2]);
+    float volume = tmp[0]*tmp[1]*tmp[2]/(vox_voxel[0]*vox_voxel[1]*vox_voxel[2]);
+    assert ((unsigned int) volume == volume);
+    return (unsigned int) volume;
 }
 
 static void collect_data (const struct vox_map_3d *map, int which, vox_dot *dots,
@@ -178,16 +184,20 @@ static void collect_data (const struct vox_map_3d *map, int which, vox_dot *dots
 
 static struct vox_node* make_tree (struct vox_map_3d *map, const struct vox_box *box)
 {
+#ifdef STATISTICS
+    VOXTREES_NG_INC_REC_LEVEL();
+#endif
+    struct vox_node *node = NULL;
     struct vox_box actual_bb;
     int has_bb = bounding_box (map, SOLID, &actual_bb, box);
-    if (!has_bb) return NULL;
+    if (!has_bb) goto done;
     unsigned int voxel_num = count_voxels (map, &actual_bb);
     assert (voxel_num > 0);
     unsigned int volume = box_volume (&actual_bb);
     unsigned int hole_num = volume - voxel_num;
     unsigned int data_num = (hole_num < voxel_num)? hole_num: voxel_num;
     assert (data_num >= 0);
-    struct vox_node *node = aligned_alloc (16, sizeof (struct vox_node));
+    node = aligned_alloc (16, sizeof (struct vox_node));
     node->flags = 0;
     // Setting actual bounding box
     vox_box_copy (&(node->actual_bb), &actual_bb);
@@ -196,7 +206,7 @@ static struct vox_node* make_tree (struct vox_map_3d *map, const struct vox_box 
     if (data_num == 0) {
         node->flags = NODATA;
         node->leaf_data.dots_num = 0;
-        return node;
+        goto done;
     }
 
     // Set data bounding box
@@ -225,6 +235,23 @@ static struct vox_node* make_tree (struct vox_map_3d *map, const struct vox_box 
         }
     }
 
+done:
+#ifdef STATISTICS
+    if (node == NULL) {
+        /* Empty nodes are leafs too */
+        VOXTREES_NG_EMPTY_NODE();
+        VOXTREES_NG_LEAF_NODE();
+    } else {
+        if (node->flags & CONTAINS_HOLES) VOXTREES_NG_CONTAINS_HOLES();
+        if (node->flags & COVERED) VOXTREES_NG_COVERED();
+
+        if (node->flags & LEAF) {
+        VOXTREES_NG_LEAF_NODE();
+        VOXTREES_NG_FILL_RATIO (100 * data_num / volume);
+        } else VOXTREES_NG_INNER_NODE();
+    }
+    VOXTREES_NG_DEC_REC_LEVEL();
+#endif
     return node;
 }
 
