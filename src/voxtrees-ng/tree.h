@@ -32,6 +32,7 @@ struct vox_node* vox_make_tree (struct vox_map_3d *map);
 void vox_destroy_tree (struct vox_node *tree);
 unsigned int vox_voxels_in_tree (const struct vox_node *tree);
 int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel);
+void vox_dump_tree (const struct vox_node *tree);
 
 extern vox_dot vox_voxel;
 

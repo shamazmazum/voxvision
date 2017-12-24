@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "tree.h"
 #include "geom.h"
 #ifdef STATISTICS
@@ -328,4 +329,55 @@ int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel)
     }
 
     return inside;
+}
+
+void vox_dump_tree (const struct vox_node *tree)
+{
+    printf ("==== Node %p ====\n", tree);
+    if (tree != NULL) {
+        int flags = tree->flags;
+        int nodata = TREE_NODATA_P (tree);
+        printf ("%s, contains %s, %s, %s\n",
+                (flags & LEAF)? "Leaf": "Inner node",
+                (flags & CONTAINS_HOLES)? "holes": "solid voxels",
+                (flags & COVERED)? "covered": "not covered",
+                (nodata)? "has no data": "has data");
+        printf ("Actual bounding box: <%f, %f, %f> - <%f, %f, %f>\n",
+                tree->actual_bb.min[0],
+                tree->actual_bb.min[1],
+                tree->actual_bb.min[2],
+                tree->actual_bb.max[0],
+                tree->actual_bb.max[1],
+                tree->actual_bb.max[2]);
+        if (!nodata) {
+            int i;
+            printf ("Data bounding box: <%f, %f, %f> - <%f, %f, %f>\n",
+                    tree->data_bb.min[0],
+                    tree->data_bb.min[1],
+                    tree->data_bb.min[2],
+                    tree->data_bb.max[0],
+                    tree->data_bb.max[1],
+                    tree->data_bb.max[2]);
+            if (flags & LEAF) {
+                printf ("Leaf data:\n");
+                for (i=0; i<tree->leaf_data.dots_num; i++)
+                    printf ("<%f, %f, %f> ",
+                            tree->leaf_data.dots[i][0],
+                            tree->leaf_data.dots[i][1],
+                            tree->leaf_data.dots[i][2]);
+                printf ("\n===============\n");
+            } else {
+                printf ("Center of division: <%f, %f, %f>\n",
+                        tree->inner_data.center[0],
+                        tree->inner_data.center[1],
+                        tree->inner_data.center[2]);
+                printf ("Node children:\n");
+                for (i=0; i<8; i++)
+                    printf ("%p ", tree->inner_data.children[i]);
+                printf ("\n===============\n");
+                for (i=0; i<8; i++)
+                    vox_dump_tree (tree->inner_data.children[i]);
+            }
+        }
+    }
 }
