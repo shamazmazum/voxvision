@@ -31,4 +31,9 @@ void subspace_box (const struct vox_box *space, const vox_dot center,
                    struct vox_box *subspace, int subspace_idx);
 int subspace_idx (const vox_dot center, const vox_dot dot);
 
+float squared_metric (const vox_dot d1, const vox_dot d2);
+int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot direction, vox_dot res);
+int hit_box_outer (const struct vox_box *box, const vox_dot origin, const vox_dot direction, vox_dot res);
+float squared_diag (const vox_dot dot);
+void voxel_align (vox_dot dot);
 #endif
