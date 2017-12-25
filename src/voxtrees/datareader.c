@@ -82,7 +82,10 @@ static int check_file (const char* filename)
 
 int vox_find_data_file (const char *filename, char *fullpath)
 {
-    // At first, try to find data file in system-wide data directory
+    // At first, try the path "as is"
+    if (check_file (strncpy (fullpath, filename, MAXPATHLEN))) return 1;
+
+    // Then try to find data file in system-wide data directory
     if (snprintf (fullpath, MAXPATHLEN,
                   "%s%s", VOX_DATA_PATH, filename) >= MAXPATHLEN)
         return 0;
