@@ -148,3 +148,13 @@ void voxel_align (vox_dot dot)
     for (i=0; i<3; i++)
         dot[i] = vox_voxel[i] * floorf (dot[i] / vox_voxel[i]);
 }
+
+int vox_dot_almost_equalp (const vox_dot d1, const vox_dot d2, float prec)
+{
+    int i;
+
+    for (i=0; i<3; i++) {
+        if (fabsf (d1[i] - d2[i]) > prec) return 0;
+    }
+    return 1;
+}
