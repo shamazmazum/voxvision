@@ -183,7 +183,7 @@ static void collect_data (const struct vox_map_3d *map, int which, vox_dot *dots
     }
 }
 
-static struct vox_node* make_tree (struct vox_map_3d *map, const struct vox_box *box)
+static struct vox_node* make_tree (const struct vox_map_3d *map, const struct vox_box *box)
 {
 #ifdef STATISTICS
     VOXTREES_NG_INC_REC_LEVEL();
@@ -256,7 +256,7 @@ done:
     return node;
 }
 
-struct vox_node* vox_make_tree (struct vox_map_3d *map)
+struct vox_node* vox_make_tree (const struct vox_map_3d *map)
 {
     struct vox_box box = {
         .min = {0, 0, 0},
@@ -380,4 +380,9 @@ void vox_dump_tree (const struct vox_node *tree)
             }
         }
     }
+}
+
+void vox_bounding_box (const struct vox_node *tree, struct vox_box *box)
+{
+    vox_box_copy (box, &(tree->actual_bb));
 }
