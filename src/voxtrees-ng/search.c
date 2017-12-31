@@ -45,7 +45,7 @@ ray_tree_intersection_leaf (const struct vox_node* tree, vox_dot starting_point,
                                    squared_metric (starting_point, p2->first);
                      return (mdiff > 0) - (mdiff < 0);
                  });
-        if (!(vox_dot_equalp (hole_intersections[0].first, data_bb_inter)))
+        if (squared_metric (hole_intersections[0].first, data_bb_inter) > comp_precision)
             goto return_actual_bb_inter;
 
         float vox_diag = squared_diag (vox_voxel);
