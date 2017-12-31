@@ -12,12 +12,11 @@ ray_tree_intersection_leaf (const struct vox_node* tree, vox_dot starting_point,
                             const vox_dot dir, vox_dot res)
 {
     vox_dot data_bb_inter;
-    float precision = vox_voxel[0]/4;
 
     if (tree->flags & CONTAINS_HOLES) {
         if (TREE_NODATA_P (tree) ||
             !(hit_box (&(tree->data_bb), starting_point, dir, data_bb_inter)) ||
-            !(vox_dot_equalp (starting_point, data_bb_inter)))
+            squared_metric (starting_point, data_bb_inter) > comp_precision)
             goto return_actual_bb_inter;
 
         unsigned int i, n_intersections = 0;
@@ -71,7 +70,7 @@ ray_tree_intersection_leaf (const struct vox_node* tree, vox_dot starting_point,
         vox_dot actual_bb_inter_outer;
         interp = hit_box_outer (&(tree->actual_bb), starting_point, dir, actual_bb_inter_outer);
         assert (interp);
-        if (vox_dot_almost_equalp (actual_bb_inter_outer, res, precision)) return NULL;
+        if (squared_metric (actual_bb_inter_outer, res) < comp_precision) return NULL;
         else return tree;
     }
     return NULL;

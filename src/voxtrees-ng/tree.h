@@ -34,7 +34,9 @@ unsigned int vox_voxels_in_tree (const struct vox_node *tree);
 int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel);
 void vox_dump_tree (const struct vox_node *tree);
 void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
+void vox_set_voxel (const vox_dot dot);
 
 extern vox_dot vox_voxel;
+extern float comp_precision;
 
 #endif
