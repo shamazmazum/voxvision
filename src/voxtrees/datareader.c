@@ -30,7 +30,7 @@ struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
     if (fstat (fd, &sb) == -1) {*error = strerror (errno); goto closefd;}
     if (n*samplesize != sb.st_size) {*error = "Wrong size of dataset"; goto closefd;}
 
-    array = aligned_alloc (16, n*sizeof(vox_dot));
+    array = vox_alloc (n*sizeof(vox_dot));
     if (array == NULL) {*error = strerror (errno); goto freemem;}
     
     for (i=0; i<dim[0]; i++)

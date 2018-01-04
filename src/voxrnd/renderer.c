@@ -41,7 +41,7 @@ static void allocate_squares (struct vox_rnd_ctx *ctx)
     w = ctx->surface->w >> 2;
     h = ctx->surface->h >> 2;
     squares_num = w*h;
-    ctx->square_output = aligned_alloc (16, squares_num*sizeof(square));
+    ctx->square_output = vox_alloc (squares_num*sizeof(square));
     ctx->squares_num = squares_num;
     ctx->ws = w;
     ctx->hs = h;

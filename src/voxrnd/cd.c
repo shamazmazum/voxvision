@@ -12,7 +12,7 @@ struct vox_cd {
 
 struct vox_cd* vox_make_cd ()
 {
-    struct vox_cd *cd = aligned_alloc (16, sizeof (struct vox_cd));
+    struct vox_cd *cd = vox_alloc (sizeof (struct vox_cd));
     memset (cd, 0, sizeof (struct vox_cd));
 
     return cd;

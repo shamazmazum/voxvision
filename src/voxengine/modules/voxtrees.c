@@ -135,7 +135,7 @@ static int newdotset (lua_State *L)
     lua_setmetatable (L, -2);
     set->length = 0;
     set->max_length = len;
-    set->array = aligned_alloc (16, sizeof (vox_dot)*len);
+    set->array = vox_alloc (sizeof (vox_dot)*len);
 
     return 1;
 }

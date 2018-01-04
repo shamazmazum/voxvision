@@ -203,7 +203,7 @@ static void* node_alloc (int flavor)
 {
     /*
       FIXME: We may need to be sure if vox_dot fields of node
-      structure are properly aligned in future, so use aligned_alloc()
+      structure are properly aligned in future, so use vox_alloc()
       instead of malloc()
     */
     size_t size = offsetof (struct vox_node, data);
@@ -213,7 +213,7 @@ static void* node_alloc (int flavor)
     else if (flavor & LEAF) addend = sizeof (vox_dot*);
     else addend = sizeof (vox_inner_data);
 
-    return aligned_alloc (16, size+addend);
+    return vox_alloc (size+addend);
 }
 
 struct vox_node* vox_make_dense_leaf (const struct vox_box *box)
@@ -253,7 +253,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
         if (densep) node->flags = DENSE_LEAF;
         else if (leafp)
         {
-            node->data.dots = aligned_alloc (16, VOX_MAX_DOTS*sizeof(vox_dot));
+            node->data.dots = vox_alloc (VOX_MAX_DOTS*sizeof(vox_dot));
             memcpy (node->data.dots, set, n*sizeof(vox_dot));
             node->flags = LEAF;
         }
@@ -392,7 +392,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
     struct vox_node *new_tree = NULL;
     if (VOX_FULLP (tree))
     {
-        vox_dot *dots = aligned_alloc (16, sizeof(vox_dot) * tree->dots_num);
+        vox_dot *dots = vox_alloc (sizeof(vox_dot) * tree->dots_num);
         flatten_tree (tree, dots);
         new_tree = vox_make_tree (dots, tree->dots_num);
         free (dots);

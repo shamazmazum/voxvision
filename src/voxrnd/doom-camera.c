@@ -131,7 +131,7 @@ static struct vox_camera* doom_construct_camera (const struct vox_camera *cam)
     struct vox_doom_camera *camera;
     const struct vox_doom_camera *old_camera = (void*)cam;
 
-    camera = aligned_alloc (16, sizeof (struct vox_doom_camera));
+    camera = vox_alloc (sizeof (struct vox_doom_camera));
 
     if (old_camera != NULL)
         memcpy (camera, old_camera, sizeof (struct vox_doom_camera));

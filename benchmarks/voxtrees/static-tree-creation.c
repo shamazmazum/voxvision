@@ -6,7 +6,7 @@
 #define N 10000000
 int main ()
 {
-    vox_dot *dots = aligned_alloc (16, sizeof(vox_dot)*N);
+    vox_dot *dots = vox_alloc (sizeof(vox_dot)*N);
     int i;
     double time;
     struct vox_node *tree;

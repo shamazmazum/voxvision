@@ -393,7 +393,7 @@ static void test_tree_ins()
     vox_destroy_tree (tree);
 
     // Make a fake tree with dense leaf as root
-    tree = aligned_alloc(16, sizeof (struct vox_node));
+    tree = vox_alloc (sizeof (struct vox_node));
     tree->bounding_box.min[0] = 5;
     tree->bounding_box.min[1] = 5;
     tree->bounding_box.min[2] = 5;
