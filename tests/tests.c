@@ -10,6 +10,7 @@
 
 #include <voxrnd/camera.h>
 #include <voxrnd/vect-ops.h>
+#include <voxrnd/mtree.h>
 #include <voxtrees.h>
 #include <voxtrees/geom.h>
 
@@ -27,6 +28,7 @@
 #define APPROX  0.5
 
 static struct vox_node *working_tree;
+static struct vox_mtree_node *mtree = NULL;
 static vox_dot half_voxel;
 static vox_dot neg_half_voxel;
 
@@ -792,6 +794,53 @@ static void test_camera_class_construction ()
     CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
 }
 
+int sphere_inside_sphere (const struct vox_sphere *inner, const struct vox_sphere *outer)
+{
+    float dist = sqrtf (vox_sqr_metric (inner->center, outer->center));
+    return inner->radius + dist < outer->radius + APPROX;
+}
+
+static void verify_mtree (const struct vox_mtree_node *node)
+{
+#define MAX_CHILDREN 3 // Must match the value in voxrnd/mtree.c
+    unsigned int i;
+    const struct vox_mtree_node *child;
+
+    if (node != NULL) {
+        CU_ASSERT (node->num <= MAX_CHILDREN);
+        if (node->leaf) {
+            for (i=0; i<node->num; i++)
+                CU_ASSERT (sphere_inside_sphere (&(node->data.spheres[i]), &(node->bounding_sphere)));
+        } else {
+            for (i=0; i<node->num; i++) {
+                child = node->data.children[i];
+                CU_ASSERT (child != NULL);
+                CU_ASSERT (child->parent == node);
+                CU_ASSERT (sphere_inside_sphere (&(child->bounding_sphere), &(node->bounding_sphere)));
+                verify_mtree (child);
+            }
+        }
+    }
+}
+
+void test_mtree ()
+{
+    struct vox_sphere s;
+    int i;
+    int n = 50;
+
+    for (i=0; i<n; i++) {
+        s.center[0] = floorf (100.0 * rand() / RAND_MAX);
+        s.center[1] = floorf (100.0 * rand() / RAND_MAX);
+        s.center[2] = floorf (100.0 * rand() / RAND_MAX);
+        s.radius = floorf (15.0 * rand() / RAND_MAX);
+        vox_mtree_add_sphere (&mtree, &s);
+    }
+
+    CU_ASSERT (vox_mtree_items (mtree) == n);
+    verify_mtree (mtree);
+}
+
 int main ()
 {
     CU_pTest test;
@@ -876,6 +925,9 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (rnd_suite, "Camera class construction", test_camera_class_construction);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (rnd_suite, "Test M-trees", test_mtree);
     if (test == NULL) PROC_TEST_ERROR;
 
     printf ("Creating working set and working tree\n");

@@ -22,5 +22,11 @@ VOXRND_@voxvision_VERSION@ {
             vox_rotate_vector_q;
             vox_quat_set_identity;
             vox_quat_normalize;
+
+# M-trees
+            vox_mtree_add_sphere;
+            vox_mtree_destroy;
+            vox_mtree_items;
+            vox_mtree_dump;
     local: *;
 };
