@@ -4,6 +4,7 @@
 
 struct vox_sphere {
     vox_dot center;
+    /* void *userdata; */
     float radius;
 };
 
@@ -26,9 +27,12 @@ struct vox_mtree_node {
 struct vox_mtree_node;
 #endif
 
-void vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
+int vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
+int vox_mtree_remove_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
 void vox_mtree_destroy (struct vox_mtree_node *node);
 void vox_mtree_dump (const struct vox_mtree_node *node);
 unsigned int vox_mtree_items (const struct vox_mtree_node *node);
+int vox_mtree_contains_sphere (const struct vox_mtree_node *node,
+                               const struct vox_sphere *s);
 
 #endif
