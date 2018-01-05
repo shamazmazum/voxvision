@@ -174,33 +174,34 @@ static struct vox_mtree_node* split_node (struct vox_mtree_node *node)
     return res;
 }
 
-int vox_mtree_contains_sphere (const struct vox_mtree_node *node,
-                               const struct vox_sphere *s)
+const struct vox_mtree_node*
+vox_mtree_contains_sphere (const struct vox_mtree_node *node,
+                           const struct vox_sphere *s)
 {
-    int res = 0;
+    const struct vox_mtree_node* res = NULL;
     unsigned int i;
-    float dist, mindist = INFINITY;
+    float dist;
     const struct vox_mtree_node *child;
 
     if (node != NULL) {
-        if (node->leaf) {
-            for (i=0; i<node->num; i++) {
-                if (vox_dot_equalp (node->data.spheres[i].center, s->center) &&
-                    node->data.spheres[i].radius == s->radius) {
-                    res = 1;
-                    break;
+        dist = sqrtf (vox_sqr_metric (s->center, node->bounding_sphere.center));
+        if (dist < node->bounding_sphere.radius) {
+            if (node->leaf) {
+                for (i=0; i<node->num; i++) {
+                    if (vox_dot_equalp (node->data.spheres[i].center, s->center) &&
+                        node->data.spheres[i].radius == s->radius) {
+                        res = node;
+                        break;
+                    }
                 }
-            }
-        } else {
-            assert (node->num > 0);
-            for (i=0; i<node->num; i++) {
-                dist = vox_sqr_metric (s->center, node->data.children[i]->bounding_sphere.center);
-                if (dist < mindist) {
-                    mindist = dist;
+            } else {
+                assert (node->num > 0);
+                for (i=0; i<node->num; i++) {
                     child = node->data.children[i];
+                    res = vox_mtree_contains_sphere (child, s);
+                    if (res != NULL) break;
                 }
             }
-            res = vox_mtree_contains_sphere (child, s);
         }
     }
 
@@ -208,8 +209,7 @@ int vox_mtree_contains_sphere (const struct vox_mtree_node *node,
 }
 
 static struct vox_mtree_node* add_sphere_helper (struct vox_mtree_node *node,
-                                                 const struct vox_sphere *s,
-                                                 int *success)
+                                                 const struct vox_sphere *s)
 {
     struct vox_mtree_node *res = node;
     struct vox_mtree_node *child;
@@ -221,16 +221,12 @@ static struct vox_mtree_node* add_sphere_helper (struct vox_mtree_node *node,
         sphere_copy (&(res->bounding_sphere), s);
         res->num = 1;
         sphere_copy (&(res->data.spheres[0]), s);
-        *success = 1;
     } else if (node->leaf) {
-        if (!vox_mtree_contains_sphere (node, s)) {
-            *success = 1;
-            sphere_copy (&(node->data.spheres[node->num]), s);
-            node->num++;
-            propagate_bounding_sphere_update (node);
-            if (node->num == MAX_CHILDREN + 1)
-                res = split_node (node);
-        }
+        sphere_copy (&(node->data.spheres[node->num]), s);
+        node->num++;
+        propagate_bounding_sphere_update (node);
+        if (node->num == MAX_CHILDREN + 1)
+            res = split_node (node);
     } else {
         assert (node->num > 0);
         for (i=0; i<node->num; i++) {
@@ -240,7 +236,7 @@ static struct vox_mtree_node* add_sphere_helper (struct vox_mtree_node *node,
                 child = node->data.children[i];
             }
         }
-        res = add_sphere_helper (child, s, success);
+        res = add_sphere_helper (child, s);
     }
 
     return res;
@@ -248,12 +244,16 @@ static struct vox_mtree_node* add_sphere_helper (struct vox_mtree_node *node,
 
 int vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s)
 {
-    int res = 0;
-    struct vox_mtree_node *node = add_sphere_helper (*nodeptr, s, &res);
-    // Got a new root
-    if (node->parent == NULL) *nodeptr = node;
+    // Sanity check and make sure that the sphere is not already in the tree
+    int success = (s->radius > 0) && (vox_mtree_contains_sphere (*nodeptr, s) == NULL);
 
-    return res;
+    if (success) {
+        struct vox_mtree_node *node = add_sphere_helper (*nodeptr, s);
+        // Got a new root
+        if (node->parent == NULL) *nodeptr = node;
+    }
+
+    return success;
 }
 
 // This is "split_node() for deletion"
@@ -285,55 +285,44 @@ static struct vox_mtree_node* recursively_delete (struct vox_mtree_node *node)
     return res;
 }
 
-static int remove_sphere_helper (struct vox_mtree_node *node, const struct vox_sphere *s, int *empty)
+static int remove_sphere_helper (struct vox_mtree_node *node, const struct vox_sphere *s)
 {
-    struct vox_mtree_node *child;
-    int res = 0;
-    unsigned int i, pos;
-    float dist, mindist = INFINITY;
+    unsigned int i;
+    int tree_empty = 0;
 
-    if (node != NULL) {
-        if (node->leaf) {
-            res = vox_mtree_contains_sphere (node, s);
-            if (res != 0) {
-                if (node->num == 1) {
-                    node = recursively_delete (node);
-                    if (node == NULL) *empty = 1;
-                } else {
-                    for (i=0; i<node->num; i++) {
-                        pos = i;
-                        if (vox_dot_equalp (node->data.spheres[i].center, s->center) &&
-                            node->data.spheres[i].radius == s->radius) break;
-                    }
-                    assert (pos < node->num);
-                    memcpy (&(node->data.spheres[pos]), &(node->data.spheres[pos+1]),
-                            sizeof (struct vox_sphere) * (node->num - pos - 1));
-                    node->num--;
-                    propagate_bounding_sphere_update (node);
-                }
-            }
-        } else {
-            assert (node->num > 0);
-            for (i=0; i<node->num; i++) {
-                dist = vox_sqr_metric (s->center, node->data.children[i]->bounding_sphere.center);
-                if (dist < mindist) {
-                    mindist = dist;
-                    child = node->data.children[i];
-                }
-            }
-            res = remove_sphere_helper (child, s, empty);
+    assert (node != NULL && node->leaf);
+    if (node->num == 1) {
+        node = recursively_delete (node);
+        if (node == NULL) tree_empty = 1;
+    } else {
+        for (i=0; i<node->num; i++) {
+            if (vox_dot_equalp (node->data.spheres[i].center, s->center) &&
+                node->data.spheres[i].radius == s->radius) break;
         }
+
+        assert (i < node->num);
+        memcpy (&(node->data.spheres[i]), &(node->data.spheres[i+1]),
+                sizeof (struct vox_sphere) * (node->num - i - 1));
+        node->num--;
+        propagate_bounding_sphere_update (node);
     }
-    return res;
+
+    return tree_empty;
 }
 
 int vox_mtree_remove_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s)
 {
-    int empty = 0;
-    int res = remove_sphere_helper (*nodeptr, s, &empty);
+    struct vox_mtree_node *leaf = vox_mtree_contains_sphere (*nodeptr, s);
+    int success = (s->radius > 0) && (leaf != NULL);
 
-    if (empty) *nodeptr = NULL;
-    return res;
+    if (success) {
+        if (remove_sphere_helper (leaf, s)) {
+            // Tree is empty
+            *nodeptr = NULL;
+        }
+    }
+
+    return success;
 }
 
 void vox_mtree_destroy (struct vox_mtree_node *node)

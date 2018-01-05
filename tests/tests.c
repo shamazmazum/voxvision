@@ -827,7 +827,7 @@ void test_mtree ()
 {
     struct vox_sphere s;
     int i;
-    int n = 24;
+    int n = 30;
     unsigned int seed = rand();
 
     srand (seed);
@@ -835,9 +835,8 @@ void test_mtree ()
         s.center[0] = floorf (100.0 * rand() / RAND_MAX);
         s.center[1] = floorf (100.0 * rand() / RAND_MAX);
         s.center[2] = floorf (100.0 * rand() / RAND_MAX);
-        s.radius = floorf (15.0 * rand() / RAND_MAX);
+        s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
         CU_ASSERT (vox_mtree_add_sphere (&mtree, &s));
-        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s));
         verify_mtree (mtree);
         CU_ASSERT (vox_mtree_items (mtree) == i+1);
     }
@@ -845,13 +844,23 @@ void test_mtree ()
     CU_ASSERT (!vox_mtree_add_sphere (&mtree, &s));
 
     srand (seed);
+    for (i=0; i<n; i++) {
+        s.center[0] = floorf (100.0 * rand() / RAND_MAX);
+        s.center[1] = floorf (100.0 * rand() / RAND_MAX);
+        s.center[2] = floorf (100.0 * rand() / RAND_MAX);
+        s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
+        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) != NULL);
+    }
+
+    srand (seed);
     for (i=0; i<4; i++) {
         s.center[0] = floorf (100.0 * rand() / RAND_MAX);
         s.center[1] = floorf (100.0 * rand() / RAND_MAX);
         s.center[2] = floorf (100.0 * rand() / RAND_MAX);
-        s.radius = floorf (15.0 * rand() / RAND_MAX);
+        s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
+        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) != NULL);
         CU_ASSERT (vox_mtree_remove_sphere (&mtree, &s));
-        CU_ASSERT (!vox_mtree_contains_sphere (mtree, &s));
+        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) == NULL);
         verify_mtree (mtree);
         CU_ASSERT (vox_mtree_items (mtree) == n-i-1);
     }
