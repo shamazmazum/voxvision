@@ -46,7 +46,7 @@
 #include <smmintrin.h>
 typedef float vox_dot[4] __attribute__ ((aligned (16)));
 typedef float vox_quat[4] __attribute__ ((aligned (16)));
-#define vox_alloc(size) aligned_alloc (16, size)
+#define vox_alloc(size) aligned_alloc (16, (size + 0xf) & ~(size_t)0xf);
 #define vox_dot_copy(d1, d2) _mm_store_ps (d1, _mm_load_ps (d2))
 #define vox_dot_equalp(d1, d2) !(_mm_movemask_ps (_mm_load_ps (d1) != _mm_load_ps(d2)) & 7)
 #define vox_dot_set(dot, x, y, z) _mm_store_ps (dot, _mm_set_ps (0, z, y, x))
