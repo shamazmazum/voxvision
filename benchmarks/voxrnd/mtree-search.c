@@ -17,7 +17,7 @@ int main ()
     vox_dot_set (center, 0, 0, 0);
     unsigned int seed = rand();
     srand (seed);
-    unsigned int count = 0;
+    __block unsigned int count = 0;
 
     for (i=0; i<N; i++) {
         vox_dot_set (spheres[i].center,
@@ -48,10 +48,9 @@ int main ()
     }
 
     count = 0;
-    __block unsigned int *ptr = &count;
     time = gettime();
     vox_mtree_spheres_containing (tree, center, ^(const struct vox_sphere *s) {
-            *ptr = *ptr + 1;
+            count++;
         });
     time = gettime() - time;
     printf ("M-tree search took %f seconds (%u found in %u spheres)\n", time, count,

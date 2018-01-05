@@ -860,7 +860,8 @@ void test_mtree_search ()
     struct vox_sphere s;
     int i, n = 500;
 
-    unsigned int count = 0, testcount = 0;
+    unsigned int count = 0;
+    __block unsigned int testcount = 0;
     vox_dot center;
     vox_dot_set (center, 0, 0, 0);
 
@@ -875,9 +876,8 @@ void test_mtree_search ()
             sqrtf (vox_sqr_metric (center, s.center)) < s.radius) count++;
     }
 
-    __block unsigned int *ptr = &testcount;
     vox_mtree_spheres_containing (mtree, center, ^(const struct vox_sphere *s) {
-            *ptr = *ptr + 1;});
+            testcount++;});
     CU_ASSERT (testcount == count);
 }
 
