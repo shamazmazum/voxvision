@@ -66,5 +66,6 @@ struct scene_proxydata
 #define CAMERA_META "voxrnd.camera"
 #define CD_META "voxrnd.cd"
 #define SCENE_PROXY_META "voxrnd.scene_proxy"
+#define SPHERE_META "voxrnd.sphere"
 
 #endif

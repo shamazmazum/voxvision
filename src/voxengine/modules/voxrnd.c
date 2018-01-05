@@ -382,10 +382,55 @@ static const struct luaL_Reg scene_proxy_methods [] = {
     {NULL, NULL}
 };
 
+static int l_sphere (lua_State *L)
+{
+    struct vox_sphere **data = lua_newuserdata (L, sizeof (struct vox_sphere*));
+    /*
+     * We cannot hold sphere in userdata itself because it does not guarantee
+     * alignment.
+     */
+    struct vox_sphere *sphere = vox_alloc (sizeof (struct vox_sphere));
+    *data = sphere;
+    luaL_getmetatable (L, SPHERE_META);
+    lua_setmetatable (L, -2);
+
+    READ_DOT (sphere->center, 1);
+    sphere->radius = luaL_checknumber (L, 2);
+
+    return 1;
+}
+
+static int l_sphere_destroy (lua_State *L)
+{
+    struct vox_sphere **data = luaL_checkudata (L, 1, SPHERE_META);
+    free (*data);
+    *data = NULL;
+
+    return 0;
+}
+
+static int l_sphere_tostring (lua_State *L)
+{
+    struct vox_sphere **data = luaL_checkudata (L, 1, SPHERE_META);
+    struct vox_sphere *sphere = *data;
+
+    lua_pushfstring (L, "<Sphere center=<%f, %f, %f>, radius=%f>",
+                     sphere->center[0], sphere->center[1], sphere->center[2],
+                     sphere->radius);
+    return 1;
+}
+
+static const struct luaL_Reg sphere_methods [] = {
+    {"__tostring", l_sphere_tostring},
+    {"__gc", l_sphere_destroy},
+    {NULL, NULL}
+};
+
 static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
     {"scene_proxy", l_scene_proxy},
+    {"sphere", l_sphere},
     {NULL, NULL}
 };
 
@@ -405,6 +450,11 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, scene_proxy_methods, 0);
+
+    luaL_newmetatable(L, SPHERE_META);
+    lua_pushvalue (L, -1);
+    lua_setfield (L, -2, "__index");
+    luaL_setfuncs (L, sphere_methods, 0);
 
     luaL_newlib (L, voxrnd);
     return 1;
