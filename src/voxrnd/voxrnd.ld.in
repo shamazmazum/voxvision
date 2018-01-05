@@ -30,5 +30,6 @@ VOXRND_@voxvision_VERSION@ {
             vox_mtree_destroy;
             vox_mtree_items;
             vox_mtree_dump;
+            vox_mtree_spheres_containing;
     local: *;
 };

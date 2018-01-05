@@ -4,13 +4,14 @@
 
 struct vox_sphere {
     vox_dot center;
-    /* void *userdata; */
+    void *userdata;
     float radius;
 };
 
 #ifdef VOXRND_SOURCE
 // It's here only for tests
-#define MAX_CHILDREN 3 // > 2
+//#define MTREE_MAX_CHILDREN 3 // > 2
+#define MTREE_MAX_CHILDREN 9 // 128 bytes in memory
 
 struct vox_mtree_node {
     struct vox_sphere bounding_sphere;
@@ -19,7 +20,7 @@ struct vox_mtree_node {
     unsigned int num;
     union {
         // Leave room for extra one which will cause a split
-        struct vox_mtree_node *children[MAX_CHILDREN+1];
+        struct vox_mtree_node *children[MTREE_MAX_CHILDREN+1];
         struct vox_sphere *spheres; // Pointer to an array of MAX_CHILDREN+1 spheres
     } data;
 };
@@ -35,5 +36,6 @@ unsigned int vox_mtree_items (const struct vox_mtree_node *node);
 const struct vox_mtree_node*
 vox_mtree_contains_sphere (const struct vox_mtree_node *node,
                            const struct vox_sphere *s);
-
+void vox_mtree_spheres_containing (const struct vox_mtree_node *node, vox_dot dot,
+                                   void (^block)(const struct vox_sphere *s));
 #endif

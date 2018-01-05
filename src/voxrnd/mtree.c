@@ -13,7 +13,7 @@ static struct vox_mtree_node* alloc_node (int leaf)
     struct vox_mtree_node *node = vox_alloc (sizeof (struct vox_mtree_node));
     memset (node, 0, sizeof (struct vox_mtree_node));
     node->leaf = leaf;
-    if (leaf) node->data.spheres = vox_alloc (sizeof (struct vox_sphere) * (MAX_CHILDREN + 1));
+    if (leaf) node->data.spheres = vox_alloc (sizeof (struct vox_sphere) * (MTREE_MAX_CHILDREN + 1));
 
     return node;
 }
@@ -109,7 +109,7 @@ static void farest_centers (const struct vox_mtree_node *node, vox_dot c1, vox_d
 static struct vox_mtree_node* split_node (struct vox_mtree_node *node)
 {
     // Ensure that we must split
-    assert (node->num == MAX_CHILDREN+1);
+    assert (node->num == MTREE_MAX_CHILDREN+1);
 
     vox_dot center1, center2;
     float dist1, dist2;
@@ -151,7 +151,7 @@ static struct vox_mtree_node* split_node (struct vox_mtree_node *node)
 
     // Update parent
     if (parent != NULL) {
-        assert ((!parent->leaf) && parent->num <= MAX_CHILDREN);
+        assert ((!parent->leaf) && parent->num <= MTREE_MAX_CHILDREN);
         for (i=0; i<parent->num; i++)
             if (parent->data.children[i] == node) parent->data.children[i] = n1;
         parent->data.children[parent->num] = n2;
@@ -159,7 +159,7 @@ static struct vox_mtree_node* split_node (struct vox_mtree_node *node)
 
         // Propagate changes
         propagate_bounding_sphere_update (parent); // Do we really need this? See vox_mtree_add_spheres()
-        if (parent->num == MAX_CHILDREN + 1) res = split_node (parent);
+        if (parent->num == MTREE_MAX_CHILDREN + 1) res = split_node (parent);
     } else {
         // Create a new root
         res = alloc_node (0);
@@ -225,7 +225,7 @@ static struct vox_mtree_node* add_sphere_helper (struct vox_mtree_node *node,
         sphere_copy (&(node->data.spheres[node->num]), s);
         node->num++;
         propagate_bounding_sphere_update (node);
-        if (node->num == MAX_CHILDREN + 1)
+        if (node->num == MTREE_MAX_CHILDREN + 1)
             res = split_node (node);
     } else {
         assert (node->num > 0);
@@ -387,4 +387,27 @@ unsigned int vox_mtree_items (const struct vox_mtree_node *node)
     }
 
     return count;
+}
+
+void vox_mtree_spheres_containing (const struct vox_mtree_node *node, vox_dot dot,
+                                   void (^block)(const struct vox_sphere *s))
+{
+    float dist;
+    unsigned int i;
+
+    if (node != NULL)
+    {
+        dist = sqrtf (vox_sqr_metric (node->bounding_sphere.center, dot));
+        if (dist < node->bounding_sphere.radius) {
+            if (node->leaf) {
+                for (i=0; i<node->num; i++) {
+                    dist = sqrtf (vox_sqr_metric (node->data.spheres[i].center, dot));
+                    if (dist < node->data.spheres[i].radius) block (&(node->data.spheres[i]));
+                }
+            } else {
+                for (i=0; i<node->num; i++)
+                    vox_mtree_spheres_containing (node->data.children[i], dot, block);
+            }
+        }
+    }
 }

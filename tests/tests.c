@@ -28,7 +28,6 @@
 #define APPROX  0.5
 
 static struct vox_node *working_tree;
-static struct vox_mtree_node *mtree = NULL;
 static vox_dot half_voxel;
 static vox_dot neg_half_voxel;
 
@@ -788,12 +787,11 @@ int sphere_inside_sphere (const struct vox_sphere *inner, const struct vox_spher
 
 static void verify_mtree (const struct vox_mtree_node *node)
 {
-#define MAX_CHILDREN 3 // Must match the value in voxrnd/mtree.c
     unsigned int i;
     const struct vox_mtree_node *child;
 
     if (node != NULL) {
-        CU_ASSERT_FATAL (node->num <= MAX_CHILDREN);
+        CU_ASSERT_FATAL (node->num <= MTREE_MAX_CHILDREN);
         if (node->leaf) {
             for (i=0; i<node->num; i++)
                 CU_ASSERT_FATAL (sphere_inside_sphere (&(node->data.spheres[i]), &(node->bounding_sphere)));
@@ -811,6 +809,7 @@ static void verify_mtree (const struct vox_mtree_node *node)
 
 void test_mtree ()
 {
+    struct vox_mtree_node *mtree = NULL;
     struct vox_sphere s;
     int i;
     int n = 140;
@@ -853,6 +852,33 @@ void test_mtree ()
         verify_mtree (mtree);
         CU_ASSERT (vox_mtree_items (mtree) == n-i-1);
     }
+}
+
+void test_mtree_search ()
+{
+    struct vox_mtree_node *mtree = NULL;
+    struct vox_sphere s;
+    int i, n = 500;
+
+    unsigned int count = 0, testcount = 0;
+    vox_dot center;
+    vox_dot_set (center, 0, 0, 0);
+
+    for (i=0; i<n; i++) {
+        vox_dot_set (s.center,
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX));
+        s.radius = 70 + floorf (30.0 * rand() / RAND_MAX);
+
+        if (vox_mtree_add_sphere (&mtree, &s) &&
+            sqrtf (vox_sqr_metric (center, s.center)) < s.radius) count++;
+    }
+
+    __block unsigned int *ptr = &testcount;
+    vox_mtree_spheres_containing (mtree, center, ^(const struct vox_sphere *s) {
+            *ptr = *ptr + 1;});
+    CU_ASSERT (testcount == count);
 }
 
 int main ()
@@ -942,6 +968,9 @@ int main ()
     if (test == NULL) PROC_TEST_ERROR;
 
     test = CU_add_test (rnd_suite, "Test M-trees", test_mtree);
+    if (test == NULL) PROC_TEST_ERROR;
+
+    test = CU_add_test (rnd_suite, "Test M-tree search", test_mtree_search);
     if (test == NULL) PROC_TEST_ERROR;
 
     printf ("Creating working set and working tree\n");
