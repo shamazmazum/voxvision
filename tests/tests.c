@@ -236,9 +236,7 @@ static struct vox_node* prepare_rnd_set_and_tree ()
                 int dist = i*i + j*j + k*k;
                 if (dist < 2500)
                 {
-                    set[counter][0] = i;
-                    set[counter][1] = j;
-                    set[counter][2] = k;
+                    vox_dot_set (set[counter], i, j, k);
                     counter++;
                 }
             }
@@ -396,12 +394,8 @@ static void test_tree_ins()
 
     // Make a fake tree with dense leaf as root
     tree = vox_alloc (sizeof (struct vox_node));
-    tree->bounding_box.min[0] = 5;
-    tree->bounding_box.min[1] = 5;
-    tree->bounding_box.min[2] = 5;
-    tree->bounding_box.max[0] = 10;
-    tree->bounding_box.max[1] = 10;
-    tree->bounding_box.max[2] = 10;
+    vox_dot_set (tree->bounding_box.min, 5, 5, 5);
+    vox_dot_set (tree->bounding_box.max, 10, 10,10);
     tree->dots_num = 125;
     tree->flags = DENSE_LEAF;
     res = vox_insert_voxel (&tree, dot2);
@@ -419,9 +413,7 @@ static void test_tree_ins()
         {
             for (k=0; k<3; k++)
             {
-                dot1[0] = 2*i;
-                dot1[1] = 2*j;
-                dot1[2] = 2*k;
+                vox_dot_set (dot1, 2*i, 2*j, 2*k);
                 res = vox_insert_voxel (&tree, dot1);
                 CU_ASSERT (res);
             }
@@ -439,9 +431,7 @@ static void test_tree_ins()
         {
             for (k=0; k<3; k++)
             {
-                dot1[0] = i;
-                dot1[1] = j;
-                dot1[2] = k;
+                vox_dot_set (dot1, i, j, k);
                 res = vox_insert_voxel (&tree, dot1);
                 CU_ASSERT (res);
             }
@@ -534,16 +524,14 @@ static void test_tree_del4()
         {
             for (k=0; k<3; k++)
             {
-                dot[0] = i;
-                dot[1] = j;
-                dot[2] = k;
+                vox_dot_set (dot, i, j, k);
                 vox_insert_voxel (&tree, dot);
             }
         }
     }
 
     CU_ASSERT (tree->flags & DENSE_LEAF);
-    dot[0] = 0; dot[1] = 0; dot[2] = 0;
+    vox_dot_set (dot, 0, 0, 0);
     vox_delete_voxel (&tree, dot);
     CU_ASSERT (!(tree->flags & LEAF_MASK));
     check_tree (tree);
@@ -562,16 +550,14 @@ static void test_tree_del5()
         {
             for (k=0; k<3; k++)
             {
-                dot[0] = i;
-                dot[1] = j;
-                dot[2] = k;
+                vox_dot_set (dot, i, j, k);
                 vox_insert_voxel (&tree, dot);
             }
         }
     }
 
     CU_ASSERT (tree->flags & DENSE_LEAF);
-    dot[0] = 1; dot[1] = 1; dot[2] = 1;
+    vox_dot_set (dot, 1, 1, 1);
     vox_delete_voxel (&tree, dot);
     CU_ASSERT (!(tree->flags & LEAF_MASK));
     check_tree (tree);
@@ -832,9 +818,10 @@ void test_mtree ()
 
     srand (seed);
     for (i=0; i<n; i++) {
-        s.center[0] = floorf (100.0 * rand() / RAND_MAX);
-        s.center[1] = floorf (100.0 * rand() / RAND_MAX);
-        s.center[2] = floorf (100.0 * rand() / RAND_MAX);
+        vox_dot_set (s.center,
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX));
         s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
         CU_ASSERT (vox_mtree_add_sphere (&mtree, &s));
         verify_mtree (mtree);
@@ -845,18 +832,20 @@ void test_mtree ()
 
     srand (seed);
     for (i=0; i<n; i++) {
-        s.center[0] = floorf (100.0 * rand() / RAND_MAX);
-        s.center[1] = floorf (100.0 * rand() / RAND_MAX);
-        s.center[2] = floorf (100.0 * rand() / RAND_MAX);
+        vox_dot_set (s.center,
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX));
         s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
         CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) != NULL);
     }
 
     srand (seed);
     for (i=0; i<n; i++) {
-        s.center[0] = floorf (100.0 * rand() / RAND_MAX);
-        s.center[1] = floorf (100.0 * rand() / RAND_MAX);
-        s.center[2] = floorf (100.0 * rand() / RAND_MAX);
+        vox_dot_set (s.center,
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX),
+                     floorf (100.0 * rand() / RAND_MAX));
         s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
         CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) != NULL);
         CU_ASSERT (vox_mtree_remove_sphere (&mtree, &s));
