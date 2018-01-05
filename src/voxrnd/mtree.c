@@ -400,6 +400,14 @@ void vox_mtree_spheres_containing (const struct vox_mtree_node *node, vox_dot do
         dist = sqrtf (vox_sqr_metric (node->bounding_sphere.center, dot));
         if (dist < node->bounding_sphere.radius) {
             if (node->leaf) {
+                if (node->num == 1) {
+                    /*
+                     * We already found our sphere, no need to call
+                     * vox_sqr_metric() the second time.
+                     */
+                    block (&(node->data.spheres[0]));
+                    return;
+                }
                 for (i=0; i<node->num; i++) {
                     dist = sqrtf (vox_sqr_metric (node->data.spheres[i].center, dot));
                     if (dist < node->data.spheres[i].radius) block (&(node->data.spheres[i]));
