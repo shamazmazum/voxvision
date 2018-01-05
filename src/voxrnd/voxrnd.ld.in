@@ -31,5 +31,9 @@ VOXRND_@voxvision_VERSION@ {
             vox_mtree_items;
             vox_mtree_dump;
             vox_mtree_spheres_containing;
+
+# Lights
+            vox_insert_point_light;
+            vox_delete_point_light;
     local: *;
 };

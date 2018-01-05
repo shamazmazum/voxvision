@@ -216,6 +216,11 @@ int main (int argc, char *argv[])
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
 
+    struct vox_sphere light;
+    vox_dot_copy (light.center, origin);
+    light.radius = 200;
+    vox_insert_point_light (ctx, &light, 0);
+
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
 
@@ -304,7 +309,11 @@ int main (int argc, char *argv[])
         else if (keystate[global_controls.fly_down]) step[2] -= 5;
         if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
         else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
+        vox_delete_point_light (ctx, &light);
         camera->iface->move_camera (camera, step);
+        camera->iface->get_position (camera, origin);
+        vox_dot_copy (light.center, origin);
+        vox_insert_point_light (ctx, &light, 0);
 
         vox_cd_collide (cd);
         struct vox_fps_info fps_info = fps_controller();

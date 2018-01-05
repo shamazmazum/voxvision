@@ -8,29 +8,21 @@
 #include "copy-helper.h"
 #include "probes.h"
 #include "../voxtrees/search.h"
+#include "../voxtrees/geom.h"
 
-static void color_coeff (const struct vox_node *tree, float mul[], float add[])
+static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    int i;
-    struct vox_box bb;
+    __block float intensity = 0.1;
+    vox_mtree_spheres_containing (context->point_lights, inter, ^(const struct vox_sphere *s){
+            float dist = sqrtf (vox_sqr_metric (s->center, inter));
+            float add = 1 - dist/s->radius;
+//            printf ("%f\n", add);
+            intensity += add;
+        });
+    intensity = fminf (1, intensity);
+    Uint32 col = 255 * intensity;
 
-    if (tree != NULL)
-    {
-        vox_bounding_box (tree, &bb);
-        for (i=0; i<3; i++)
-        {
-            mul[i] = 255 / (bb.max[i] - bb.min[i]);
-            add[i] = -255 * bb.min[i] / (bb.max[i] - bb.min[i]);
-        }
-    }
-}
-
-static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], float add[])
-{
-    Uint8 r = mul[0]*inter[0]+add[0];
-    Uint8 g = mul[1]*inter[1]+add[1];
-    Uint8 b = mul[2]*inter[2]+add[2];
-    Uint32 color = SDL_MapRGB (format, r, g, b);
+    Uint32 color = SDL_MapRGB (context->surface->format, col, col, col);
     return color;
 }
 
@@ -124,14 +116,10 @@ void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
 void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
 {
     ctx->scene = scene;
-    // FIXME: calculate colors in runtime
-    // Only a temporary solution to get a colorful output
-    color_coeff (scene, ctx->mul, ctx->add);
 }
 
 void vox_render (struct vox_rnd_ctx *ctx)
 {
-    SDL_Surface *surface = ctx->surface;
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
     int ws = ctx->ws;
@@ -180,7 +168,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
 #endif
                             if (leaf != NULL)
                             {
-                                Uint32 color = get_color (surface->format, inter, ctx->mul, ctx->add);
+                                Uint32 color = get_color (ctx, inter);
                                 output[cs][i] = color;
                             }
                         }

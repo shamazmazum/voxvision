@@ -11,6 +11,7 @@ endif (GCD_FOUND)
 
 set (VOXRND_SOURCES
   mtree.c
+  lights.c
   camera.c
   renderer.c
   vect-ops.c
@@ -55,7 +56,7 @@ set_target_properties (simple-camera-module PROPERTIES OUTPUT_NAME simple-camera
 add_library (doom-camera-module SHARED doom-camera.c)
 set_target_properties (doom-camera-module PROPERTIES OUTPUT_NAME doom-camera PREFIX "")
 
-install (FILES camera.h renderer.h fps-control.h cd.h mtree.h
+install (FILES camera.h renderer.h fps-control.h cd.h mtree.h lights.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)

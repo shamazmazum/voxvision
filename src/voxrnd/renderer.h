@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include "../voxtrees/tree.h"
 #include "camera.h"
+#include "mtree.h"
 
 #ifdef VOXRND_SOURCE
 typedef Uint32 square[16] __attribute__((aligned(16)));
@@ -29,9 +30,9 @@ struct vox_rnd_ctx
     struct vox_camera *camera;
 
     square *square_output;
+    struct vox_mtree_node *point_lights;
+
     int type, squares_num, ws, hs;
-    float mul[3];
-    float add[3];
 };
 #else
 /**
