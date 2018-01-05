@@ -16,7 +16,6 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
     vox_mtree_spheres_containing (context->point_lights, inter, ^(const struct vox_sphere *s){
             float dist = sqrtf (vox_sqr_metric (s->center, inter));
             float add = 1 - dist/s->radius;
-//            printf ("%f\n", add);
             intensity += add;
         });
     intensity = fminf (1, intensity);
