@@ -265,7 +265,7 @@ static void check_tree (struct vox_node *tree)
                 size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
             float bb_volume = size[0]*size[1]*size[2];
             bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-            CU_ASSERT (vox_voxels_in_tree (tree) == (int)bb_volume);
+            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == (int)bb_volume);
         }
         else if (tree->flags & LEAF)
         {
@@ -274,8 +274,8 @@ static void check_tree (struct vox_node *tree)
             for (i=0; i<tree->dots_num; i++)
             {
                 vox_dot_add (dots[i], vox_voxel, tmp);
-                CU_ASSERT (dot_betweenp (&(tree->bounding_box), dots[i]));
-                CU_ASSERT (dot_betweenp (&(tree->bounding_box), tmp));
+                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), dots[i]));
+                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), tmp));
             }
         }
         else
@@ -289,8 +289,8 @@ static void check_tree (struct vox_node *tree)
                 if (VOX_FULLP (child))
                 {
                     // Check if child's bounding box is inside parent's
-                    CU_ASSERT (dot_betweenp (&(tree->bounding_box), child->bounding_box.min));
-                    CU_ASSERT (dot_betweenp (&(tree->bounding_box), child->bounding_box.max));
+                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.min));
+                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.max));
 
                     /*
                       Check subspace. We add/subtract a small value (half size of a voxel)
@@ -298,14 +298,14 @@ static void check_tree (struct vox_node *tree)
                       another subspace. What is inside may not.
                     */
                     vox_dot_add (child->bounding_box.min, half_voxel, tmp);
-                    CU_ASSERT (get_subspace_idx (inner.center, tmp) == i);
+                    CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
                     vox_dot_add (child->bounding_box.max, neg_half_voxel, tmp);
-                    CU_ASSERT (get_subspace_idx (inner.center, tmp) == i);
+                    CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
                 }
                 // Test a child recursively
                 check_tree (child);
             }
-            CU_ASSERT (vox_voxels_in_tree (tree) == number_sum);
+            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == number_sum);
         }
     }
 }
@@ -807,16 +807,16 @@ static void verify_mtree (const struct vox_mtree_node *node)
     const struct vox_mtree_node *child;
 
     if (node != NULL) {
-        CU_ASSERT (node->num <= MAX_CHILDREN);
+        CU_ASSERT_FATAL (node->num <= MAX_CHILDREN);
         if (node->leaf) {
             for (i=0; i<node->num; i++)
-                CU_ASSERT (sphere_inside_sphere (&(node->data.spheres[i]), &(node->bounding_sphere)));
+                CU_ASSERT_FATAL (sphere_inside_sphere (&(node->data.spheres[i]), &(node->bounding_sphere)));
         } else {
             for (i=0; i<node->num; i++) {
                 child = node->data.children[i];
-                CU_ASSERT (child != NULL);
-                CU_ASSERT (child->parent == node);
-                CU_ASSERT (sphere_inside_sphere (&(child->bounding_sphere), &(node->bounding_sphere)));
+                CU_ASSERT_FATAL (child != NULL);
+                CU_ASSERT_FATAL (child->parent == node);
+                CU_ASSERT_FATAL (sphere_inside_sphere (&(child->bounding_sphere), &(node->bounding_sphere)));
                 verify_mtree (child);
             }
         }
@@ -829,8 +829,8 @@ void test_mtree ()
     int i;
     int n = 24;
     unsigned int seed = rand();
-    srand (seed);
 
+    srand (seed);
     for (i=0; i<n; i++) {
         s.center[0] = floorf (100.0 * rand() / RAND_MAX);
         s.center[1] = floorf (100.0 * rand() / RAND_MAX);
