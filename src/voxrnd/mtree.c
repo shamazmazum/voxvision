@@ -262,24 +262,27 @@ static struct vox_mtree_node* recursively_delete (struct vox_mtree_node *node)
     assert (node->num == 1);
     struct vox_mtree_node *parent = node->parent;
     struct vox_mtree_node *res = node;
-    unsigned int pos, i;
+    unsigned int i;
 
     vox_mtree_destroy (node);
     if (parent == NULL) return NULL;
 
     assert (!parent->leaf && parent->num > 0);
 
-    if (parent->num == 1) return recursively_delete (parent);
+    if (parent->num == 1) {
+        parent->data.children[0] = NULL;
+        return recursively_delete (parent);
+    }
 
     for (i=0; i<parent->num; i++) {
-        pos = i;
         if (parent->data.children[i] == node) break;
     }
-    assert (pos < parent->num);
+    assert (i < parent->num);
 
-    memcpy (&(parent->data.children[pos]), &(parent->data.children[pos+1]),
-            sizeof (struct vox_mtree_node*) * (parent->num - pos - 1));
+    memcpy (&(parent->data.children[i]), &(parent->data.children[i+1]),
+            sizeof (struct vox_mtree_node*) * (parent->num - i - 1));
     parent->num--;
+    parent->data.children[parent->num] = NULL;
     propagate_bounding_sphere_update (parent);
 
     return res;

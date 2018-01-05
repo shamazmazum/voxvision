@@ -827,7 +827,7 @@ void test_mtree ()
 {
     struct vox_sphere s;
     int i;
-    int n = 30;
+    int n = 140;
     unsigned int seed = rand();
 
     srand (seed);
@@ -853,7 +853,7 @@ void test_mtree ()
     }
 
     srand (seed);
-    for (i=0; i<4; i++) {
+    for (i=0; i<n; i++) {
         s.center[0] = floorf (100.0 * rand() / RAND_MAX);
         s.center[1] = floorf (100.0 * rand() / RAND_MAX);
         s.center[2] = floorf (100.0 * rand() / RAND_MAX);
