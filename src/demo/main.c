@@ -168,6 +168,9 @@ int main (int argc, char *argv[])
 
     vox_dot angles = {0,0,0};
     _iniparser_getvector3_float (cfg, "Camera:Rot", angles);
+
+
+    float light_radius = (float)iniparser_getdouble (cfg, "Light:Radius", 100);
     iniparser_freedict (cfg);
     cfg = NULL;
 
@@ -220,7 +223,7 @@ int main (int argc, char *argv[])
     light_manager = vox_create_light_manager ();
     struct vox_sphere light;
     vox_dot_copy (light.center, origin);
-    light.radius = 150;
+    light.radius = light_radius;
     vox_insert_shadowless_light (light_manager, &light, 0);
     vox_context_set_light_manager (ctx, light_manager);
 
