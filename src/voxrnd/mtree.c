@@ -389,7 +389,7 @@ unsigned int vox_mtree_items (const struct vox_mtree_node *node)
     return count;
 }
 
-void vox_mtree_spheres_containing (const struct vox_mtree_node *node, vox_dot dot,
+void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_dot dot,
                                    void (^block)(const struct vox_sphere *s))
 {
     float dist;

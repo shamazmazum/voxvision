@@ -16,6 +16,7 @@
 #include "../voxrnd/fps-control.h"
 #include "../voxrnd/renderer.h"
 #include "../voxrnd/cd.h"
+#include "../voxrnd/lights.h"
 
 #ifdef VOXENGINE_SOURCE
 struct vox_engine {

@@ -71,6 +71,7 @@ int main (int argc, char *argv[])
 
     struct vox_camera *camera = NULL;
     struct vox_rnd_ctx *ctx = NULL;
+    struct vox_light_manager *light_manager = NULL;
     __block struct vox_node *tree = NULL;
     dispatch_queue_t tree_queue = NULL;
     dispatch_group_t tree_group = NULL;
@@ -216,10 +217,12 @@ int main (int argc, char *argv[])
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
 
+    light_manager = vox_create_light_manager ();
     struct vox_sphere light;
     vox_dot_copy (light.center, origin);
-    light.radius = 200;
-    vox_insert_point_light (ctx, &light, 0);
+    light.radius = 150;
+    vox_insert_shadowless_light (light_manager, &light, 0);
+    vox_context_set_light_manager (ctx, light_manager);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
@@ -309,11 +312,11 @@ int main (int argc, char *argv[])
         else if (keystate[global_controls.fly_down]) step[2] -= 5;
         if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
         else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
-        vox_delete_point_light (ctx, &light);
+        vox_delete_shadowless_light (light_manager, &light);
         camera->iface->move_camera (camera, step);
         camera->iface->get_position (camera, origin);
         vox_dot_copy (light.center, origin);
-        vox_insert_point_light (ctx, &light, 0);
+        vox_insert_shadowless_light (light_manager, &light, 0);
 
         vox_cd_collide (cd);
         struct vox_fps_info fps_info = fps_controller();
@@ -330,6 +333,7 @@ end:
     if (cfg != NULL) iniparser_freedict (cfg);
     if (ctx != NULL) vox_destroy_context (ctx);
     if (camera != NULL) camera->iface->destroy_camera (camera);
+    if (light_manager != NULL) vox_destroy_light_manager (light_manager);
     if (tree != NULL) vox_destroy_tree (tree);
     if (SDL_WasInit(0)) SDL_Quit();
 #if USE_GCD

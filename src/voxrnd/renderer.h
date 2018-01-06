@@ -8,7 +8,7 @@
 #include <SDL2/SDL.h>
 #include "../voxtrees/tree.h"
 #include "camera.h"
-#include "mtree.h"
+#include "lights.h"
 
 #ifdef VOXRND_SOURCE
 typedef Uint32 square[16] __attribute__((aligned(16)));
@@ -30,7 +30,7 @@ struct vox_rnd_ctx
     struct vox_camera *camera;
 
     square *square_output;
-    struct vox_mtree_node *point_lights;
+    struct vox_light_manager *light_manager;
 
     int type, squares_num, ws, hs;
 };
@@ -111,6 +111,12 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene);
    \brief Camera setter for renderer context
 **/
 void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera);
+
+/**
+   \brief Light manager setter for renderer context
+**/
+void vox_context_set_light_manager (struct vox_rnd_ctx *ctx,
+                                    struct vox_light_manager *light_manager);
 
 /**
    \brief Free context after use

@@ -67,5 +67,6 @@ struct scene_proxydata
 #define CD_META "voxrnd.cd"
 #define SCENE_PROXY_META "voxrnd.scene_proxy"
 #define SPHERE_META "voxrnd.sphere"
+#define LIGHT_MANAGER_META "voxrnd.light_manager"
 
 #endif

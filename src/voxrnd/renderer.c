@@ -8,21 +8,14 @@
 #include "copy-helper.h"
 #include "probes.h"
 #include "../voxtrees/search.h"
-#include "../voxtrees/geom.h"
 
 static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    __block float intensity = 0.1;
-    vox_mtree_spheres_containing (context->point_lights, inter, ^(const struct vox_sphere *s){
-            float dist = sqrtf (vox_sqr_metric (s->center, inter));
-            float add = 1 - dist/s->radius;
-            intensity += add;
-        });
-    intensity = fminf (1, intensity);
-    Uint32 col = 255 * intensity;
+    SDL_PixelFormat *format = context->surface->format;
+    if (context->light_manager != NULL)
+        return vox_get_color (context->light_manager, format, inter);
 
-    Uint32 color = SDL_MapRGB (context->surface->format, col, col, col);
-    return color;
+    return SDL_MapRGB (format, 255, 255, 255);
 }
 
 static void allocate_squares (struct vox_rnd_ctx *ctx)
@@ -110,6 +103,12 @@ void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
 {
     ctx->camera = camera;
     camera->iface->set_window_size (camera, ctx->surface->w, ctx->surface->h);
+}
+
+void vox_context_set_light_manager (struct vox_rnd_ctx *ctx,
+                                    struct vox_light_manager *light_manager)
+{
+    ctx->light_manager = light_manager;
 }
 
 void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)

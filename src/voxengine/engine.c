@@ -176,6 +176,7 @@ static void execute_init_late (struct vox_engine *engine)
     lua_getfield (L, 1, "tree");
     lua_getfield (L, 1, "camera");
     lua_getfield (L, 1, "cd");
+    lua_getfield (L, 1, "light_manager");
 
     /*
      * "tree" field can contain the tree itself, or a thread-safe proxy. The
@@ -196,11 +197,17 @@ static void execute_init_late (struct vox_engine *engine)
     struct vox_cd **cd = NULL;
     if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, CD_META);
 
+    if (!lua_isnil (L, 5)) {
+        struct vox_light_manager **light_manager_data =
+            luaL_checkudata (L, 5, LIGHT_MANAGER_META);
+        vox_context_set_light_manager (engine->ctx, *light_manager_data);
+    }
+
     engine->camera = cdata->camera;
     if (cd != NULL) engine->cd = *cd;
 
-    /* Remove tree, camera and cd from the stack */
-    lua_pop (L, 3);
+    /* Remove tree, camera, cd and light manager from the stack */
+    lua_pop (L, 4);
 
     /* Set write protection on the world table. */
     lua_newtable (L);

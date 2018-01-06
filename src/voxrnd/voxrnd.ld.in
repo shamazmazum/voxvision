@@ -5,6 +5,7 @@ VOXRND_@voxvision_VERSION@ {
             vox_redraw;
             vox_context_set_camera;
             vox_context_set_scene;
+            vox_context_set_light_manager;
             vox_destroy_context;
             vox_render;
             vox_make_fps_controller;
@@ -33,7 +34,10 @@ VOXRND_@voxvision_VERSION@ {
             vox_mtree_spheres_containing;
 
 # Lights
-            vox_insert_point_light;
-            vox_delete_point_light;
+            vox_insert_shadowless_light;
+            vox_delete_shadowless_light;
+            vox_shadowless_lights_number;
+            vox_create_light_manager;
+            vox_destroy_light_manager;
     local: *;
 };
