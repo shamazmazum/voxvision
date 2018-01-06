@@ -194,8 +194,10 @@ static void execute_init_late (struct vox_engine *engine)
         engine->tree = *ndata;
     }
     struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
-    struct vox_cd **cd = NULL;
-    if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, CD_META);
+    if (!lua_isnil (L, 4)) {
+        struct vox_cd **cd = luaL_checkudata (L, 4, CD_META);
+        vox_cd_attach_context (*cd, engine->ctx);
+    }
 
     if (!lua_isnil (L, 5)) {
         struct vox_light_manager **light_manager_data =
@@ -204,7 +206,6 @@ static void execute_init_late (struct vox_engine *engine)
     }
 
     engine->camera = cdata->camera;
-    if (cd != NULL) engine->cd = *cd;
 
     /* Remove tree, camera, cd and light manager from the stack */
     lua_pop (L, 4);
@@ -223,7 +224,6 @@ static void execute_init_late (struct vox_engine *engine)
 
     vox_context_set_scene (engine->ctx, engine->tree);
     vox_context_set_camera (engine->ctx, engine->camera);
-    if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
 
     // Check that we have only the world table on the stack
     assert (lua_gettop (engine->L) == 1);
@@ -349,7 +349,6 @@ vox_engine_status vox_engine_tick (struct vox_engine *engine)
     vox_redraw (engine->ctx);
 
     res = execute_tick (engine);
-    if (engine->cd != NULL) vox_cd_collide (engine->cd);
     assert (lua_gettop (engine->L) == 1);
     return res;
 }

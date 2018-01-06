@@ -11,16 +11,24 @@ function init ()
    print (#tree)
 
    local camera = vr.camera "simple-camera"
-   camera:set_position {100,60,-100}
+   local position = {100, 60, -100}
+   camera:set_position (position)
    camera:set_rot_angles {1.4, 0, 0}
+   camera:set_fov (1.2)
 
    -- Also attach camera to collision detector
    local cd = vr.cd()
    -- 4 is camera's body radius
    cd:attach_camera (camera, 4)
 
-   -- Do not forget to specify collision detector in the world table
-   return {tree = tree, camera = camera, cd = cd}
+   -- Create an empty light manager
+   local manager = vr.light_manager ()
+
+   --[[
+      Do not forget to specify the collision detector and the light manager in 
+      the world table.
+   ]]--
+   return {tree = tree, camera = camera, cd = cd, light_manager = manager}
 end
 
 function tick (world, time)
@@ -48,8 +56,15 @@ function tick (world, time)
       'controls' table (see source code).
    ]]--
 
+   -- Remove the old light
+   local position = world.camera:get_position ()
+   world.light_manager:delete_shadowless_light (vr.sphere (position, 150))
+
    -- Also 'framedelta' contains time in milliseconds taken to render previous frame
-   voxutils.process_keyboard_movement (keystate, world.camera, 0.25*framedelta)
+   voxutils.process_keyboard_movement (world, keystate, 0.25*framedelta)
+
+   position = world.camera:get_position ()
+   world.light_manager:insert_shadowless_light (vr.sphere (position, 150))
 
    -- This is how mouse movement is handeled
    local mask, x, y = vs.getRelativeMouseState()

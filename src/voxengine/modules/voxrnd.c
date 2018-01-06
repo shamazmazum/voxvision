@@ -193,11 +193,20 @@ static int cd_gravity (lua_State *L)
     return 0;
 }
 
+static int l_cd_collide (lua_State *L)
+{
+    struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
+    vox_cd_collide (*cd);
+
+    return 0;
+}
+
 static const struct luaL_Reg cd_methods [] = {
     {"__gc", destroycd},
     {"__tostring", printcd},
     {"attach_camera", cd_attach_camera},
     {"gravity", cd_gravity},
+    {"collide", l_cd_collide},
     {NULL, NULL}
 };
 
