@@ -57,7 +57,7 @@ void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
 
 int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
 {
-    __v4sf sub = _mm_load_ps(dot2) - _mm_load_ps(dot1);
+    __v4sf sub = _mm_load_ps(dot2) < _mm_load_ps(dot1);
     return mask_bits_set (sub);
 }
 
