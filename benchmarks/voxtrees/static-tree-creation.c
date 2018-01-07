@@ -10,13 +10,12 @@ int main ()
     int i;
     double time;
     struct vox_node *tree;
+    vox_dot_set (vox_voxel, 1, 1, 1);
 
     for (i=0; i<N; i++)
     {
         // XXX: must be unique
-        dots[i][0] = vox_voxel[0]*(random() & 0x0fffff);
-        dots[i][1] = vox_voxel[1]*(random() & 0x0fffff);
-        dots[i][2] = vox_voxel[2]*(random() & 0x0fffff);
+        vox_dot_set (dots[i], rand(), rand(), rand());
     }
 
     time = gettime();

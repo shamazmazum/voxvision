@@ -18,13 +18,7 @@ int main ()
     {
         for (j=-100; j<100; j++)
         {
-#ifdef SSE_INTRIN
-            _mm_store_ps (center, _mm_set_ps (0, 0, 10, j));
-#else
-            center[0] = 0;
-            center[1] = 10;
-            center[2] = j;
-#endif
+            vox_dot_set (center, 0, 10, j);
             counter += vox_tree_ball_collidep (tree, center, 1000);
         }
     }

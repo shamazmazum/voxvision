@@ -14,13 +14,8 @@ int main()
     time = gettime();
     for (i=0; i<N; i++)
     {
-#ifdef SSE_INTRIN
-        _mm_store_ps (dot1, _mm_set_ps (0, i,   i+1, i+2));
-        _mm_store_ps (dot2, _mm_set_ps (0, i+1, i+2, i+3));
-#else
-        dot1[0] = i;   dot1[1] = i+1; dot1[2] = i+2;
-        dot2[0] = i+1; dot2[1] = i+2; dot2[2] = i+3;
-#endif
+        vox_dot_set (dot1, i, i+1, i+2);
+        vox_dot_set (dot2, i+1, i+2, i+3);
         acc += vox_sqr_metric (dot1, dot2);
     }
     time = gettime () - time;
@@ -30,13 +25,8 @@ int main()
     time = gettime();
     for (i=0; i<N; i++)
     {
-#ifdef SSE_INTRIN
-        _mm_store_ps (dot1, _mm_set_ps (0, i,   i+1, i+2));
-        _mm_store_ps (dot2, _mm_set_ps (0, i+1, i+2, i+3));
-#else
-        dot1[0] = i;   dot1[1] = i+1; dot1[2] = i+2;
-        dot2[0] = i+1; dot2[1] = i+2; dot2[2] = i+3;
-#endif
+        vox_dot_set (dot1, i, i+1, i+2);
+        vox_dot_set (dot2, i+1, i+2, i+3);
         acc += vox_abs_metric (dot1, dot2);
     }
     time = gettime () - time;

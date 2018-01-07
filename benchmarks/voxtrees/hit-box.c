@@ -20,13 +20,8 @@ int main()
     {
         for (j=0; j<10; j++)
         {
-#ifdef SSE_INTRIN
-            _mm_store_ps (origin, _mm_set_ps (0, 0, 0, j-5));
-            _mm_store_ps (dir, _mm_set_ps (0, 0, 1, (float)(j-5)/10));
-#else
-            origin[0] = j-5;
-            dir[0] = origin[0]/10;
-#endif
+            vox_dot_set (origin, j-5, 0, 0);
+            vox_dot_set (dir, (j-5)/10.0, 1, 0);
             leaf = vox_ray_tree_intersection (tree, origin, dir, inter);
             if (leaf != NULL) count++;
         }
