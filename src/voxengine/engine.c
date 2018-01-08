@@ -177,6 +177,8 @@ static void execute_init_late (struct vox_engine *engine)
     lua_getfield (L, 1, "camera");
     lua_getfield (L, 1, "cd");
 
+    struct vox_node *tree;
+    struct vox_camera *camera;
     /*
      * "tree" field can contain the tree itself, or a thread-safe proxy. The
      * latter can be used to perform insert, delete and rebuild calls in the
@@ -185,37 +187,43 @@ static void execute_init_late (struct vox_engine *engine)
     struct scene_proxydata *scene = luaL_testudata (L, 2, SCENE_PROXY_META);
     struct vox_node **ndata;
     if (scene != NULL) {
-        engine->tree = scene->tree;
+        tree = scene->tree;
         engine->rendering_queue = scene->scene_sync_queue;
         scene->context = engine->ctx;
     } else {
         ndata = luaL_checkudata (L, 2, TREE_META);
-        engine->tree = *ndata;
+        tree = *ndata;
     }
-    struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
-    struct vox_cd **cd = NULL;
-    if (!lua_isnil (L, 4)) cd = luaL_checkudata (L, 4, CD_META);
 
-    engine->camera = cdata->camera;
-    if (cd != NULL) engine->cd = *cd;
+    struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
+    camera = cdata->camera;
+
+    struct vox_cd **cd;
+    if (!lua_isnil (L, 4)) {
+        cd = luaL_checkudata (L, 4, CD_META);
+        engine->cd = *cd;
+    }
 
     /* Remove tree, camera and cd from the stack */
     lua_pop (L, 3);
 
     /* Set write protection on the world table. */
     lua_newtable (L);
-    lua_newtable (L);
     lua_pushcfunction (L, l_write_protect);
     lua_setfield (L, -2, "__newindex");
-    /* push the world table */
-    lua_pushvalue (L, -3);
+
+    /* Push the world table. */
+    lua_pushvalue (L, -2);
     lua_setfield (L, -2, "__index");
+
+    /* Set metatable on a proxy table. */
+    lua_pushvalue (L, -1);
     lua_setmetatable (L, -2);
     /* Remove the world from the stack, leaving a proxy table. */
     lua_remove (L, 1);
 
-    vox_context_set_scene (engine->ctx, engine->tree);
-    vox_context_set_camera (engine->ctx, engine->camera);
+    vox_context_set_scene (engine->ctx, tree);
+    vox_context_set_camera (engine->ctx, camera);
     if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
 
     // Check that we have only the world table on the stack

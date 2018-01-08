@@ -19,15 +19,13 @@
 
 #ifdef VOXENGINE_SOURCE
 struct vox_engine {
-    struct vox_camera *camera;
-    struct vox_node *tree;
     struct vox_rnd_ctx *ctx;
-
     lua_State *L;
+
     struct vox_cd *cd;
+    dispatch_queue_t rendering_queue;
 
     int width, height;
-    dispatch_queue_t rendering_queue;
 };
 #else /* VOXENGINE_SOURCE */
 
@@ -39,10 +37,6 @@ struct vox_engine {
 **/
 
 struct vox_engine {
-    struct vox_camera *camera;
-    /**< \brief Camera used by an engine. */
-    struct vox_node *tree;
-    /**< \brief Tree used by an engine. **/
     struct vox_rnd_ctx *ctx;
     /**< \brief renderer context used by an engine */
 };
