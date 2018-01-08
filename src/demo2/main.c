@@ -1,12 +1,26 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <voxengine.h>
 #include <SDL2/SDL.h>
 
 static void usage()
 {
-    fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] -s script\n");
+    fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] "
+                     "[-q quality] -s script\n");
     exit (EXIT_FAILURE);
+}
+
+static int choose_quality (const char *quality_str)
+{
+    int quality;
+
+    if (strcmp (quality_str, "fast") == 0) quality = VOX_QUALITY_FAST;
+    else if (strcmp (quality_str, "best") == 0) quality = VOX_QUALITY_BEST;
+    else if (strcmp (quality_str, "adaptive") == 0) quality = VOX_QUALITY_ADAPTIVE;
+    else quality = -1;
+
+    return quality;
 }
 
 int main (int argc, char *argv[])
@@ -14,7 +28,9 @@ int main (int argc, char *argv[])
     int ch, width = 800, height = 600, fps = 30;
     const char *script = NULL;
     char *endptr;
-    while ((ch = getopt (argc, argv, "w:h:s:f:")) != -1)
+    int quality = VOX_QUALITY_ADAPTIVE;
+
+    while ((ch = getopt (argc, argv, "w:h:s:f:q:")) != -1)
     {
         switch (ch)
         {
@@ -33,6 +49,10 @@ int main (int argc, char *argv[])
             fps = strtol (optarg, &endptr, 10);
             if (*endptr != '\0') usage();
             break;
+        case 'q':
+            quality = choose_quality (optarg);
+            if (quality < 0) usage();
+            break;
         case '?':
         default:
             usage();
@@ -46,6 +66,7 @@ int main (int argc, char *argv[])
 
     struct vox_engine *engine = vox_create_engine (width, height, script);
     if (engine == NULL) return 1;
+    vox_context_set_quality (engine->ctx, quality);
     vox_fps_controller_t fps_controller = vox_make_fps_controller (fps);
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
