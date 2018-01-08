@@ -17,3 +17,8 @@ voxrnd$target:::ignored-prediction
 {
     @c4["Ignored&verified predictions"] = count();
 }
+
+voxrnd$target:::canceled-prediction
+{
+    @c5["Blocks without prediction"] = count();
+}

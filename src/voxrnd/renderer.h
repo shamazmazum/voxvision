@@ -32,8 +32,10 @@ struct vox_rnd_ctx
     int type, squares_num, ws, hs;
     float mul[3];
     float add[3];
+    int quality;
 };
 #else
+
 /**
    \brief A renderer context.
 **/
@@ -63,6 +65,12 @@ struct vox_rnd_ctx
     **/
 };
 #endif
+
+#define VOX_QUALITY_MIN 0
+#define VOX_QUALITY_BEST 0
+#define VOX_QUALITY_FAST 1
+#define VOX_QUALITY_ADAPTIVE 2
+#define VOX_QUALITY_MAX 2
 
 /**
    \brief Make a renderer context from SDL surface.
@@ -110,6 +118,16 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene);
    \brief Camera setter for renderer context
 **/
 void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera);
+
+/**
+   \brief Set quality of the renderer
+
+   \param quality Currently one of `QUALITY_BEST`, `QUALITY_FAST` or
+          `QUALITY_ADAPTIVE`.
+   \return 1 on success, 0 otherwise. Function call is unsuccessfull when
+          `quality` parameter is wrong.
+**/
+int vox_context_set_quality (struct vox_rnd_ctx *ctx, int quality);
 
 /**
    \brief Free context after use

@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include <iniparser.h>
 #include <string.h>
+#include <stdio.h>
+#include <voxrnd.h>
 #include "config.h"
 
 // Initialize global controls with defaults.
@@ -25,9 +27,10 @@ struct settings global_settings =
 {
     .window_width  = 800,
     .window_height = 600,
-    .fps = 30,
-    .xspeed         = 0.01,
-    .yspeed         = 0.01,
+    .fps           = 30,
+    .quality       = VOX_QUALITY_ADAPTIVE,
+    .xspeed        = 0.01,
+    .yspeed        = 0.01,
 };
 
 static void set_control (dictionary *dict, const char *control, int *place)
@@ -40,6 +43,7 @@ int load_configuration (const char *filename)
 {
     dictionary *dict = iniparser_load (filename);
     if (dict == NULL) return -1;
+    int res = 0;
 
     set_control (dict, "Controls:TiltLeft", &global_controls.tilt_left);
     set_control (dict, "Controls:TiltRight", &global_controls.tilt_right);
@@ -59,9 +63,17 @@ int load_configuration (const char *filename)
     global_settings.window_width = iniparser_getint (dict, "Window:Width", global_settings.window_width);
     global_settings.window_height = iniparser_getint (dict, "Window:Height", global_settings.window_height);
     global_settings.fps = iniparser_getint (dict, "Renderer:FPS", global_settings.fps);
+    const char *quality = iniparser_getstring (dict, "Renderer:Quality", "Adaptive");
+    if (strcmp (quality, "Adaptive") == 0) global_settings.quality = VOX_QUALITY_ADAPTIVE;
+    else if (strcmp (quality, "Best") == 0) global_settings.quality = VOX_QUALITY_BEST;
+    else if (strcmp (quality, "Fast") == 0) global_settings.quality = VOX_QUALITY_FAST;
+    else {
+        fprintf (stderr, "Wrong quality: %s\n", quality);
+        res = -1;
+    }
 
     iniparser_freedict (dict);
-    return 0;
+    return res;
 }
 
 int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[])

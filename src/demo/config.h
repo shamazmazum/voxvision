@@ -25,6 +25,7 @@ struct settings
     int window_width;
     int window_height;
     int fps;
+    int quality;
     float xspeed;
     float yspeed;
 };

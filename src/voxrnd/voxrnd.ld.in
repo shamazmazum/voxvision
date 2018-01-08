@@ -5,6 +5,7 @@ VOXRND_@voxvision_VERSION@ {
             vox_redraw;
             vox_context_set_camera;
             vox_context_set_scene;
+            vox_context_set_quality;
             vox_destroy_context;
             vox_render;
             vox_make_fps_controller;

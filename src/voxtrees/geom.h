@@ -51,6 +51,12 @@ float vox_abs_metric (const vox_dot dot1, const vox_dot dot2);
 **/
 float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2);
 
+/**
+   \brief Calculate norm of a vector.
+
+   This is a square of standard Euclidian norm on R^3
+**/
+float vox_sqr_norm (const vox_dot dot);
 
 #ifdef VOXTREES_SOURCE
 /**

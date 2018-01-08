@@ -16,6 +16,12 @@ static float vox_sqr_metric_ (__v4sf dot1, __v4sf dot2)
     return diff[0] + diff[1] + diff[2];
 }
 
+static float vox_sqr_norm_ (__v4sf dot)
+{
+    dot *= dot;
+    return dot[0] + dot[1] + dot[2];
+}
+
 static int mask_bits_clear (__v4sf mask)
 {
     return !(_mm_movemask_ps (mask) & 0x07);
@@ -136,5 +142,10 @@ float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2)
 float vox_abs_metric (const vox_dot dot1, const vox_dot dot2)
 {
     return vox_abs_metric_ (_mm_load_ps (dot1), _mm_load_ps (dot2));
+}
+
+float vox_sqr_norm (const vox_dot dot)
+{
+    return vox_sqr_norm_ (_mm_load_ps (dot));
 }
 #endif

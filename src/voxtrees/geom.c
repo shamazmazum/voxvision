@@ -124,6 +124,14 @@ float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2)
     return res;
 }
 
+float vox_sqr_norm (const vox_dot dot)
+{
+    int i;
+    float res = 0;
+    for (i=0; i<VOX_N; i++) res += powf (dot[i], 2.0);
+    return res;
+}
+
 int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius)
 {
     vox_dot fitted;

@@ -210,6 +210,7 @@ int main (int argc, char *argv[])
     }
     vox_context_set_scene (ctx, tree);
     vox_context_set_camera (ctx, camera);
+    vox_context_set_quality (ctx, global_settings.quality);
     cd = vox_make_cd();
     vox_cd_attach_camera (cd, camera, 3);
     vox_cd_attach_context (cd, ctx);
