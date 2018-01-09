@@ -24,7 +24,7 @@ function init ()
    end
 
    local light_manager = vr.light_manager ()
-   light_manager:insert_shadowless_light (vr.sphere ({50, 100, 100}, 150))
+   light_manager:insert_shadowless_light ({50, 100, 100}, 150, {1, 1, 1})
 
    -- Here we return not a tree, but a so-called scene proxy. It replaces
    -- dangerous calls like rebuild or insert with thread-safe equivalents.

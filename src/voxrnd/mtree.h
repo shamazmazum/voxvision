@@ -4,7 +4,7 @@
 
 struct vox_sphere {
     vox_dot center;
-    void *userdata;
+    vox_dot color; // It would be wiser to leave unspecific userdata here
     float radius;
 };
 

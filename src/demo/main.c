@@ -169,8 +169,6 @@ int main (int argc, char *argv[])
     vox_dot angles = {0,0,0};
     _iniparser_getvector3_float (cfg, "Camera:Rot", angles);
 
-
-    float light_radius = (float)iniparser_getdouble (cfg, "Light:Radius", 100);
     iniparser_freedict (cfg);
     cfg = NULL;
 
@@ -220,11 +218,10 @@ int main (int argc, char *argv[])
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
 
+    vox_dot light_color;
+    vox_dot_set (light_color, 1, 1, 1);
     light_manager = vox_create_light_manager ();
-    struct vox_sphere light;
-    vox_dot_copy (light.center, origin);
-    light.radius = light_radius;
-    vox_insert_shadowless_light (light_manager, &light, 0);
+    vox_insert_shadowless_light (light_manager, origin, global_settings.light_radius, light_color);
     vox_context_set_light_manager (ctx, light_manager);
 
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
@@ -315,11 +312,10 @@ int main (int argc, char *argv[])
         else if (keystate[global_controls.fly_down]) step[2] -= 5;
         if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
         else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
-        vox_delete_shadowless_light (light_manager, &light);
+        vox_delete_shadowless_light (light_manager, origin, global_settings.light_radius);
         camera->iface->move_camera (camera, step);
         camera->iface->get_position (camera, origin);
-        vox_dot_copy (light.center, origin);
-        vox_insert_shadowless_light (light_manager, &light, 0);
+        vox_insert_shadowless_light (light_manager, origin, global_settings.light_radius, light_color);
 
         vox_cd_collide (cd);
         struct vox_fps_info fps_info = fps_controller();

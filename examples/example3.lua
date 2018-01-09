@@ -23,6 +23,7 @@ function init ()
 
    -- Create an empty light manager
    local manager = vr.light_manager ()
+   manager:set_ambient_light {0.2, 0, 0}
 
    --[[
       Do not forget to specify the collision detector and the light manager in 
@@ -58,13 +59,13 @@ function tick (world, time)
 
    -- Remove the old light
    local position = world.camera:get_position ()
-   world.light_manager:delete_shadowless_light (vr.sphere (position, 150))
+   world.light_manager:delete_shadowless_light (position, 150)
 
    -- Also 'framedelta' contains time in milliseconds taken to render previous frame
    voxutils.process_keyboard_movement (world, keystate, 0.25*framedelta)
 
    position = world.camera:get_position ()
-   world.light_manager:insert_shadowless_light (vr.sphere (position, 150))
+   world.light_manager:insert_shadowless_light (position, 150, {1, 1, 1})
 
    -- This is how mouse movement is handeled
    local mask, x, y = vs.getRelativeMouseState()

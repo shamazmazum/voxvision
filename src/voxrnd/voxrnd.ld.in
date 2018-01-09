@@ -36,6 +36,7 @@ VOXRND_@voxvision_VERSION@ {
 # Lights
             vox_insert_shadowless_light;
             vox_delete_shadowless_light;
+            vox_set_ambient_light;
             vox_shadowless_lights_number;
             vox_create_light_manager;
             vox_destroy_light_manager;

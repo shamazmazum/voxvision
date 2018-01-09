@@ -391,50 +391,6 @@ static const struct luaL_Reg scene_proxy_methods [] = {
     {NULL, NULL}
 };
 
-static int l_sphere (lua_State *L)
-{
-    struct vox_sphere **data = lua_newuserdata (L, sizeof (struct vox_sphere*));
-    /*
-     * We cannot hold sphere in userdata itself because it does not guarantee
-     * alignment.
-     */
-    struct vox_sphere *sphere = vox_alloc (sizeof (struct vox_sphere));
-    *data = sphere;
-    luaL_getmetatable (L, SPHERE_META);
-    lua_setmetatable (L, -2);
-
-    READ_DOT (sphere->center, 1);
-    sphere->radius = luaL_checknumber (L, 2);
-
-    return 1;
-}
-
-static int l_sphere_destroy (lua_State *L)
-{
-    struct vox_sphere **data = luaL_checkudata (L, 1, SPHERE_META);
-    free (*data);
-    *data = NULL;
-
-    return 0;
-}
-
-static int l_sphere_tostring (lua_State *L)
-{
-    struct vox_sphere **data = luaL_checkudata (L, 1, SPHERE_META);
-    struct vox_sphere *sphere = *data;
-
-    lua_pushfstring (L, "<Sphere center=<%f, %f, %f>, radius=%f>",
-                     sphere->center[0], sphere->center[1], sphere->center[2],
-                     sphere->radius);
-    return 1;
-}
-
-static const struct luaL_Reg sphere_methods [] = {
-    {"__tostring", l_sphere_tostring},
-    {"__gc", l_sphere_destroy},
-    {NULL, NULL}
-};
-
 static int l_light_manager_tostring (lua_State *L)
 {
     struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
@@ -456,28 +412,46 @@ static int l_light_manager_len (lua_State *L)
 
 static int l_insert_shadowless_light (lua_State *L)
 {
+    vox_dot center, color;
+    float radius;
+
     struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
-    struct vox_sphere **sphere_data = luaL_checkudata (L, 2, SPHERE_META);
-
     struct vox_light_manager *light_manager = *data;
-    struct vox_sphere *sphere = *sphere_data;
+    READ_DOT (center, 2);
+    radius = luaL_checknumber (L, 3);
+    READ_DOT (color, 4);
 
-    int res = vox_insert_shadowless_light (light_manager, sphere, 0);
-    lua_pushinteger (L, res);
+    int res = vox_insert_shadowless_light (light_manager, center, radius, color);
+    lua_pushboolean (L, res);
 
     return 1;
 }
 
 static int l_delete_shadowless_light (lua_State *L)
 {
+    vox_dot center;
+    float radius;
+
     struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
-    struct vox_sphere **sphere_data = luaL_checkudata (L, 2, SPHERE_META);
-
     struct vox_light_manager *light_manager = *data;
-    struct vox_sphere *sphere = *sphere_data;
+    READ_DOT (center, 2);
+    radius = luaL_checknumber (L, 3);
 
-    int res = vox_delete_shadowless_light (light_manager, sphere);
-    lua_pushinteger (L, res);
+    int res = vox_delete_shadowless_light (light_manager, center, radius);
+    lua_pushboolean (L, res);
+
+    return 1;
+}
+
+static int l_set_ambient_light (lua_State *L)
+{
+    vox_dot color;
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+    READ_DOT (color, 2);
+
+    int res = vox_set_ambient_light (light_manager, color);
+    lua_pushboolean (L, res);
 
     return 1;
 }
@@ -498,6 +472,7 @@ static const struct luaL_Reg light_manager_methods [] = {
     {"__len", l_light_manager_len},
     {"insert_shadowless_light", l_insert_shadowless_light},
     {"delete_shadowless_light", l_delete_shadowless_light},
+    {"set_ambient_light", l_set_ambient_light},
     {NULL, NULL}
 };
 
@@ -516,7 +491,6 @@ static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
     {"scene_proxy", l_scene_proxy},
-    {"sphere", l_sphere},
     {"light_manager", l_light_manager},
     {NULL, NULL}
 };
@@ -537,11 +511,6 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, scene_proxy_methods, 0);
-
-    luaL_newmetatable(L, SPHERE_META);
-    lua_pushvalue (L, -1);
-    lua_setfield (L, -2, "__index");
-    luaL_setfuncs (L, sphere_methods, 0);
 
     luaL_newmetatable(L, LIGHT_MANAGER_META);
     lua_pushvalue (L, -1);

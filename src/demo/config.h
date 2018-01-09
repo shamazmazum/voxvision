@@ -27,6 +27,7 @@ struct settings
     int fps;
     float xspeed;
     float yspeed;
+    float light_radius;
 };
 extern struct settings global_settings;
 
