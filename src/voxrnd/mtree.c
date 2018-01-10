@@ -423,3 +423,35 @@ void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_
         }
     }
 }
+
+void vox_mtree_spheres_containing_f (const struct vox_mtree_node *node, const vox_dot dot,
+                                     void (*callback)(const struct vox_sphere *s, void *arg),
+                                     void *thunk)
+{
+    float dist;
+    unsigned int i;
+
+    if (node != NULL)
+    {
+        dist = vox_sqr_metric (node->bounding_sphere.center, dot);
+        if (dist < node->bounding_sphere.sqr_radius) {
+            if (node->leaf) {
+                if (node->num == 1) {
+                    /*
+                     * We already found our sphere, no need to call
+                     * vox_sqr_metric() the second time.
+                     */
+                    callback (&(node->data.spheres[0]), thunk);
+                    return;
+                }
+                for (i=0; i<node->num; i++) {
+                    dist = vox_sqr_metric (node->data.spheres[i].center, dot);
+                    if (dist < node->data.spheres[i].sqr_radius) callback (&(node->data.spheres[i]), thunk);
+                }
+            } else {
+                for (i=0; i<node->num; i++)
+                    vox_mtree_spheres_containing_f (node->data.children[i], dot, callback, thunk);
+            }
+        }
+    }
+}

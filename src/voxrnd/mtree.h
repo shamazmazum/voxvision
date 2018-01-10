@@ -38,4 +38,7 @@ vox_mtree_contains_sphere (const struct vox_mtree_node *node,
                            const struct vox_sphere *s);
 void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_dot dot,
                                    void (^block)(const struct vox_sphere *s));
+void vox_mtree_spheres_containing_f (const struct vox_mtree_node *node, const vox_dot dot,
+                                     void (*callback)(const struct vox_sphere *s, void *arg),
+                                     void *thunk);
 #endif

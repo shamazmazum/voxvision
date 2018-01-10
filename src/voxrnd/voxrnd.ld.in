@@ -32,6 +32,7 @@ VOXRND_@voxvision_VERSION@ {
             vox_mtree_items;
             vox_mtree_dump;
             vox_mtree_spheres_containing;
+            vox_mtree_spheres_containing_f;
 
 # Lights
             vox_insert_shadowless_light;

@@ -1,6 +1,15 @@
+#ifdef SSE_INTRIN
+#include <emmintrin.h>
+#endif
+#include <assert.h>
 #include <stdlib.h>
 #include "lights.h"
 #include "../voxtrees/geom.h"
+
+struct get_color_struct {
+    vox_dot intersection;
+    vox_dot color;
+};
 
 struct vox_light_manager {
     vox_dot ambient_light;
@@ -79,20 +88,44 @@ static int check_light (const vox_dot color)
     return !(mask & 0x7);
 }
 
+static void get_color_callback (const struct vox_sphere *sphere, void *arg)
+{
+    struct get_color_struct *gcs = arg;
+
+    float dist = sqrtf (vox_sqr_metric (sphere->center, gcs->intersection));
+    float add = 1 - dist/sphere->radius;
+
+    __v4sf color = _mm_load_ps (gcs->color);
+    color += _mm_set_ps1 (add) * _mm_load_ps (sphere->color);
+
+    _mm_store_ps (gcs->color, color);
+}
+
 Uint32 vox_get_color (const struct vox_light_manager *light_manager,
                       const SDL_PixelFormat *format,
                       const vox_dot intersection)
 {
-    __block __v4sf color = _mm_load_ps (light_manager->ambient_light);
-    vox_mtree_spheres_containing (light_manager->bound_lights, intersection,
-                                  ^(const struct vox_sphere *s){
-                                      float dist = sqrtf (vox_sqr_metric (s->center, intersection));
-                                      float add = 1 - dist/s->radius;
-                                      color += _mm_set_ps1 (add) * _mm_load_ps (s->color);
-                                  });
-    color = _mm_min_ps (color, _mm_set_ps1 (1.0));
+    struct get_color_struct gcs;
+    vox_dot_copy (gcs.color, light_manager->ambient_light);
+    vox_dot_copy (gcs.intersection, intersection);
 
-    return SDL_MapRGB (format, 255 * color[0], 255 * color[1], 255 * color[2]);
+    vox_mtree_spheres_containing_f (light_manager->bound_lights, intersection, get_color_callback,
+                                    &gcs);
+
+    assert (format->format == SDL_PIXELFORMAT_ARGB8888);
+    __v4sf color = _mm_load_ps (gcs.color);
+    color = _mm_min_ps (color, _mm_set1_ps (1));
+    color *= _mm_set_ps1 (255);
+
+    __m128i i = _mm_cvtps_epi32 (color);
+    __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                 0x80, 0x80, 0x80, 0x80, 12,   0,    4,    8);
+    i = _mm_shuffle_epi8 (i ,mask);
+
+    /* i = _mm_packs_epi32 (i, i); */
+    /* i = _mm_packus_epi16 (i, i); */
+
+    return i[0];
 }
 
 #else /* SSE_INTRIN */
@@ -106,28 +139,33 @@ static int check_light (const vox_dot color)
     return 1;
 }
 
+static void get_color_callback (const struct vox_sphere *sphere, void *arg)
+{
+    struct get_color_struct *gcs = arg;
+
+    float dist = sqrtf (vox_sqr_metric (sphere->center, gcs->intersection));
+    float add = 1 - dist/sphere->radius;
+
+    gcs->color[0] += add * sphere->color[0];
+    gcs->color[1] += add * sphere->color[1];
+    gcs->color[2] += add * sphere->color[2];
+}
+
 Uint32 vox_get_color (const struct vox_light_manager *light_manager,
                       const SDL_PixelFormat *format,
                       const vox_dot intersection)
 {
-    __block float r, g, b;
-    r = light_manager->ambient_light[0];
-    g = light_manager->ambient_light[1];
-    b = light_manager->ambient_light[2];
+    struct get_color_struct gcs;
+    vox_dot_copy (gcs.color, light_manager->ambient_light);
+    vox_dot_copy (gcs.intersection, intersection);
 
-    vox_mtree_spheres_containing (light_manager->bound_lights, intersection,
-                                  ^(const struct vox_sphere *s){
-                                      float dist = sqrtf (vox_sqr_metric (s->center, intersection));
-                                      float add = 1 - dist/s->radius;
-                                      r += add * s->color[0];
-                                      g += add * s->color[1];
-                                      b += add * s->color[2];
-                                  });
-    r = fminf (r, 1);
-    g = fminf (g, 1);
-    b = fminf (b, 1);
+    vox_mtree_spheres_containing_f (light_manager->bound_lights, intersection, get_color_callback,
+                                    &gcs);
 
-    Uint32 color = SDL_MapRGB (format, 255*r, 255*g, 255*b);
+    Uint32 color = SDL_MapRGB (format,
+                               255 * fminf (gcs.color[0], 1.0),
+                               255 * fminf (gcs.color[1], 1.0),
+                               255 * fminf (gcs.color[2], 1.0));
     return color;
 }
 #endif
