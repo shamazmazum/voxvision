@@ -5,7 +5,7 @@
 struct vox_sphere {
     vox_dot center;
     vox_dot color; // It would be wiser to leave unspecific userdata here
-    float radius;
+    float radius, sqr_radius;
 };
 
 #ifdef VOXRND_SOURCE

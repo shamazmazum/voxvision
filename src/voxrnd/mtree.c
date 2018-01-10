@@ -35,10 +35,10 @@ static int bounding_sphere (const struct vox_sphere *s, struct vox_sphere *bound
     crit = (1 + (bounding_sphere->radius - s->radius) / dist) / 2;
 
     if (crit < 0) {
-        bounding_sphere->radius = s->radius;
-        vox_dot_copy (bounding_sphere->center, s->center);
+        sphere_copy (bounding_sphere, s);
     } else if (crit < 1) {
         bounding_sphere->radius = (s->radius + bounding_sphere->radius + dist) / 2;
+        bounding_sphere->sqr_radius = pow (bounding_sphere->radius, 2);
         vox_dot_sub (bounding_sphere->center, s->center, bounding_sphere->center);
         vox_dot_scmul (bounding_sphere->center, crit, bounding_sphere->center);
         vox_dot_add (bounding_sphere->center, s->center, bounding_sphere->center);
@@ -74,8 +74,8 @@ static int node_bounding_sphere (struct vox_mtree_node *node)
 static void propagate_bounding_sphere_update (struct vox_mtree_node *node)
 {
     if (node != NULL) {
-        node_bounding_sphere (node);
-        propagate_bounding_sphere_update (node->parent);
+        int changed = node_bounding_sphere (node);
+        if (changed) propagate_bounding_sphere_update (node->parent);
     }
 }
 
@@ -184,8 +184,8 @@ vox_mtree_contains_sphere (const struct vox_mtree_node *node,
     const struct vox_mtree_node *child;
 
     if (node != NULL) {
-        dist = sqrtf (vox_sqr_metric (s->center, node->bounding_sphere.center));
-        if (dist < node->bounding_sphere.radius) {
+        dist = vox_sqr_metric (s->center, node->bounding_sphere.center);
+        if (dist < node->bounding_sphere.sqr_radius) {
             if (node->leaf) {
                 for (i=0; i<node->num; i++) {
                     if (vox_dot_equalp (node->data.spheres[i].center, s->center) &&
@@ -214,15 +214,19 @@ static struct vox_mtree_node* add_sphere_helper (struct vox_mtree_node *node,
     struct vox_mtree_node *res = node;
     struct vox_mtree_node *child;
     unsigned int i;
+    float sqr_radius = pow (s->radius, 2);
     float dist, mindist = INFINITY;
 
     if (node == NULL) {
         res = alloc_node (1);
         sphere_copy (&(res->bounding_sphere), s);
+        res->bounding_sphere.sqr_radius = sqr_radius;
         res->num = 1;
         sphere_copy (&(res->data.spheres[0]), s);
+        res->data.spheres[0].sqr_radius = sqr_radius;
     } else if (node->leaf) {
         sphere_copy (&(node->data.spheres[node->num]), s);
+        node->data.spheres[node->num].sqr_radius = sqr_radius;
         node->num++;
         propagate_bounding_sphere_update (node);
         if (node->num == MTREE_MAX_CHILDREN + 1)
@@ -397,8 +401,8 @@ void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_
 
     if (node != NULL)
     {
-        dist = sqrtf (vox_sqr_metric (node->bounding_sphere.center, dot));
-        if (dist < node->bounding_sphere.radius) {
+        dist = vox_sqr_metric (node->bounding_sphere.center, dot);
+        if (dist < node->bounding_sphere.sqr_radius) {
             if (node->leaf) {
                 if (node->num == 1) {
                     /*
@@ -409,8 +413,8 @@ void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_
                     return;
                 }
                 for (i=0; i<node->num; i++) {
-                    dist = sqrtf (vox_sqr_metric (node->data.spheres[i].center, dot));
-                    if (dist < node->data.spheres[i].radius) block (&(node->data.spheres[i]));
+                    dist = vox_sqr_metric (node->data.spheres[i].center, dot);
+                    if (dist < node->data.spheres[i].sqr_radius) block (&(node->data.spheres[i]));
                 }
             } else {
                 for (i=0; i<node->num; i++)
