@@ -4,13 +4,45 @@
 #include "../gcd-stubs.c"
 #endif
 #include <stdlib.h>
+#include <assert.h>
 #include "renderer.h"
 #include "copy-helper.h"
 #include "probes.h"
 #include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
 
-static void color_coeff (const struct vox_node *tree, float mul[], float add[])
+#ifdef SSE_INTRIN
+static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
+{
+    struct vox_box bb;
+
+    if (tree != NULL) {
+        vox_bounding_box (tree, &bb);
+        __v4sf min = _mm_load_ps (bb.min);
+        __v4sf max = _mm_load_ps (bb.max);
+        __v4sf m = _mm_set_ps1 (255.0) / (max - min);
+        __v4sf a = _mm_set_ps1 (255.0) * min / (min - max);
+        _mm_store_ps (mul, m);
+        _mm_store_ps (add, a);
+    }
+}
+
+static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, vox_dot mul, vox_dot add)
+{
+    assert (format->format == SDL_PIXELFORMAT_ARGB8888);
+    __v4sf m = _mm_load_ps (mul);
+    __v4sf a = _mm_load_ps (add);
+    __v4sf color = _mm_load_ps (inter) * m + a;
+    __m128i icol = _mm_cvtps_epi32 (color);
+    __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                 0x80, 0x80, 0x80, 0x80, 0x80,    0,    4,    8);
+    icol = _mm_shuffle_epi8 (icol, mask);
+
+    return icol[0];
+}
+
+#else
+static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
 {
     int i;
     struct vox_box bb;
@@ -26,7 +58,7 @@ static void color_coeff (const struct vox_node *tree, float mul[], float add[])
     }
 }
 
-static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], float add[])
+static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, vox_dot mul, vox_dot add)
 {
     Uint8 r = mul[0]*inter[0]+add[0];
     Uint8 g = mul[1]*inter[1]+add[1];
@@ -34,6 +66,7 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, float mul[], fl
     Uint32 color = SDL_MapRGB (format, r, g, b);
     return color;
 }
+#endif
 
 static void allocate_squares (struct vox_rnd_ctx *ctx)
 {

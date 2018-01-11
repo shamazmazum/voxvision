@@ -28,10 +28,10 @@ struct vox_rnd_ctx
     struct vox_node *scene;
     struct vox_camera *camera;
 
+    vox_dot mul;
+    vox_dot add;
     square *square_output;
     int type, squares_num, ws, hs;
-    float mul[3];
-    float add[3];
     int quality;
 };
 #else
