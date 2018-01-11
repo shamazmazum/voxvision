@@ -119,11 +119,8 @@ Uint32 vox_get_color (const struct vox_light_manager *light_manager,
 
     __m128i i = _mm_cvtps_epi32 (color);
     __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                                 0x80, 0x80, 0x80, 0x80, 12,   0,    4,    8);
+                                 0x80, 0x80, 0x80, 0x80, 0x80,    0,    4,    8);
     i = _mm_shuffle_epi8 (i ,mask);
-
-    /* i = _mm_packs_epi32 (i, i); */
-    /* i = _mm_packus_epi16 (i, i); */
 
     return i[0];
 }
