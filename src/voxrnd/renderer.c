@@ -203,6 +203,9 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         xstart = cs % ws;
                         ystart <<= 2; xstart <<= 2;
 
+                        int istart = 0, iend = 16;
+                        Uint32 color;
+
                         camera->iface->get_position (camera, origin);
 
                         if (mode == VOX_QUALITY_ADAPTIVE) {
@@ -214,14 +217,21 @@ void vox_render (struct vox_rnd_ctx *ctx)
                              * depending on the camera's field of view and hard-coded threshold
                              * value, LENGTH_THRESHOLD.
                              */
+                            istart = 1;
                             camera->iface->screen2world (camera, dir1, xstart, ystart);
                             corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
                             mode = VOX_QUALITY_FAST;
                             leaf = corner1;
                             if (corner1 != NULL) {
+                                iend = 15;
+                                /* Since we are already there, draw a pixel now. */
+                                color = get_color (surface->format, inter1, ctx->mul, ctx->add);
+                                output[cs][0] = color;
                                 camera->iface->screen2world (camera, dir2, xstart + 3, ystart + 3);
                                 corner2 = vox_ray_tree_intersection (ctx->scene, origin, dir2, inter2);
                                 if (corner2 != NULL) {
+                                    color = get_color (surface->format, inter2, ctx->mul, ctx->add);
+                                    output[cs][15] = color;
                                     float d1 = vox_sqr_metric (inter1, origin);
                                     float d2 = vox_sqr_norm (dir1);
                                     float criteria = d1 / d2 * vox_sqr_metric (dir1, dir2);
@@ -234,12 +244,8 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             }
                         }
 
-                        /*
-                         * In adaptive mode, the search will be performed twice  for left-upper and
-                         * right-bottom corners. Just accept this and keep the code as simple as
-                         * possible.
-                         */
-                        for (i=0; i<16; i++) {
+                        /* istart and iend have been adjusted to a not yet drawn region. */
+                        for (i=istart; i<iend; i++) {
                             int y = i/4;
                             int x = i%4;
 
@@ -261,7 +267,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             } else leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
 
                             if (leaf != NULL) {
-                                Uint32 color = get_color (surface->format, inter1, ctx->mul, ctx->add);
+                                color = get_color (surface->format, inter1, ctx->mul, ctx->add);
                                 output[cs][i] = color;
                             }
                         }
