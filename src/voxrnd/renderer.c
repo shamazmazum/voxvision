@@ -3,20 +3,59 @@
 #else
 #include "../gcd-stubs.c"
 #endif
+#ifdef SSE_INTRIN
+#include <emmintrin.h>
+#endif
+#include <assert.h>
 #include <stdlib.h>
 #include "renderer.h"
 #include "copy-helper.h"
 #include "probes.h"
 #include "../voxtrees/search.h"
 
+#ifdef SSE_INTRIN
 static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
     SDL_PixelFormat *format = context->surface->format;
-    if (context->light_manager != NULL)
-        return vox_get_color (context->light_manager, format, inter);
+    Uint32 res;
 
-    return SDL_MapRGB (format, 255, 255, 255);
+    if (context->light_manager != NULL) {
+        vox_dot light;
+        vox_get_light (context->light_manager, format, inter, light);
+        __v4sf color = _mm_load_ps (light);
+        color = _mm_min_ps (color, _mm_set_ps1 (1.0));
+        color *= _mm_set_ps1 (255);
+
+        assert (format->format == SDL_PIXELFORMAT_ARGB8888);
+        __m128i i = _mm_cvtps_epi32 (color);
+        __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+                                     0x80, 0x80, 0x80, 0x80, 0x80,    0,    4,    8);
+        i = _mm_shuffle_epi8 (i ,mask);
+
+        res = i[0];
+    } else res = SDL_MapRGB (format, 255, 255, 255);
+
+    return res;
 }
+#else
+static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
+{
+    SDL_PixelFormat *format = context->surface->format;
+    Uint32 res;
+
+    if (context->light_manager != NULL) {
+        vox_dot light;
+        vox_get_light (context->light_manager, format, inter, light);
+
+        res = SDL_MapRGB (format,
+                          255 * fminf (light[0], 1.0),
+                          255 * fminf (light[1], 1.0),
+                          255 * fminf (light[2], 1.0));
+    } else res = SDL_MapRGB (format, 255, 255, 255);
+
+    return res;
+}
+#endif
 
 static void allocate_squares (struct vox_rnd_ctx *ctx)
 {

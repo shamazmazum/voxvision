@@ -21,9 +21,10 @@ int vox_set_ambient_light (struct vox_light_manager *light_manager,
                            const vox_dot color);
 
 #ifdef VOXRND_SOURCE
-Uint32 vox_get_color (const struct vox_light_manager *light_manager,
-                      const SDL_PixelFormat *format,
-                      const vox_dot intersection);
+void vox_get_light (const struct vox_light_manager *light_manager,
+                    const SDL_PixelFormat *format,
+                    const vox_dot intersection,
+                    vox_dot light);
 
 #endif
 

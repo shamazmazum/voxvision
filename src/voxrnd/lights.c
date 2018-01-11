@@ -1,7 +1,3 @@
-#ifdef SSE_INTRIN
-#include <emmintrin.h>
-#endif
-#include <assert.h>
 #include <stdlib.h>
 #include "lights.h"
 #include "../voxtrees/geom.h"
@@ -101,29 +97,6 @@ static void get_color_callback (const struct vox_sphere *sphere, void *arg)
     _mm_store_ps (gcs->color, color);
 }
 
-Uint32 vox_get_color (const struct vox_light_manager *light_manager,
-                      const SDL_PixelFormat *format,
-                      const vox_dot intersection)
-{
-    struct get_color_struct gcs;
-    vox_dot_copy (gcs.color, light_manager->ambient_light);
-    vox_dot_copy (gcs.intersection, intersection);
-
-    vox_mtree_spheres_containing_f (light_manager->bound_lights, intersection, get_color_callback,
-                                    &gcs);
-
-    assert (format->format == SDL_PIXELFORMAT_ARGB8888);
-    __v4sf color = _mm_load_ps (gcs.color);
-    color = _mm_min_ps (color, _mm_set1_ps (1));
-    color *= _mm_set_ps1 (255);
-
-    __m128i i = _mm_cvtps_epi32 (color);
-    __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                                 0x80, 0x80, 0x80, 0x80, 0x80,    0,    4,    8);
-    i = _mm_shuffle_epi8 (i ,mask);
-
-    return i[0];
-}
 
 #else /* SSE_INTRIN */
 static int check_light (const vox_dot color)
@@ -147,10 +120,12 @@ static void get_color_callback (const struct vox_sphere *sphere, void *arg)
     gcs->color[1] += add * sphere->color[1];
     gcs->color[2] += add * sphere->color[2];
 }
+#endif
 
-Uint32 vox_get_color (const struct vox_light_manager *light_manager,
-                      const SDL_PixelFormat *format,
-                      const vox_dot intersection)
+void vox_get_light (const struct vox_light_manager *light_manager,
+                    const SDL_PixelFormat *format,
+                    const vox_dot intersection,
+                    vox_dot light)
 {
     struct get_color_struct gcs;
     vox_dot_copy (gcs.color, light_manager->ambient_light);
@@ -159,10 +134,5 @@ Uint32 vox_get_color (const struct vox_light_manager *light_manager,
     vox_mtree_spheres_containing_f (light_manager->bound_lights, intersection, get_color_callback,
                                     &gcs);
 
-    Uint32 color = SDL_MapRGB (format,
-                               255 * fminf (gcs.color[0], 1.0),
-                               255 * fminf (gcs.color[1], 1.0),
-                               255 * fminf (gcs.color[2], 1.0));
-    return color;
+    vox_dot_copy (light, gcs.color);
 }
-#endif
