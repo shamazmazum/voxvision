@@ -207,6 +207,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         Uint32 color;
 
                         camera->iface->get_position (camera, origin);
+                        WITH_STAT (VOXRND_BLOCKS_TRACED());
 
                         if (mode == VOX_QUALITY_ADAPTIVE) {
                             /*
@@ -250,7 +251,6 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             int x = i%4;
 
                             camera->iface->screen2world (camera, dir1, x+xstart, y+ystart);
-                            WITH_STAT (VOXRND_PIXEL_TRACED());
                             if (mode == VOX_QUALITY_FAST) {
                                 WITH_STAT (old_leaf = leaf);
                                 if (leaf != NULL)

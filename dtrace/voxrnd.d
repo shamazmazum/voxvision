@@ -1,6 +1,6 @@
-voxrnd$target:::pixel-traced
+voxrnd$target:::blocks-traced
 {
-    @c1["Pixels traced"] = count();
+    @c1["Blocks traced"] = count();
 }
 
 pid$target:libvoxrnd*:vox_render:entry
