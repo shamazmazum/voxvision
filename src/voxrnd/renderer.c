@@ -11,6 +11,17 @@
 #include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
 
+/*
+ * Pixels on the screen are rendered by 4x4 blocks. In case you use GCD, each
+ * block is scheduled to a separate CPU core. Inside each block the rendering is
+ * performed in Z-order which is encoded by following numbers. Note, that each
+ * block is then written to an object called 'square' which requires 64 bytes of
+ * memory (i.e. size of L1 cache line).
+ */
+static int rendering_order[] = {
+    0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15
+};
+
 #ifdef SSE_INTRIN
 static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
 {
@@ -183,10 +194,9 @@ void vox_render (struct vox_rnd_ctx *ctx)
     int quality = ctx->quality;
 
     /*
-      Render the scene running multiple tasks in parallel.
-      Each task renders a square 4x4.
-      Inside each task we try to render the next pixel using previous leaf node,
-      not root scene node, if possible
+      Render the scene running multiple tasks in parallel. Each task renders a
+      square of 4x4 pixels. Inside each task we try to render the next pixel
+      using previous leaf node, not root scene node, if possible.
     */
     dispatch_apply (ctx->squares_num, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                     ^(size_t cs) {
@@ -251,8 +261,9 @@ void vox_render (struct vox_rnd_ctx *ctx)
 
                         /* istart and iend have been adjusted to a not yet drawn region. */
                         for (i=istart; i<iend; i++) {
-                            int y = i/4;
-                            int x = i%4;
+                            int p = rendering_order[i];
+                            int y = p/4;
+                            int x = p%4;
 
                             camera->iface->screen2world (camera, dir1, x+xstart, y+ystart);
                             if (mode == VOX_QUALITY_FAST) {
@@ -273,7 +284,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
 
                             if (leaf != NULL) {
                                 color = get_color (surface->format, inter1, ctx->mul, ctx->add);
-                                output[cs][i] = color;
+                                output[cs][p] = color;
                             }
                         }
 
