@@ -3,4 +3,5 @@ provider voxrnd {
     probe canceled__prediction();
     probe leaf__misprediction();
     probe ignored__prediction();
+    probe block__leafs__changed (int);
 };

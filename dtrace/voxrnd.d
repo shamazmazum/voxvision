@@ -1,3 +1,6 @@
+#pragma D option aggsortkey
+#pragma D option aggsortkeypos=1
+
 voxrnd$target:::blocks-traced
 {
     @c1["Blocks traced"] = count();
@@ -21,4 +24,9 @@ voxrnd$target:::ignored-prediction
 voxrnd$target:::canceled-prediction
 {
     @c5["Blocks without prediction"] = count();
+}
+
+voxrnd$target:::block-leafs-changed
+{
+    @leafs_changed["Number of leafs picked for prediction in block"] = lquantize (arg0, 0, 15, 1);
 }

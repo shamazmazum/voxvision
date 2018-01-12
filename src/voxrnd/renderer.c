@@ -194,7 +194,6 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         vox_dot dir1, dir2;
                         vox_dot inter1, inter2;
                         const struct vox_node *leaf = NULL;
-                        WITH_STAT (const struct vox_node *old_leaf);
                         vox_dot origin;
                         int mode = quality;
 
@@ -205,6 +204,11 @@ void vox_render (struct vox_rnd_ctx *ctx)
 
                         int istart = 0, iend = 16;
                         Uint32 color;
+
+#ifdef STATISTICS
+                        const struct vox_node *old_leaf;
+                        int leafs_changed = 0;
+#endif
 
                         camera->iface->get_position (camera, origin);
                         WITH_STAT (VOXRND_BLOCKS_TRACED());
@@ -261,6 +265,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                     if (old_leaf != NULL) {
                                         if (leaf != NULL) VOXRND_LEAF_MISPREDICTION();
                                         else VOXRND_IGNORED_PREDICTION();
+                                        leafs_changed++;
                                     }
 #endif
                                 }
@@ -271,6 +276,8 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                 output[cs][i] = color;
                             }
                         }
+
+                        WITH_STAT (VOXRND_BLOCK_LEAFS_CHANGED (leafs_changed));
                     });
 }
 
