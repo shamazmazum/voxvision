@@ -64,7 +64,7 @@ int main (int argc, char *argv[])
 
     if (script == NULL) usage ();
 
-    struct vox_engine *engine = vox_create_engine (width, height, script);
+    struct vox_engine *engine = vox_create_engine (width, height, script, argc, argv);
     if (engine == NULL) return 1;
     vox_context_set_quality (engine->ctx, quality);
     vox_fps_controller_t fps_controller = vox_make_fps_controller (fps);

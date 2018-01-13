@@ -293,9 +293,38 @@ static vox_engine_status execute_tick (struct vox_engine *engine)
     return res;
 }
 
-struct vox_engine* vox_create_engine (int width, int height, const char *script)
+void initialize_arguments (const struct vox_engine *engine,
+                           int nargs, char * const arguments[])
+{
+    lua_State *L = engine->L;
+    int i;
+
+    if (nargs != 0) {
+        lua_getglobal (L, "voxvision");
+        lua_newtable (L);
+        for (i=0; i<nargs; i++) {
+            lua_pushstring (L, arguments[i]);
+            lua_seti (L, -2, i+1);
+        }
+
+        lua_setfield (L, -2, "arg");
+        // Pop voxvision table from the stack
+        lua_pop (L, 1);
+    }
+
+    assert (lua_gettop (L) == 0);
+}
+
+struct vox_engine* vox_create_engine (int width, int height, const char *script,
+                                      int nargs, char * const arguments[])
 {
     struct vox_engine *engine;
+
+    /* Arguments sanity check */
+    if (script == NULL) return NULL;
+    if ((nargs == 0 && arguments != NULL) ||
+        (nargs != 0 && arguments == NULL))
+        return NULL;
  
     engine = malloc (sizeof (struct vox_engine));
     memset (engine, 0, sizeof (struct vox_engine));
@@ -303,6 +332,7 @@ struct vox_engine* vox_create_engine (int width, int height, const char *script)
     engine->height = height;
 
     initialize_lua (engine);
+    initialize_arguments (engine, nargs, arguments);
     engine_load_script (engine, script);
     if (execute_init_early (engine)) {
         // Was called only for debugging

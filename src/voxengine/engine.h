@@ -47,14 +47,22 @@ struct vox_engine {
 
    This function creates a lua engine: initializes SDL, opens a window,
    initializes lua environment, loads needed modules and lua control script and
-   so on. See the main page of documentation for more informantion.
+   so on. See the main page of documentation for more informantion. If
+   you wish to pass an array of strings to lua control script, they
+   will be visible in `arg` table having they indices starting by 1.
 
    \param width Width of the window.
    \param height Height of the window.
    \param script Control script in lua
+   \param nargs Number of arguments
+   \param arguments An array of zero terminated strings which you want
+          to pass to lua as arguments. Must be NULL if nargs is
+          zero. As this function returns, the array is no longer
+          needed by the engine.
    \return Pointer to created engine on success or NULL.
 **/
-struct vox_engine* vox_create_engine (int width, int height, const char *script);
+struct vox_engine* vox_create_engine (int width, int height, const char *script,
+                                      int nargs, char * const arguments[]);
 
 /**
    \brief Return type for `vox_engine_tick`

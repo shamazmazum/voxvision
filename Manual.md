@@ -331,8 +331,11 @@ Here is an example:
 ~~~~~~~~~~~~~~~{.c}
 int main (int argc, char *argv[])
 {
-    // Creating an engine and a window with dimensions 800x600
-    struct vox_engine *engine = vox_create_engine (800, 600, script);
+    /*
+     * Creating an engine and a window with dimensions 800x600. The last two
+     * arguments can be ignored now (they are explained in API documentation.
+     */
+    struct vox_engine *engine = vox_create_engine (800, 600, script, 0, NULL);
     if (engine == NULL) {
         // vox_create_engine reports an error.
         // Quit here
