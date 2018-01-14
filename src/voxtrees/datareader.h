@@ -41,7 +41,7 @@ struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
 
    This function searches for a file in usual locations where data files can be
    stored. These locations include system-wide voxvision data directory
-   (<install_prefix>/share/voxvision/data), user-specific data directory
+   ($INSTALL_PREFIX/share/voxvision/data), user-specific data directory
    (~/.voxvision) or a directory specified in VOXVISION_DATA environment
    variable.
 

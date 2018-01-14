@@ -13,10 +13,14 @@ and axes given by equations *x = 0*, *y = 0*, *z = 0*. Having just those two
 dots and the fact, that voxel's faces are parallel to planes given by equations
 above, we can define a voxel. Because of `vox_voxel` is a global variable, all
 voxels in the library are of the same size.
+![A voxel in voxtrees library](voxel.png)
 
 **NB:** If you compile your library with `SSE_INTRIN` option, `vox_dot` will be
 array of 4 single float values with the last of them being unused. You can
 still, however, use the first three elements as usual.
+
+**NB:** It is not recommended to set values to objects of `vox_dot` type using
+  indices, like `dot[i]`. Insted use `vox_dot_set()` macro.
 
 
 ### Creating a tree from an array of voxels
@@ -66,7 +70,7 @@ this:
 vox_dot dot; 
 int res;
 struct vox_node *tree = NULL; // NULL is always understood as an empty tree
-dot[0] = 1; dot[1] = 2; dot[2] = 3;
+vox_dot_set (dot, 1, 2, 3); // Like dot[0] = 1; dot[1] = 2; dot[2] = 3;
 res = vox_insert_voxel (&tree, dot);
 // Now res is 1 (success), and tree points to a newly created tree
 res = vox_insert_voxel (&tree, dot);
@@ -75,7 +79,7 @@ res = vox_delete_voxel (&tree, dot);
 // res is 1 (success), voxel is deleted and the tree has no voxels
 
 // Assume now vox_voxel is {1,1,1} (default)
-dot[0] = 0.2; dot[1] = 0.3; dot[2] = 1.5;
+vox_dot_set (dot, 0.2, 0.3, 1.5);
 vox_insert_voxel (&tree, dot);
 // This is OK, voxel with value {0,0,1} will be inserted.
 // vox_insert_voxel() inserts vox_voxel-aligned voxel.
@@ -97,9 +101,10 @@ There are 2 common patterns which insertion/deletion functions recognize.
       {
           for (m=0; m<M; m++)
           {
-              dot[0] = vox_voxel[0]*k;
-              dot[1] = vox_voxel[1]*l;
-              dot[2] = vox_voxel[2]*m;
+              vox_dot_set (dot,
+                           vox_voxel[0]*k,
+                           vox_voxel[1]*l,
+                           vox_voxel[2]*m);
               vox_insert_voxel (&tree, dot);
           }
       }
@@ -108,7 +113,10 @@ There are 2 common patterns which insertion/deletion functions recognize.
   This will work very fast and will be very efficient in the sense of memory
   consumption, because of use of so-called "dense nodes" within the library.
   On the other hand, deletion from these dense nodes is very inefficient (about
-  3 times slower than deletion from ordinary nodes).
+  3 times slower than deletion from ordinary nodes). Also please note, that if
+  all you deserve is a tree consisting of just one big box, you can just use
+  `vox_make_dense_leaf()` function instead of inserting voxels one-by-one in a
+  loop.
   
 * Insertion/deletion of the furthermost random voxels. When inserting/deleting
   random voxels, try to do it with furthermost voxles first. When inserting it
@@ -122,7 +130,7 @@ are just `NULL`).
 
 ### Searching
 This is the reason why **voxtrees** library exists. It can perform various types
-of search much faster than if we would try to do it with exhaustive search.
+of search much faster than if we would try to do it with naïve `O(n)` search.
 
 You can check if a ball intersects any voxel in the tree with
 `vox_tree_ball_collidep()`:
@@ -156,14 +164,16 @@ library. The rendering is performed via a context object, `struct
 vox_rnd_ctx`. You can choose one of two backends: a window managed by context or
 a previously created SDL surface. A context which renders directly to window is
 created by `vox_make_context_and_window()` and the one which renders to SDL
-surface is created by `vox_make_context_from_surface()`. You can render then a
+surface is created by `vox_make_context_from_surface()`. Then you can render a
 tree by calling `vox_render()` supplying the context as argument. Also you need
 to attach your scene (currently it's just a tree) and a camera to your
 context. This can be done by calling `vox_context_set_scene()` and
-`vox_context_set_camera()`. If you render directly to window, you must call
-`vox_redraw()` after `vox_render()` to redraw the window. `vox_render()` can be
-called from any thread and `vox_redraw()` only from the main one (that one which
-called `SDL_Init()`).
+`vox_context_set_camera()`. After you call `vox_render()`, you must call
+`vox_redraw()` to copy rendered image from the context's internals to the screen
+or surface. The reason for why `vox_render()` and `vox_redraw()` are separated
+is because `vox_render()` can be called from any thread and `vox_redraw()` only
+from the main one (that one which called `SDL_Init()`).
+
 You can create the camera using constructor from a structure called camera
 interface. **voxrnd** currently provides 2 camera classes, and therefore 2
 implementations of camera interface. You can get an implementation of camera
@@ -175,8 +185,7 @@ doom-like camera with five degrees of freedom.
 
 To create a simple camera you must write something like this:
 ~~~~~~~~~~~~~~~~~~~~{.c}
-struct vox_camera* camera = vox_camera_methods
-   ("simple-camera")->construct_camera (NULL); 
+struct vox_camera* camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
 ~~~~~~~~~~~~~~~~~~~~
 `construct_camera()` here is a constructor. It's argument is another camera instance
 or `NULL`. If it is not `NULL`, a newly created camera will inherit all internal
@@ -207,7 +216,8 @@ struct vox_rnd_ctx *ctx =
 vox_context_set_scene (ctx, tree);
 vox_context_set_camera (ctx, camera);
 vox_render (ctx);
-SDL_SaveBMP (screen, "rendering.bmp");
+vox_redraw (ctx);
+SDL_SaveBMP (surface, "rendering.bmp");
 camera->iface->destroy_camera (camera); // Destroy the camera
 vox_destroy_tree (tree); // Destroy the tree
 vox_destroy_context (ctx); // Destroy the context
@@ -283,12 +293,13 @@ documentation.
 
 ### Collision detection
 Unfortunately, currently you cannot move the whole tree to any direction, so there is no
-tree-tree collision detection. But there is collision detection mechanism for camera. This
-mechanism can be created by calling `vox_make_cd()` which returns an object of type
-`struct vox_cd`. Later you attach your camera and your rendering context (that means, the
-whole scene) to this structure. Once in a rendering loop you do `vox_cd_collide()`. This
-automatically checks camera position and if it collides with any part of a tree, its
-previous valid position is restored. Example:
+tree-to-tree collision detection. But there is collision detection mechanism for
+a camera. This mechanism can be created by calling `vox_make_cd()` which returns
+an object of type `struct vox_cd`. Later you attach your camera and your
+rendering context (that means, the whole scene) to this structure. Once in a
+rendering loop you do `vox_cd_collide()`. This automatically checks camera
+position and if it collides with any part of a tree, its previous valid position
+is restored. An example:
 
 ~~~~~~~~~~~~~~~~~~~~{.c}
 struct vox_rnd_ctx *ctx =
@@ -307,6 +318,32 @@ done:
 free (cd);
 // And so on
 ~~~~~~~~~~~~~~~~~~~~
+
+### FPS control
+**voxrnd** has its own FPS counter and controller. It is created using
+`vox_make_fps_controller()` function and destroyed with
+`vox_destroy_fps_controller()`. `vox_make_fps_controller()` takes a desired
+number of frames per second (or just `0` if you do not want to restrict value of
+FPS and want just to count it). It returns a block of type
+`vox_fps_controller_t` which you must call once in a rendering loop to do its
+work. Look at this for example:
+
+~~~~~~~~~~~~~~~~~~~~{.c}
+// Restrict the value of frames per second by 30
+vox_fps_controller_t fps_counter = vox_make_fps_controller (30);
+while (keep_rendering) {
+    .......
+    vox_render (ctx);
+    vox_redraw (ctx);
+    .......
+    // fps_info contains some useful info about actual FPS rate and frame
+    // rendering time.
+    struct vox_fps_info fps_info = fps_counter();
+}
+done:
+vox_destroy_fps_controller (fps_counter);
+~~~~~~~~~~~~~~~~~~~~
+See API documentation for more info.
 
 Voxengine
 ---------
@@ -418,7 +455,7 @@ function tick (world, time)
          quit = true
       end
    end
-   -- Call request_quit when you wish to shut down the engine
+   -- Return nil when you wish to shut down the engine
    if quit then return nil end
 
    -- You can rotate camera or modify tree in tick() function
@@ -455,7 +492,7 @@ function init ()
    camera:set_position {0,-10,0}
 
    --[[
-        Here is collision detector.
+        Here is a collision detector.
         Its interface is like its C equivalent, only it lacks attach_context() method.
         Context which contains returned tree is attached by the engine automatically
    ]]--
@@ -512,10 +549,25 @@ function tick (world, time)
 end
 ~~~~~~~~~~~~~~~
 
-**Voxengine**'s lua interface can do primitive keyboard handling by itself. It can also
-understand raw data files. Please look at lua scripts in `example` directory.
+**Voxengine**'s lua interface can interact with SDL by means of
+[**luasdl2**](https://github.com/Tangent128/luasdl2). It can also understand raw
+data files, using `vox_read_raw_data()` from **voxtrees**. Please look at lua
+scripts in `example` directory. All memory required for such objects as trees,
+dotsets etc. is handeled by lua automatically.
 
-All memory required for such objects as trees, dotsets etc. is handeled by lua automatically.
+**NB:** If you wish to modify your tree in `tick()` function in any way, please
+  wrap the tree in `voxrnd.scene_proxy()` in init function like so:
+  ~~~~~~~~~~~~~~~{.lua}
+  function init ()
+      local tree = voxtrees.tree()
+      .....
+      return {tree = voxrnd.scene_proxy (tree), ...} -- Not just "tree = tree"
+  end
+  ~~~~~~~~~~~~~~~
+  Then in `tick()` function you may alter the tree by `world.tree:insert()` or
+  `world.tree:delete()` as usual. `voxrnd.scene_proxy()` provides all necessary
+  synchronization between the renderer and insertion/deletion/rebuilding
+  operations.
 
 Demo application
 ----------------

@@ -66,11 +66,36 @@ struct vox_rnd_ctx
 };
 #endif
 
-#define VOX_QUALITY_MIN 0
+/**
+   \brief Best rendering quality.
+
+   This quality setting forces the renderer to perform a full search
+   for every rendered pixel starting from root of the tree.
+**/
 #define VOX_QUALITY_BEST 0
+
+/**
+   \brief Fast rendering, middle quality.
+
+   This quality setting enables the renderer to reuse the tree leafs
+   from a previous search to find an intersection of a ray from the
+   camera and the tree. This may cause artifacts on edges of rendered
+   objects.
+**/
 #define VOX_QUALITY_FAST 1
+
+/**
+   \brief Average rendering speed, good quality.
+
+   This settings tells the renderer to choose between
+   `VOX_QUALITY_FAST` and `VOX_QUALITY_BEST` settings for each block
+   of 4x4 pixels.
+**/
 #define VOX_QUALITY_ADAPTIVE 2
+#ifdef VOXRND_SOURCE
+#define VOX_QUALITY_MIN 0
 #define VOX_QUALITY_MAX 2
+#endif
 
 /**
    \brief Make a renderer context from SDL surface.
@@ -122,6 +147,7 @@ void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
 /**
    \brief Set quality of the renderer
 
+   \param ctx The renderer's context.
    \param quality Currently one of `QUALITY_BEST`, `QUALITY_FAST` or
           `QUALITY_ADAPTIVE`.
    \return 1 on success, 0 otherwise. Function call is unsuccessfull when

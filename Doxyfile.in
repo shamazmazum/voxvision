@@ -668,12 +668,11 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  =  @CMAKE_CURRENT_SOURCE_DIR@/src/voxvision.h
+INPUT                  =  @CMAKE_CURRENT_BINARY_DIR@/src/voxvision.h
 INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxtrees.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxtrees
 INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxrnd
 INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine.h @CMAKE_CURRENT_SOURCE_DIR@/src/voxengine
-INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/Manual.md
-INPUT                  += @CMAKE_CURRENT_BINARY_DIR@/src/voxvision.h
+INPUT                  += @CMAKE_CURRENT_SOURCE_DIR@/doc/Manual.md
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -758,7 +757,7 @@ EXAMPLE_RECURSIVE      = NO
 # directories that contain image that are included in the documentation (see
 # the \image command).
 
-IMAGE_PATH             =
+IMAGE_PATH             = @CMAKE_CURRENT_SOURCE_DIR@/doc
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
