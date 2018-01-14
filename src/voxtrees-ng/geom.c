@@ -133,28 +133,9 @@ int hit_box_outer (const struct vox_box *box, const vox_dot origin,
     return hit_box (box, new_origin, new_direction, res);
 }
 
-float squared_diag (const vox_dot dot)
-{
-    float res = 0;
-    int i;
-
-    for (i=0; i<3; i++) res += dot[i]*dot[i];
-    return res;
-}
-
 void voxel_align (vox_dot dot)
 {
     int i;
     for (i=0; i<3; i++)
         dot[i] = vox_voxel[i] * floorf (dot[i] / vox_voxel[i]);
-}
-
-int vox_dot_almost_equalp (const vox_dot d1, const vox_dot d2, float prec)
-{
-    int i;
-
-    for (i=0; i<3; i++) {
-        if (fabsf (d1[i] - d2[i]) > prec) return 0;
-    }
-    return 1;
 }

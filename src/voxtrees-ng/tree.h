@@ -37,6 +37,5 @@ void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 void vox_set_voxel (const vox_dot dot);
 
 extern vox_dot vox_voxel;
-extern float comp_precision;
 
 #endif

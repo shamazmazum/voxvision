@@ -14,18 +14,10 @@
 #define LEAF_MAX_VOXELS 7
 
 vox_dot vox_voxel = {1,1,1};
-float comp_precision = 0.25;
 
 void vox_set_voxel (const vox_dot dot)
 {
-    int i;
-    comp_precision = dot[0];
-
     memcpy (vox_voxel, dot, sizeof (vox_voxel));
-    for (i=1; i<3; i++)
-        comp_precision = fminf (comp_precision, dot[i]);
-
-    comp_precision /= 4;
 }
 
 static unsigned int count_voxels (const struct vox_map_3d *map,
