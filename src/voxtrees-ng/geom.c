@@ -139,3 +139,27 @@ void voxel_align (vox_dot dot)
     for (i=0; i<3; i++)
         dot[i] = vox_voxel[i] * floorf (dot[i] / vox_voxel[i]);
 }
+
+int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
+                          int planenum, vox_dot res, const struct vox_box *box)
+{
+    int i;
+    float k;
+    k = planedot[planenum] - origin[planenum];
+    /*
+      k == 0 means that origin lays on the plane.
+      This is a special case which is not handeled here.
+      Just return that there is no intersection.
+    */
+    if ((k == 0) ||
+        (dir[planenum] < 0) != (k < 0)) return 0;
+
+    k = k / dir[planenum];
+
+    for (i=0; i<3; i++)
+    {
+        res[i] = origin[i] + k*dir[i];
+        if ((res[i] < box->min[i]) || (res[i] > box->max[i])) return 0;
+    }
+    return 1;
+}
