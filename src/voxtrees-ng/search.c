@@ -8,6 +8,10 @@ struct dot_pair {
     vox_dot first, second;
 };
 
+/*
+ * In this function we return the closest possible intersection with voxels in
+ * the leaf which contains solid voxels.
+ */
 static const struct vox_node*
 ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_point,
                                   const vox_dot dir, vox_dot res)
@@ -39,10 +43,18 @@ ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_
     return NULL;
 }
 
+/*
+ * This function is much trickier than for solid voxels. It finds the closest
+ * hit with voxel NOT belonging the leaf.
+ */
 static const struct vox_node*
 ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_point,
                                  const vox_dot dir, vox_dot res)
 {
+    /*
+     * If we do not hit data bounding box, return intersection with actual
+     * bounding box.
+     */
     if (TREE_NODATA_P (tree) ||
         !(dot_inside_box (&(tree->data_bb), starting_point, 0)))
         goto return_actual_bb_inter;
@@ -64,7 +76,7 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
     }
     if (n_intersections == 0) goto return_actual_bb_inter;
 
-    // Sort intersections in order of proximity to the origin
+    /* Sort all intersections with holes in order of proximity to the origin. */
     qsort_b (hole_intersections, n_intersections, sizeof (struct dot_pair),
              ^(const void *d1, const void *d2) {
                  const struct dot_pair *p1 = d1;
@@ -74,9 +86,14 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
                  return (mdiff > 0) - (mdiff < 0);
              });
 
+    /*
+     * Check the first intersection. Maybe it is not even lying on data bounding
+     * box (i.e. it's inside it). In this case, return.
+     */
     if (dot_inside_box (&(tree->data_bb), hole_intersections[0].first, 1))
         goto return_actual_bb_inter;
 
+    /* Check all intersections for connectivity one with another. */
     for (i=0; i<n_intersections-1; i++) {
         pair1 = &(hole_intersections[i]);
         pair2 = &(hole_intersections[i+1]);
@@ -85,6 +102,10 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
         vox_dot_add (tmp.min, vox_voxel, tmp.max);
 
         if (!dot_inside_box (&tmp, pair2->first, 0)) {
+            /*
+             * Two not connected intersections found. Return intersection with
+             * the first "from the other side".
+             */
             interp = hit_box_outer (&tmp, starting_point, dir, res);
             assert (interp);
             return tree;
@@ -94,10 +115,15 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
     vox_dot_copy (tmp.min, hole_intersections[n_intersections-1].second);
     vox_dot_add (tmp.min, vox_voxel, tmp.max);
 
+    /*
+     * Here the ray passes all the way through data bounding box. Last chance
+     * for it to hit anything is to hit space belonging to actual bounding box
+     * past data bounding box. Check this possibility.
+     */
     vox_dot actual_bb_inter_outer;
     interp = hit_box_outer (&(tree->actual_bb), starting_point, dir, actual_bb_inter_outer);
     assert (interp);
-    if (dot_inside_box (&tmp, actual_bb_inter_outer, 0)) return NULL;
+    if (dot_inside_box (&tmp, actual_bb_inter_outer, 0)) return NULL; /* No intersection. */
     else {
         interp = hit_box_outer (&tmp, starting_point, dir, res);
         assert (interp);
@@ -116,6 +142,10 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
 
     if (tree == NULL) return NULL;
     if (!(hit_box (&(tree->actual_bb), origin, dir, actual_bb_inter))) return NULL;
+    /*
+     * Covered nodes do not require any extra check because their data bounding
+     * box is completely inside the actual bounding box.
+     */
     if (tree->flags & COVERED) {
         assert (tree->flags & CONTAINS_HOLES);
         vox_dot_copy (res, actual_bb_inter);
@@ -129,20 +159,25 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
             return ray_tree_intersection_leaf_solid (tree, actual_bb_inter, dir, res);
     }
 
-    /* CONTAINS_HOLES entry point must be here */
+    /*
+     * For nodes which contain holes, check is data bounding box shares no
+     * common points with edge of the actual bounding box.
+     */
     if ((tree->flags & CONTAINS_HOLES) &&
         !(dot_inside_box (&(tree->data_bb), actual_bb_inter, 0))) {
         vox_dot_copy (res, actual_bb_inter);
         return tree;
     }
 
-    /* Main body */
     const struct vox_node *leaf = NULL;
     const struct inner_node *inner = &(tree->inner_data);
     int i;
 
-    // Find subspace index of the entry point
-    // If actual_bb_inter != data_bb_inter, we are not here
+    /*
+     * Find the subspace index of the entry point. Note, that if we are here,
+     * intersection with actual bounding box == intersection with data bounding
+     * box on the ray's path.
+     */
     int subspace = subspace_idx (inner->center, actual_bb_inter);
 
     for (i=0; i<3; i++)
@@ -221,7 +256,10 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
         }
     }
 
-    /* CONTAINS_HOLES exit point must be here */
+    /*
+     * For nodes which contain holes, we still can hit "the other side" of the
+     * actual bounding box, check this possibility.
+     */
     if (tree->flags & CONTAINS_HOLES) {
         vox_dot tmp;
         int interp = hit_box_outer (&(tree->actual_bb), origin, dir, tmp);
