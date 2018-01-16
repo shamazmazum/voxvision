@@ -59,6 +59,7 @@ float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2);
 float vox_sqr_norm (const vox_dot dot);
 
 #ifdef VOXTREES_SOURCE
+
 /**
    \brief Calculate a subspace index for the dot.
    
@@ -69,7 +70,15 @@ float vox_sqr_norm (const vox_dot dot);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
-int get_subspace_idx (const vox_dot dot1, const vox_dot dot2);
+int get_subspace_idx (const vox_dot center, const vox_dot dot);
+
+/*
+ * Generally this works like get_subspace_idx () but corrects subspace
+ * index if center[i] == dot[i]. In this case, direction[i] is used to
+ * choose the index at i-th coordinate.
+ */
+int get_corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction);
+
 
 /**
    \brief Find intersection of a ray and an axis-aligned box.

@@ -41,12 +41,26 @@ void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
     }
 }
 
-int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
+int get_subspace_idx (const vox_dot center, const vox_dot dot)
 {
     int res, i;
     res = 0;
 
-    for (i=0; i<VOX_N; i++) res |= ((dot1[i] > dot2[i]) ? 1 : 0) << i;
+    for (i=0; i<VOX_N; i++) res |= (center[i] > dot[i]) << i;
+    return res;
+}
+
+int get_corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction)
+{
+    int res, a, i;
+    res = 0;
+
+    for (i=0; i<VOX_N; i++) {
+        if (center[i] == dot[i]) a = direction[i] < 0;
+        else a = center[i] > dot[i];
+        res |= a << i;
+    }
+
     return res;
 }
 

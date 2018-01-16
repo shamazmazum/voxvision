@@ -61,10 +61,24 @@ void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
     _mm_store_ps (res, r);
 }
 
-int get_subspace_idx (const vox_dot dot1, const vox_dot dot2)
+int get_subspace_idx (const vox_dot center, const vox_dot dot)
 {
-    __v4sf sub = _mm_load_ps(dot2) < _mm_load_ps(dot1);
-    return mask_bits_set (sub);
+    __v4sf cmp = _mm_load_ps (dot) < _mm_load_ps (center);
+    return mask_bits_set (cmp);
+}
+
+int get_corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction)
+{
+    __v4sf dir = _mm_load_ps (direction);
+    __v4sf c = _mm_load_ps (center);
+    __v4sf d = _mm_load_ps (dot);
+
+    __v4sf zero = _mm_set1_ps (0);
+    __v4sf idx1 = dir < zero;
+    __v4sf idx2 = d < c;
+    __v4sf idx = _mm_blendv_ps (idx2, idx1, d == c);
+
+    return mask_bits_set (idx);
 }
 
 int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir, vox_dot res)
