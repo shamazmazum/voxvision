@@ -29,7 +29,7 @@ ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_
         vox_dot_copy (tmp.min, tree->leaf_data.dots[i]);
         vox_dot_add (tmp.min, vox_voxel, tmp.max);
         if (hit_box (&tmp, starting_point, dir, far_inter)) {
-            dist = squared_metric (starting_point, far_inter);
+            dist = vox_abs_metric (starting_point, far_inter);
             if (dist == 0) {
                 vox_dot_copy (res, far_inter);
                 return tree;
@@ -84,8 +84,8 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
              ^(const void *d1, const void *d2) {
                  const struct dot_pair *p1 = d1;
                  const struct dot_pair *p2 = d2;
-                 float mdiff = squared_metric (starting_point, p1->first) -
-                     squared_metric (starting_point, p2->first);
+                 float mdiff = vox_abs_metric (starting_point, p1->first) -
+                     vox_abs_metric (starting_point, p2->first);
                  return (mdiff > 0) - (mdiff < 0);
              });
 
@@ -110,7 +110,14 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
              * the first "from the other side".
              */
             interp = hit_box_outer (&tmp, starting_point, dir, res);
-            assert (interp);
+            if (!interp) {
+                /*
+                 * Here and below: if hit_box_outer() does not return 1, this is
+                 * computational error, but it's not so serious to trigger
+                 * abort(). Investigate later.
+                 */
+                return NULL;
+            }
             return tree;
         }
     }
@@ -125,11 +132,11 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
      */
     vox_dot actual_bb_inter_outer;
     interp = hit_box_outer (&(tree->actual_bb), starting_point, dir, actual_bb_inter_outer);
-    assert (interp);
+    if (!interp) return NULL;
     if (dot_inside_box (&tmp, actual_bb_inter_outer, 0)) return NULL; /* No intersection. */
     else {
         interp = hit_box_outer (&tmp, starting_point, dir, res);
-        assert (interp);
+        if (!interp) return NULL;
         return tree;
     }
 return_actual_bb_inter:
@@ -233,7 +240,8 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
         int tmp2;
         for (j=i+1; j<plane_counter; j++)
         {
-            if (squared_metric (actual_bb_inter, plane_inter[j]) < squared_metric (actual_bb_inter, plane_inter[i]))
+            if (vox_abs_metric (actual_bb_inter, plane_inter[j]) <
+                vox_abs_metric (actual_bb_inter, plane_inter[i]))
             {
                 vox_dot_copy (tmp, plane_inter[j]);
                 vox_dot_copy (plane_inter[j], plane_inter[i]);
@@ -266,10 +274,10 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
     if (tree->flags & CONTAINS_HOLES) {
         vox_dot tmp;
         int interp = hit_box_outer (&(tree->actual_bb), origin, dir, tmp);
-        assert (interp);
+        if (!interp) return NULL;
         if (!dot_inside_box (&(tree->data_bb), tmp, 0)) {
             int interp = hit_box_outer (&(tree->data_bb), origin, dir, tmp);
-            assert (interp);
+            if (!interp) return NULL;
             vox_dot_copy (res, tmp);
             return tree;
         }

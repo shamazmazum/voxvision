@@ -27,8 +27,8 @@ static void check_indices (const unsigned int dim[], const struct vox_box *box)
     int i;
 
     for (i=0; i<3; i++) {
-        a += box->min[i] < box->max[i];
-        b += box->max[i] < dim[i] * vox_voxel[i];
+        a += box->min[i] <= box->max[i];
+        b += box->max[i] <= dim[i] * vox_voxel[i];
     }
 
     assert (a == 3 && b == 3);

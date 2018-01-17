@@ -23,6 +23,8 @@
     }                             \
     while (0);
 
+float vox_abs_metric (const vox_dot d1, const vox_dot d2);
+float vox_sqr_metric (const vox_dot d1, const vox_dot d2);
 #ifdef VOXTREES_NG_SOURCE
 int dot_inside_box (const struct vox_box *box, const vox_dot dot, int strong);
 int box_inside_box (const struct vox_box *outer, const struct vox_box *inner, int strong);
@@ -32,7 +34,6 @@ void subspace_box (const struct vox_box *space, const vox_dot center,
                    struct vox_box *subspace, int subspace_idx);
 int subspace_idx (const vox_dot center, const vox_dot dot);
 
-float squared_metric (const vox_dot d1, const vox_dot d2);
 int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot direction, vox_dot res);
 int hit_box_outer (const struct vox_box *box, const vox_dot origin, const vox_dot direction, vox_dot res);
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,

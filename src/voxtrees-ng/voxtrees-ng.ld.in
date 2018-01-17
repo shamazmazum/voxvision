@@ -2,6 +2,7 @@ VOXTREES_NG_@voxvision_VERSION@ {
     global: vox_read_raw_data;
             vox_destroy_map_3d;
 
+            vox_voxel;
             vox_make_tree;
             vox_destroy_tree;
             vox_voxels_in_tree;
@@ -12,7 +13,8 @@ VOXTREES_NG_@voxvision_VERSION@ {
 
             vox_ray_tree_intersection;
 
-            vox_voxel;
+            vox_abs_metric;
+            vox_sqr_metric;
     #FIXME: For debugging:
             box_inside_box;
             voxel_inside_box;

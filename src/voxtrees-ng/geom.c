@@ -49,14 +49,26 @@ int subspace_idx (const vox_dot center, const vox_dot dot)
     return idx;
 }
 
-float squared_metric (const vox_dot d1, const vox_dot d2)
+float vox_abs_metric (const vox_dot d1, const vox_dot d2)
 {
     float tmp, res = 0;
     int i;
 
     for (i=0; i<3; i++) {
         tmp = d2[i] - d1[i];
-        res += tmp*tmp;
+        res += fabsf (tmp);
+    }
+    return res;
+}
+
+float vox_sqr_metric (const vox_dot d1, const vox_dot d2)
+{
+    float tmp, res = 0;
+    int i;
+
+    for (i=0; i<3; i++) {
+        tmp = d2[i] - d1[i];
+        res += tmp * tmp;
     }
     return res;
 }
@@ -124,7 +136,7 @@ int hit_box_outer (const struct vox_box *box, const vox_dot origin,
      */
     vox_dot new_origin, new_direction;
     int i;
-    float sm = squared_metric (box->min, box->max);
+    float sm = vox_sqr_metric (box->min, box->max);
 
     for (i=0; i<3; i++) {
         new_origin[i] = origin[i] + sm*direction[i];
