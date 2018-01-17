@@ -23,6 +23,7 @@
     }                             \
     while (0);
 
+#ifdef VOXTREES_NG_SOURCE
 int dot_inside_box (const struct vox_box *box, const vox_dot dot, int strong);
 int box_inside_box (const struct vox_box *outer, const struct vox_box *inner, int strong);
 int voxel_inside_box (const struct vox_box *box, const vox_dot voxel, int strong);
@@ -37,4 +38,6 @@ int hit_box_outer (const struct vox_box *box, const vox_dot origin, const vox_do
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
                           int planenum, vox_dot res, const struct vox_box *box);
 void voxel_align (vox_dot dot);
+#endif
+
 #endif

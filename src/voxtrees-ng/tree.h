@@ -2,6 +2,7 @@
 #define TREE_H_
 #include "types.h"
 
+#ifdef VOXTREES_NG_SOURCE
 #define LEAF 1
 #define CONTAINS_HOLES 2
 #define COVERED 4
@@ -27,6 +28,9 @@ struct vox_node {
         struct leaf leaf_data;
     };
 };
+#else /* VOXTREES_NG_SOURCE */
+struct vox_node;
+#endif /* VOXTREES_NG_SOURCE */
 
 struct vox_node* vox_make_tree (const struct vox_map_3d *map);
 void vox_destroy_tree (struct vox_node *tree);

@@ -16,7 +16,10 @@ static const struct vox_node*
 ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_point,
                                   const vox_dot dir, vox_dot res)
 {
+#if 0
+    /* Do we set NODATA for "solid" leafs? */
     if (TREE_NODATA_P (tree)) return NULL;
+#endif
     float dist, dist_closest = INFINITY;
     struct vox_box tmp;
     vox_dot far_inter;

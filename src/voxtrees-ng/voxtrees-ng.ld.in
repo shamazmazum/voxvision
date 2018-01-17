@@ -1,4 +1,21 @@
 VOXTREES_NG_@voxvision_VERSION@ {
-    # FIXME: Decide what to export later
-    global: *;
+    global: vox_read_raw_data;
+            vox_destroy_map_3d;
+
+            vox_make_tree;
+            vox_destroy_tree;
+            vox_voxels_in_tree;
+            vox_voxel_in_tree;
+            vox_dump_tree;
+            vox_bounding_box;
+            vox_set_voxel;
+
+            vox_ray_tree_intersection;
+
+            vox_voxel;
+    #FIXME: For debugging:
+            box_inside_box;
+            voxel_inside_box;
+            subspace_box;
+    local: *;
 };

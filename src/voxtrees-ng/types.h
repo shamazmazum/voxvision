@@ -3,7 +3,7 @@
 #include "../voxvision.h"
 
 struct vox_map_3d {
-    int dim[3];
+    unsigned int dim[3];
     int *map;
 };
 
