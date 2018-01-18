@@ -130,15 +130,12 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
      * for it to hit anything is to hit space belonging to actual bounding box
      * past data bounding box. Check this possibility.
      */
-    vox_dot actual_bb_inter_outer;
-    interp = hit_box_outer (&(tree->actual_bb), starting_point, dir, actual_bb_inter_outer);
+    interp = hit_box_outer (&tmp, starting_point, dir, res);
     if (!interp) return NULL;
-    if (dot_inside_box (&tmp, actual_bb_inter_outer, 0)) return NULL; /* No intersection. */
-    else {
-        interp = hit_box_outer (&tmp, starting_point, dir, res);
-        if (!interp) return NULL;
-        return tree;
-    }
+
+    if (dot_inside_box (&(tree->actual_bb), res, 1)) return tree;
+    else return NULL;
+
 return_actual_bb_inter:
     vox_dot_copy (res, starting_point);
     return tree;
@@ -188,21 +185,8 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
      * intersection with actual bounding box == intersection with data bounding
      * box on the ray's path.
      */
-    int subspace = subspace_idx (inner->center, actual_bb_inter);
+    int subspace = corrected_subspace_idx (inner->center, actual_bb_inter, dir);
 
-    for (i=0; i<3; i++)
-    {
-        /*
-          If the following is true, subspace index must be fixed according to the ray's
-          direction. This is because get_subspace_idx() may return wrong index in that
-          special case.
-        */
-        if (inner->center[i] == actual_bb_inter[i])
-        {
-            if (dir[i] > 0) subspace &= ~(1<<i);
-            else subspace |= 1<<i;
-        }
-    }
     /*
      * Look if we are lucky and the ray hits any box before it traverses the dividing
      * planes (in other words it hits a box close enough to the entry point).
@@ -272,16 +256,11 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
      * actual bounding box, check this possibility.
      */
     if (tree->flags & CONTAINS_HOLES) {
-        vox_dot tmp;
-        int interp = hit_box_outer (&(tree->actual_bb), origin, dir, tmp);
+        int interp = hit_box_outer (&(tree->data_bb), origin, dir, res);
         if (!interp) return NULL;
-        if (!dot_inside_box (&(tree->data_bb), tmp, 0)) {
-            int interp = hit_box_outer (&(tree->data_bb), origin, dir, tmp);
-            if (!interp) return NULL;
-            vox_dot_copy (res, tmp);
-            return tree;
-        }
+        if (dot_inside_box (&(tree->actual_bb), res, 1)) return tree;
+        else return NULL;
     }
-    
+
     return NULL;
 }

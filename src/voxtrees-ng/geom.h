@@ -34,6 +34,13 @@ void subspace_box (const struct vox_box *space, const vox_dot center,
                    struct vox_box *subspace, int subspace_idx);
 int subspace_idx (const vox_dot center, const vox_dot dot);
 
+/*
+ * Generally this works like get_subspace_idx () but corrects subspace
+ * index if center[i] == dot[i]. In this case, direction[i] is used to
+ * choose the index at i-th coordinate.
+ */
+int corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction);
+
 int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot direction, vox_dot res);
 int hit_box_outer (const struct vox_box *box, const vox_dot origin, const vox_dot direction, vox_dot res);
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,

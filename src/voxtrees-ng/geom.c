@@ -49,6 +49,18 @@ int subspace_idx (const vox_dot center, const vox_dot dot)
     return idx;
 }
 
+int corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction)
+{
+    int i, a, idx = 0;
+
+    for (i=0; i<3; i++) {
+        a = (center[i] == dot[i])? (direction[i] > 0): (dot[i] > center[i]);
+        idx |= a << i;
+    }
+
+    return idx;
+}
+
 float vox_abs_metric (const vox_dot d1, const vox_dot d2)
 {
     float tmp, res = 0;
