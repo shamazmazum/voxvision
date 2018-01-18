@@ -3,6 +3,7 @@
 #include <math.h>
 #include "search.h"
 #include "geom.h"
+#include "probes.h"
 
 struct dot_pair {
     vox_dot first, second;
@@ -16,6 +17,7 @@ static const struct vox_node*
 ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_point,
                                   const vox_dot dir, vox_dot res)
 {
+    WITH_STAT (VOXTREES_NG_TRAVERSE_LEAF_SOLID ());
 #if 0
     /* Do we set NODATA for "solid" leafs? */
     if (TREE_NODATA_P (tree)) return NULL;
@@ -54,13 +56,16 @@ static const struct vox_node*
 ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_point,
                                  const vox_dot dir, vox_dot res)
 {
+    WITH_STAT (VOXTREES_NG_TRAVERSE_LEAF_HOLE ());
     /*
      * If we do not hit data bounding box, return intersection with actual
      * bounding box.
      */
     if (TREE_NODATA_P (tree) ||
-        !(dot_inside_box (&(tree->data_bb), starting_point, 0)))
+        !(dot_inside_box (&(tree->data_bb), starting_point, 0))) {
+        WITH_STAT (VOXTREES_NG_DATA_BB_INSIDE_ACTUAL_BB());
         goto return_actual_bb_inter;
+    }
 
     unsigned int i, n_intersections = 0;
     unsigned int dots_num = tree->leaf_data.dots_num;
@@ -152,6 +157,7 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
      * box is completely inside the actual bounding box.
      */
     if (tree->flags & COVERED) {
+        WITH_STAT (VOXTREES_NG_TRAVERSE_NODE_COVERED ());
         assert (tree->flags & CONTAINS_HOLES);
         vox_dot_copy (res, actual_bb_inter);
         return tree;

@@ -17,7 +17,7 @@ if (WITH_DTRACE)
   add_custom_target (voxtrees-ng-dtrace-header ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxtrees-ng-dtrace.h)
   add_dependencies (voxtrees-ng voxtrees-ng-dtrace-header)
 
-  set (DTRACE_SOURCES CMakeFiles/voxtrees-ng.dir/tree.c.o)
+  set (DTRACE_SOURCES CMakeFiles/voxtrees-ng.dir/tree.c.o CMakeFiles/voxtrees-ng.dir/search.c.o)
   add_custom_command (TARGET voxtrees-ng PRE_LINK
     COMMAND rm -f voxtrees-ng-dtrace.o
     COMMAND ${DTRACE_EXECUTABLE} -G -s voxtrees-ng-dtrace.d ${DTRACE_SOURCES}

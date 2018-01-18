@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include "tree.h"
 #include "geom.h"
-#ifdef STATISTICS
-#include <voxtrees-ng-dtrace.h>
-#endif
+#include "probes.h"
 
 #define HOLLOW 0
 #define SOLID 1
@@ -165,9 +163,7 @@ static void collect_data (const struct vox_map_3d *map, int which, vox_dot *dots
 
 static struct vox_node* make_tree (const struct vox_map_3d *map, const struct vox_box *box)
 {
-#ifdef STATISTICS
-    VOXTREES_NG_INC_REC_LEVEL();
-#endif
+    WITH_STAT (VOXTREES_NG_INC_REC_LEVEL());
     struct vox_node *node = NULL;
     struct vox_box actual_bb;
     int has_bb = bounding_box (map, SOLID, &actual_bb, box);
