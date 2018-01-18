@@ -65,7 +65,6 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
     unsigned int i, n_intersections = 0;
     unsigned int dots_num = tree->leaf_data.dots_num;
     struct dot_pair *hole_intersections = alloca (sizeof (struct dot_pair) * dots_num);
-    int interp;
     struct vox_box tmp;
     struct dot_pair *pair1, *pair2;
 
@@ -73,9 +72,10 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
         pair1 = &(hole_intersections[n_intersections]);
         vox_dot_copy (tmp.min, tree->leaf_data.dots[i]);
         vox_dot_add (tmp.min, vox_voxel, tmp.max);
-        interp = hit_box (&tmp, starting_point, dir, pair1->first);
-        vox_dot_copy (pair1->second, tmp.min);
-        if (interp) n_intersections++;
+        if (hit_box (&tmp, starting_point, dir, pair1->first)) {
+            vox_dot_copy (pair1->second, tmp.min);
+            n_intersections++;
+        }
     }
     if (n_intersections == 0) goto return_actual_bb_inter;
 
@@ -109,8 +109,7 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
              * Two not connected intersections found. Return intersection with
              * the first "from the other side".
              */
-            interp = hit_box_outer (&tmp, starting_point, dir, res);
-            if (!interp) {
+            if (!hit_box_outer (&tmp, starting_point, dir, res)) {
                 /*
                  * Here and below: if hit_box_outer() does not return 1, this is
                  * computational error, but it's not so serious to trigger
@@ -130,8 +129,7 @@ ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_p
      * for it to hit anything is to hit space belonging to actual bounding box
      * past data bounding box. Check this possibility.
      */
-    interp = hit_box_outer (&tmp, starting_point, dir, res);
-    if (!interp) return NULL;
+    if (!hit_box_outer (&tmp, starting_point, dir, res)) return NULL;
 
     if (dot_inside_box (&(tree->actual_bb), res, 1)) return tree;
     else return NULL;
@@ -256,8 +254,7 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
      * actual bounding box, check this possibility.
      */
     if (tree->flags & CONTAINS_HOLES) {
-        int interp = hit_box_outer (&(tree->data_bb), origin, dir, res);
-        if (!interp) return NULL;
+        if (!hit_box_outer (&(tree->data_bb), origin, dir, res)) return NULL;
         if (dot_inside_box (&(tree->actual_bb), res, 1)) return tree;
         else return NULL;
     }
