@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxtrees-ng.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxtrees-ng.ld)
 add_definitions (-DVOXTREES_NG_SOURCE)
 
-add_library (voxtrees-ng SHARED datareader.c tree.c geom.c search.c)
+add_library (voxtrees-ng SHARED datareader.c tree.c geom.c geom-sse.c search.c)
 if (WITH_DTRACE)
   include_directories (${CMAKE_CURRENT_BINARY_DIR})
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/voxtrees-ng-dtrace.d

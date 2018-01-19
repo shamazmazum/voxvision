@@ -2,19 +2,6 @@
 #include "geom.h"
 #include "tree.h"
 
-int dot_inside_box (const struct vox_box *box, const vox_dot dot, int strong)
-{
-    int i;
-    for (i=0; i<3; i++) {
-        if (strong) {
-            if (dot[i] <= box->min[i] || dot[i] >= box->max[i]) return 0;
-        } else {
-            if (dot[i] < box->min[i] || dot[i] > box->max[i]) return 0;
-        }
-    }
-    return 1;
-}
-
 int box_inside_box (const struct vox_box *outer, const struct vox_box *inner, int strong)
 {
     return dot_inside_box (outer, inner->min, strong) &&
@@ -41,26 +28,14 @@ void subspace_box (const struct vox_box *space, const vox_dot center,
     }
 }
 
-int subspace_idx (const vox_dot center, const vox_dot dot)
+void voxel_align (vox_dot dot)
 {
-    int i, idx = 0;
+    int i;
     for (i=0; i<3; i++)
-        idx |= (dot[i] >= center[i])? (1 << i): 0;
-    return idx;
+        dot[i] = vox_voxel[i] * floorf (dot[i] / vox_voxel[i]);
 }
 
-int corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction)
-{
-    int i, a, idx = 0;
-
-    for (i=0; i<3; i++) {
-        a = (center[i] == dot[i])? (direction[i] > 0): (dot[i] > center[i]);
-        idx |= a << i;
-    }
-
-    return idx;
-}
-
+#ifndef SSE_INTRIN
 float vox_abs_metric (const vox_dot d1, const vox_dot d2)
 {
     float tmp, res = 0;
@@ -83,6 +58,26 @@ float vox_sqr_metric (const vox_dot d1, const vox_dot d2)
         res += tmp * tmp;
     }
     return res;
+}
+
+int subspace_idx (const vox_dot center, const vox_dot dot)
+{
+    int i, idx = 0;
+    for (i=0; i<3; i++)
+        idx |= (dot[i] >= center[i])? (1 << i): 0;
+    return idx;
+}
+
+int corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction)
+{
+    int i, a, idx = 0;
+
+    for (i=0; i<3; i++) {
+        a = (center[i] == dot[i])? (direction[i] > 0): (dot[i] > center[i]);
+        idx |= a << i;
+    }
+
+    return idx;
 }
 
 static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
@@ -157,13 +152,6 @@ int hit_box_outer (const struct vox_box *box, const vox_dot origin,
     return hit_box (box, new_origin, new_direction, res);
 }
 
-void voxel_align (vox_dot dot)
-{
-    int i;
-    for (i=0; i<3; i++)
-        dot[i] = vox_voxel[i] * floorf (dot[i] / vox_voxel[i]);
-}
-
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
                           int planenum, vox_dot res, const struct vox_box *box)
 {
@@ -187,3 +175,18 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     }
     return 1;
 }
+
+int dot_inside_box (const struct vox_box *box, const vox_dot dot, int strong)
+{
+    int i;
+    for (i=0; i<3; i++) {
+        if (strong) {
+            if (dot[i] <= box->min[i] || dot[i] >= box->max[i]) return 0;
+        } else {
+            if (dot[i] < box->min[i] || dot[i] > box->max[i]) return 0;
+        }
+    }
+    return 1;
+}
+
+#endif
