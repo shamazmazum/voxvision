@@ -1,12 +1,14 @@
 TODO list for unforseen future:
 
 Hard and medium changes:
-1. Introduce a new tree node type which holds holes in space instead of solid voxels.
+1. Introduce a new tree node type which holds holes in space instead of solid voxels. (In progress,
+   see voxtrees-ng branch).
    1.1 Rewrite insertion/deletion and search algorithms.
 2. Level of details. Maybe do not render those voxels which are only a few pixels in width.
+   2.1 Or another idea: drop some rays (say 1 of 2) if they travel a long way from origin.
 3. Render image with 4x4 squares. Exploit "locality" in each square. (DONE: September 2017)
    3.1 Do something with possible quality degradation. (DONE: 08 Jan 2018, but some improvements can
-   be made to adaptive mode.
+   be made to adaptive mode).
 4. Add some FPS games experience.
    4.1 Write a new camera with 5 degrees of freedom (with one rotation axis "locked"). (DONE: 22 oct 2017)
    4.2 Maybe write utility functions for fast replacement of camera methods. (DONE: 05 sep 2017).
@@ -18,6 +20,7 @@ Hard and medium changes:
 7. Investigate a huge slowdown in example1.lua after the commit: 69406f4fb (Remove lua vox_dot and vox_box types...)
    (DONE: 12 sep 2017)
 8. Investigate camera axes inversion after call to look_at method in simple camera. (DONE: 25 oct 2017)
+9. Merge lights branch without much degradation in speed. Add some procedural generated textures.
 
 Easy changes:
 1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application)
