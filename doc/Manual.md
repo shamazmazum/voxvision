@@ -244,6 +244,46 @@ camera->iface->destroy_camera (camera); // Destroy the camera
 vox_destroy_tree (tree); // Destroy the tree
 vox_destroy_context (ctx); // Destroy the context
 ~~~~~~~~~~~~~~~~~~~~
+### Quality settings
+![Rendering pass in voxrnd](rnd.png)
+**voxrnd** performes an important optimization which allows it to work more or
+less quickly, but has a penalty in quality degradation, so this is a
+quality-speed trade-off. To controll the balance, there are three quality modes
+in **voxrnd**. To understand it, you need to understand how **voxrnd**
+works. First of all, for any context it allocates an array of blocks 4x4 pixels
+each. Here comes current restriction on screen resolution: its width must be an
+integral multiple of 16, and its height must be an integral multiple of 4.
+Fortunately, all mainstream resolutions, like 640x480, 800x600, 1280x1024 or
+1920x1080 are OK. Then, when you call `vox_render()`, **voxrnd** casts a ray for
+each pixel on the screen (currently, exactly one ray for one pixel). The process
+is sequential for each pixel in a block, but is parallelized between the blocks
+(see picture above, where solid black squares are blocks, red squares are
+pixels and Z-shaped line is an order which is used to render a
+block). Parallelization means that you can benifit from multicore CPU. As you
+can see, rendering inside a block is performed in Z-order. When our rendering is
+ready, `vox_redraw()` copies array of block into an ordinary SDL surface which
+is rendered to the screen.
+
+There is our optimization: for any next pixel **voxrnd** does not run a search
+in the tree starting from its root node, but it uses a leaf node obtained from
+the previous search. It runs from the root only if this mechanism does not find
+an intersection. Surely, this adds some rendering artifacts (usually, they are
+observed at edges of objects), but speeds up things a lot. The quality setting
+for this mode is called *fast*.
+
+There is also the setting called *best*. In this mode, the search is started
+from the root for each pixel.
+
+Finally, there is *adaptive* mode. In this mode, the renderer chooses from
+*fast* and *best* mode for each block individually. The choice is depending on
+distance between intersections for the first and the last pixels in the block
+(see picture). This gives a rendering similar to one with *best* quality and
+rendering speed somewhat in between *best* and *fast* (it depends on the tree to
+be rendered).
+
+All these modes are selected using `vox_context_set_quality()` function which
+you can call anytime between two `vox_render()` calls. The defalut mode is
+*adaptive*.
 
 ### Cameras
 Let's talk more about cameras and their interfaces. There are few structures to work
@@ -290,6 +330,17 @@ see how this can be done by seeing source code for 2 camera classes which are
 available in **voxrnd** library. I'll try to make a guide for that later.
 You can get more info on camera interface in `struct vox_camera_interface`
 documentation.
+
+![A coordinate system of a camera](camcoord.png)
+On the picture above you can see the camera's coordinate system. It is projected
+on the screen exactly as on the picture (i.e. the camera's X maps exactly to the
+screen's right, etc). The Y direction is always "forwards" for you. As for
+rotation around the axes, the positive direction is clockwise. Be careful with
+coordinate systems, as some of the camera's methods require coordinates in its
+own coordinate system (these are usually "incremental" methods as
+`camera->iface->move_camera()`) and some require coordinates in the world's
+coordinate system (these usually do some "absolute" or "non incremental" stuff,
+an example: `camera->iface->set_position()`).
 
 ### Collision detection
 Unfortunately, currently you cannot move the whole tree to any direction, so there is no
