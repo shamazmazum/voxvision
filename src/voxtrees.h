@@ -9,5 +9,6 @@
 #include "voxtrees/search.h"
 #include "voxtrees/geom.h"
 #include "voxtrees/datareader.h"
+#include "voxtrees/mtree.h"
 
 #endif

@@ -38,7 +38,7 @@ struct vox_sphere {
     **/
 };
 
-#ifdef VOXRND_SOURCE
+#ifdef VOXTREES_SOURCE
 // It's here only for tests
 //#define MTREE_MAX_CHILDREN 3 // > 2
 #define MTREE_MAX_CHILDREN 9 // 128 bytes in memory

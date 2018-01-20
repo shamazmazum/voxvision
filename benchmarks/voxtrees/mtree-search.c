@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <voxtrees.h>
-#include <voxrnd/mtree.h>
 #include <stdlib.h>
 #include <gettime.h>
 #include <math.h>

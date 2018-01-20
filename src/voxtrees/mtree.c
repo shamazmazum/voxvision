@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mtree.h"
-#include "../voxtrees/geom.h"
+#include "geom.h"
 
 #define sphere_copy(dst,src) memcpy (dst, src, sizeof (struct vox_sphere))
 
@@ -39,9 +39,17 @@ static int bounding_sphere (const struct vox_sphere *s, struct vox_sphere *bound
     } else if (crit < 1) {
         bounding_sphere->radius = (s->radius + bounding_sphere->radius + dist) / 2;
         bounding_sphere->sqr_radius = pow (bounding_sphere->radius, 2);
+#ifdef SSE_INTRIN
+        __v4sf bs_center = _mm_load_ps (bounding_sphere->center);
+        __v4sf s_center = _mm_load_ps (s->center);
+        __v4sf c = _mm_set_ps1 (crit);
+        __v4sf new_center = c * (bs_center - s_center) + s_center;
+        _mm_store_ps (bounding_sphere->center, new_center);
+#else
         vox_dot_sub (bounding_sphere->center, s->center, bounding_sphere->center);
         vox_dot_scmul (bounding_sphere->center, crit, bounding_sphere->center);
         vox_dot_add (bounding_sphere->center, s->center, bounding_sphere->center);
+#endif
     } else changed = 0;
 
     return changed;

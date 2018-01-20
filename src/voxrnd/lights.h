@@ -12,7 +12,7 @@
 #ifndef __LIGHTS_H__
 #define __LIGHTS_H__
 #include <SDL2/SDL.h>
-#include "mtree.h"
+#include "../voxtrees/mtree.h"
 
 /**
    \brief Light manager opaque structure.

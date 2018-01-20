@@ -9,6 +9,5 @@
 #include "voxrnd/renderer.h"
 #include "voxrnd/fps-control.h"
 #include "voxrnd/cd.h"
-#include "voxrnd/mtree.h"
 #include "voxrnd/lights.h"
 #endif

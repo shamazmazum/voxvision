@@ -10,7 +10,6 @@
 
 #include <voxrnd/camera.h>
 #include <voxrnd/vect-ops.h>
-#include <voxrnd/mtree.h>
 #include <voxtrees.h>
 #include <voxtrees/geom.h>
 
