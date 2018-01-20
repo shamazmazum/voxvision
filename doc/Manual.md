@@ -246,7 +246,7 @@ vox_destroy_context (ctx); // Destroy the context
 ~~~~~~~~~~~~~~~~~~~~
 ### Quality settings
 ![Rendering pass in voxrnd](rnd.png)
-**voxrnd** performes an important optimization which allows it to work more or
+**voxrnd** performs an important optimization which allows it to work more or
 less quickly, but has a penalty in quality degradation, so this is a
 quality-speed trade-off. To controll the balance, there are three quality modes
 in **voxrnd**. To understand it, you need to understand how **voxrnd**
@@ -275,7 +275,7 @@ There is also the setting called *best*. In this mode, the search is started
 from the root for each pixel.
 
 Finally, there is *adaptive* mode. In this mode, the renderer chooses from
-*fast* and *best* mode for each block individually. The choice is depending on
+*fast* and *best* mode for each block individually. The choice depends on
 distance between intersections for the first and the last pixels in the block
 (see picture). This gives a rendering similar to one with *best* quality and
 rendering speed somewhat in between *best* and *fast* (it depends on the tree to
