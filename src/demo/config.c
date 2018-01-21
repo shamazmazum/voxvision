@@ -71,6 +71,7 @@ int load_configuration (const char *filename)
         fprintf (stderr, "Wrong quality: %s\n", quality);
         res = -1;
     }
+    global_settings.quality |= iniparser_getint (dict, "Renderer:MergeRays", 0)? VOX_QUALITY_RAY_MERGE: 0;
 
     iniparser_freedict (dict);
     return res;

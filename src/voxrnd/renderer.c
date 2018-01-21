@@ -179,6 +179,13 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
 int vox_context_set_quality (struct vox_rnd_ctx *ctx, int quality)
 {
     if (quality < VOX_QUALITY_MIN || quality > VOX_QUALITY_MAX) return 0;
+    /* Ray merge mode check */
+    if ((quality & VOX_QUALITY_RAY_MERGE) &&
+        ((quality & VOX_QUALITY_MODE_MASK) !=
+         VOX_QUALITY_ADAPTIVE)) return 0;
+    /* Check if reserved values are not set */
+    if ((quality & VOX_QUALITY_MODE_MASK) ==
+        VOX_QUALITY_MODE_RESERVED) return 0;
     ctx->quality = quality;
 
     return 1;
@@ -194,6 +201,8 @@ void vox_render (struct vox_rnd_ctx *ctx)
     struct vox_camera *camera = ctx->camera;
     int ws = ctx->ws;
     int quality = ctx->quality;
+    int rnd_mode = quality & VOX_QUALITY_MODE_MASK;
+    int merge_mode = quality & VOX_QUALITY_RAY_MERGE;
 
     /*
       Render the scene running multiple tasks in parallel. Each task renders a
@@ -207,7 +216,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         vox_dot inter1, inter2;
                         const struct vox_node *leaf = NULL;
                         vox_dot origin;
-                        int mode = quality;
+                        int block_rnd_mode = rnd_mode;
 
                         int i, xstart, ystart;
                         ystart = cs / ws;
@@ -226,7 +235,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         WITH_STAT (VOXRND_BLOCKS_TRACED());
                         int block_merge_mode = 0;
 
-                        if (mode == VOX_QUALITY_ADAPTIVE) {
+                        if (block_rnd_mode == VOX_QUALITY_ADAPTIVE) {
                             /*
                              * Here we choose which mode is actually used for rendering a block. To
                              * put it simple: choose upper-left and bottom-right pixels in the
@@ -238,8 +247,8 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             istart = 1;
                             camera->iface->screen2world (camera, dir1, xstart, ystart);
                             corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
-                            mode = VOX_QUALITY_FAST;
-                            block_merge_mode = 1;
+                            block_rnd_mode = VOX_QUALITY_FAST;
+                            block_merge_mode = merge_mode;
                             leaf = corner1;
                             if (corner1 != NULL) {
                                 iend = 15;
@@ -256,7 +265,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                     float criteria = d1 / d2 * vox_sqr_metric (dir1, dir2);
                                     float dist = vox_sqr_metric (inter1, inter2);
                                     if (dist/criteria > LENGTH_THRESHOLD) {
-                                        mode = VOX_QUALITY_BEST;
+                                        block_rnd_mode = VOX_QUALITY_BEST;
                                         WITH_STAT (VOXRND_CANCELED_PREDICTION());
                                     }
                                     if (d1 < MAX_DIST * MAX_DIST) block_merge_mode = 0;
@@ -274,7 +283,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
 
                             camera->iface->screen2world (camera, dir1, x+xstart, y+ystart);
                             if (!merge) {
-                                if (mode == VOX_QUALITY_FAST) {
+                                if (block_rnd_mode == VOX_QUALITY_FAST) {
                                     WITH_STAT (old_leaf = leaf);
                                     if (leaf != NULL)
                                         leaf = vox_ray_tree_intersection (leaf,  origin, dir1, inter1);

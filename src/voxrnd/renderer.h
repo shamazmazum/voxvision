@@ -92,9 +92,21 @@ struct vox_rnd_ctx
    of 4x4 pixels.
 **/
 #define VOX_QUALITY_ADAPTIVE 2
+
+/**
+   \brief Enable ray merging mode.
+
+   This mode allows a ray which belongs to every second column on the screen to
+   be merged with a ray from every first if this ray travels a long distance
+   from the origin. This mode works ONLY in conjunction with adaptive mode.
+**/
+#define VOX_QUALITY_RAY_MERGE 4
+
 #ifdef VOXRND_SOURCE
 #define VOX_QUALITY_MIN 0
-#define VOX_QUALITY_MAX 2
+#define VOX_QUALITY_MAX 7
+#define VOX_QUALITY_MODE_RESERVED 3
+#define VOX_QUALITY_MODE_MASK 3
 #endif
 
 /**

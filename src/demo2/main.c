@@ -7,7 +7,8 @@
 static void usage()
 {
     fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] "
-                     "[-q quality] -s script\n");
+                     "[-q quality] [-m] -s script\n");
+    fprintf (stderr, "quality = fast | best | adaptive\n");
     exit (EXIT_FAILURE);
 }
 
@@ -29,8 +30,9 @@ int main (int argc, char *argv[])
     const char *script = NULL;
     char *endptr;
     int quality = VOX_QUALITY_ADAPTIVE;
+    int merge_rays = 0;
 
-    while ((ch = getopt (argc, argv, "w:h:s:f:q:")) != -1)
+    while ((ch = getopt (argc, argv, "w:h:s:f:q:m")) != -1)
     {
         switch (ch)
         {
@@ -51,9 +53,10 @@ int main (int argc, char *argv[])
             break;
         case 'q':
             quality = choose_quality (optarg);
-            if (quality < 0) usage();
             break;
-        case '?':
+        case 'm':
+            merge_rays = 1;
+            break;
         default:
             usage();
         }
@@ -70,7 +73,11 @@ int main (int argc, char *argv[])
         fprintf (stderr, "Cannot create engine\n");
         return 1;
     }
-    vox_context_set_quality (engine->ctx, quality);
+
+    quality |= (merge_rays)? VOX_QUALITY_RAY_MERGE: 0;
+    if (!vox_context_set_quality (engine->ctx, quality))
+        fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
+
     vox_fps_controller_t fps_controller = vox_make_fps_controller (fps);
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
