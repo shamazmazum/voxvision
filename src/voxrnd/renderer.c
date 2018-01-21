@@ -185,6 +185,8 @@ int vox_context_set_quality (struct vox_rnd_ctx *ctx, int quality)
 }
 
 #define LENGTH_THRESHOLD 1.69
+#define MAX_DIST 150
+
 void vox_render (struct vox_rnd_ctx *ctx)
 {
     SDL_Surface *surface = ctx->surface;
@@ -222,6 +224,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
 
                         camera->iface->get_position (camera, origin);
                         WITH_STAT (VOXRND_BLOCKS_TRACED());
+                        int block_merge_mode = 0;
 
                         if (mode == VOX_QUALITY_ADAPTIVE) {
                             /*
@@ -236,6 +239,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             camera->iface->screen2world (camera, dir1, xstart, ystart);
                             corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
                             mode = VOX_QUALITY_FAST;
+                            block_merge_mode = 1;
                             leaf = corner1;
                             if (corner1 != NULL) {
                                 iend = 15;
@@ -255,39 +259,44 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                         mode = VOX_QUALITY_BEST;
                                         WITH_STAT (VOXRND_CANCELED_PREDICTION());
                                     }
+                                    if (d1 < MAX_DIST * MAX_DIST) block_merge_mode = 0;
                                 }
                             }
                         }
 
+                        int prev_p = 0;
                         /* istart and iend have been adjusted to a not yet drawn region. */
                         for (i=istart; i<iend; i++) {
                             int p = rendering_order[i];
                             int y = p/4;
                             int x = p%4;
+                            int merge = block_merge_mode && (i & 1);
 
                             camera->iface->screen2world (camera, dir1, x+xstart, y+ystart);
-                            if (mode == VOX_QUALITY_FAST) {
-                                WITH_STAT (old_leaf = leaf);
-                                if (leaf != NULL)
-                                    leaf = vox_ray_tree_intersection (leaf,  origin, dir1, inter1);
-                                if (leaf == NULL) {
-                                    leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
+                            if (!merge) {
+                                if (mode == VOX_QUALITY_FAST) {
+                                    WITH_STAT (old_leaf = leaf);
+                                    if (leaf != NULL)
+                                        leaf = vox_ray_tree_intersection (leaf,  origin, dir1, inter1);
+                                    if (leaf == NULL) {
+                                        leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
 #ifdef STATISTICS
-                                    if (old_leaf != NULL) {
-                                        if (leaf != NULL) VOXRND_LEAF_MISPREDICTION();
-                                        else VOXRND_IGNORED_PREDICTION();
-                                        leafs_changed++;
-                                    }
+                                        if (old_leaf != NULL) {
+                                            if (leaf != NULL) VOXRND_LEAF_MISPREDICTION();
+                                            else VOXRND_IGNORED_PREDICTION();
+                                            leafs_changed++;
+                                        }
 #endif
-                                }
-                            } else leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
+                                    }
+                                } else leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
+                            }
 
                             if (leaf != NULL) {
-                                color = get_color (surface->format, inter1, ctx->mul, ctx->add);
+                                color = (merge)? output[cs][prev_p]: get_color (surface->format, inter1, ctx->mul, ctx->add);
                                 output[cs][p] = color;
                             }
+                            prev_p = p;
                         }
-
                         WITH_STAT (VOXRND_BLOCK_LEAFS_CHANGED (leafs_changed));
                     });
 }
