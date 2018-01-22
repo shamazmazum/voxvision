@@ -11,7 +11,7 @@
  * frame will be rendered slower, and, on the other side, if it was
  * rendered slower than desired, the next will be rendered faster.
  */
-vox_fps_controller_t vox_make_fps_controller (int fps)
+vox_fps_controller_t vox_make_fps_controller (unsigned int fps)
 {
     __block unsigned int counter = 0;
     __block int delay = 0;

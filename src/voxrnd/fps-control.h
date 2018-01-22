@@ -58,7 +58,7 @@ typedef struct vox_fps_info (^vox_fps_controller_t)(void);
    a thread to sleep.
    \return FPS controller status.
 **/
-vox_fps_controller_t vox_make_fps_controller (int fps);
+vox_fps_controller_t vox_make_fps_controller (unsigned int fps);
 
 /**
    \brief Destroy FPS controller created earlier.

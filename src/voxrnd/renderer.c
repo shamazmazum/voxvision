@@ -93,7 +93,7 @@ static void allocate_squares (struct vox_rnd_ctx *ctx)
 }
 
 // FIXME: This may be only temporary solution.
-static int bad_geometry (int width, int height)
+static int bad_geometry (unsigned int width, unsigned int height)
 {
     return (width&0xf) || (height&0x3);
 }
@@ -111,7 +111,7 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
     return ctx;
 }
 
-struct vox_rnd_ctx* vox_make_context_and_window (int width, int height)
+struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height)
 {
     struct vox_rnd_ctx *ctx;
     int bpp;

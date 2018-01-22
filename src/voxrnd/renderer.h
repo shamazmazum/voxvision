@@ -31,7 +31,7 @@ struct vox_rnd_ctx
     vox_dot mul;
     vox_dot add;
     square *square_output;
-    int type, squares_num, ws, hs;
+    unsigned int type, squares_num, ws, hs;
     unsigned int quality;
 };
 #else
@@ -145,7 +145,7 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface);
    NB: width must be multiple of 16 and heigth must be multiple
    of 4. If this does not hold, function silently returns NULL.
 **/
-struct vox_rnd_ctx* vox_make_context_and_window (int width, int height);
+struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height);
 
 /**
    \brief Redraw a window associated with this context.
