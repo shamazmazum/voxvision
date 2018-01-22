@@ -71,7 +71,15 @@ int load_configuration (const char *filename)
         fprintf (stderr, "Wrong quality: %s\n", quality);
         res = -1;
     }
-    global_settings.quality |= iniparser_getint (dict, "Renderer:MergeRays", 0)? VOX_QUALITY_RAY_MERGE: 0;
+
+    const char *ray_merge = iniparser_getstring (dict, "Renderer:MergeRays", "No");
+    if (strcmp (ray_merge, "Fast") == 0) global_settings.quality |= VOX_QUALITY_RAY_MERGE;
+    else if (strcmp (ray_merge, "Accurate") == 0) global_settings.quality |= VOX_QUALITY_RAY_MERGE_ACCURATE;
+    else if (strcmp (ray_merge, "No") == 0) global_settings.quality |= 0;
+    else {
+        fprintf (stderr, "Wrong ray merge mode: %s\n", ray_merge);
+        res = -1;
+    }
 
     iniparser_freedict (dict);
     return res;

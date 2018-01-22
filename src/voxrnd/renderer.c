@@ -176,18 +176,21 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
     color_coeff (scene, ctx->mul, ctx->add);
 }
 
-int vox_context_set_quality (struct vox_rnd_ctx *ctx, int quality)
+int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)
 {
-    if (quality < VOX_QUALITY_MIN || quality > VOX_QUALITY_MAX) return 0;
     /* Ray merge mode check */
-    if ((quality & VOX_QUALITY_RAY_MERGE) &&
+    if ((quality & VOX_QUALITY_RM_MASK) &&
         ((quality & VOX_QUALITY_MODE_MASK) !=
          VOX_QUALITY_ADAPTIVE)) return 0;
-    /* Check if reserved values are not set */
-    if ((quality & VOX_QUALITY_MODE_MASK) ==
-        VOX_QUALITY_MODE_RESERVED) return 0;
-    ctx->quality = quality;
 
+    /* Check if reserved values are not set */
+    if ((quality & VOX_QUALITY_MODE_MASK) >
+        VOX_QUALITY_MODE_MAX) return 0;
+
+    if ((quality & VOX_QUALITY_RM_MASK) >
+        VOX_QUALITY_RM_MAX) return 0;
+
+    ctx->quality = quality;
     return 1;
 }
 
@@ -202,7 +205,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
     int ws = ctx->ws;
     int quality = ctx->quality;
     int rnd_mode = quality & VOX_QUALITY_MODE_MASK;
-    int merge_mode = quality & VOX_QUALITY_RAY_MERGE;
+    int merge_mode = quality & VOX_QUALITY_RM_MASK;
 
     /*
       Render the scene running multiple tasks in parallel. Each task renders a
@@ -236,6 +239,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         int block_merge_mode = 0;
 
                         if (block_rnd_mode == VOX_QUALITY_ADAPTIVE) {
+                            block_merge_mode = (merge_mode == VOX_QUALITY_RAY_MERGE);
                             /*
                              * Here we choose which mode is actually used for rendering a block. To
                              * put it simple: choose upper-left and bottom-right pixels in the
@@ -248,7 +252,6 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             camera->iface->screen2world (camera, dir1, xstart, ystart);
                             corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
                             block_rnd_mode = VOX_QUALITY_FAST;
-                            block_merge_mode = merge_mode;
                             leaf = corner1;
                             if (corner1 != NULL) {
                                 iend = 15;
@@ -268,7 +271,12 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                         block_rnd_mode = VOX_QUALITY_BEST;
                                         WITH_STAT (VOXRND_CANCELED_PREDICTION());
                                     }
-                                    if (d1 < MAX_DIST * MAX_DIST) block_merge_mode = 0;
+
+                                    if (d1 > MAX_DIST * MAX_DIST) {
+                                        block_merge_mode = (block_rnd_mode == VOX_QUALITY_FAST &&
+                                                            merge_mode == VOX_QUALITY_RAY_MERGE_ACCURATE)? 1:
+                                            block_merge_mode;
+                                    } else block_merge_mode = 0;
                                 }
                             }
                         }

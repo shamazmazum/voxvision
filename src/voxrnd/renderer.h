@@ -32,7 +32,7 @@ struct vox_rnd_ctx
     vox_dot add;
     square *square_output;
     int type, squares_num, ws, hs;
-    int quality;
+    unsigned int quality;
 };
 #else
 
@@ -72,7 +72,7 @@ struct vox_rnd_ctx
    This quality setting forces the renderer to perform a full search
    for every rendered pixel starting from root of the tree.
 **/
-#define VOX_QUALITY_BEST 0
+#define VOX_QUALITY_BEST 0b00
 
 /**
    \brief Fast rendering, middle quality.
@@ -82,7 +82,7 @@ struct vox_rnd_ctx
    camera and the tree. This may cause artifacts on edges of rendered
    objects.
 **/
-#define VOX_QUALITY_FAST 1
+#define VOX_QUALITY_FAST 0b01
 
 /**
    \brief Average rendering speed, good quality.
@@ -91,7 +91,7 @@ struct vox_rnd_ctx
    `VOX_QUALITY_FAST` and `VOX_QUALITY_BEST` settings for each block
    of 4x4 pixels.
 **/
-#define VOX_QUALITY_ADAPTIVE 2
+#define VOX_QUALITY_ADAPTIVE 0b10
 
 /**
    \brief Enable ray merging mode.
@@ -100,13 +100,22 @@ struct vox_rnd_ctx
    be merged with a ray from every first if this ray travels a long distance
    from the origin. This mode works ONLY in conjunction with adaptive mode.
 **/
-#define VOX_QUALITY_RAY_MERGE 4
+#define VOX_QUALITY_RAY_MERGE 0b0100
+
+/**
+   \brief Accurate ray merging mode.
+
+   This mode is like standard ray merging mode, but it disables ray merging on
+   edges of objects.
+**/
+#define VOX_QUALITY_RAY_MERGE_ACCURATE 0b1000
 
 #ifdef VOXRND_SOURCE
-#define VOX_QUALITY_MIN 0
-#define VOX_QUALITY_MAX 7
-#define VOX_QUALITY_MODE_RESERVED 3
-#define VOX_QUALITY_MODE_MASK 3
+#define VOX_QUALITY_RM_MASK 0b1100 /* RM stands for Ray Merge */
+#define VOX_QUALITY_RM_MAX 0b1000
+
+#define VOX_QUALITY_MODE_MASK 0b11
+#define VOX_QUALITY_MODE_MAX 0b10
 #endif
 
 /**
@@ -165,7 +174,7 @@ void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
    \return 1 on success, 0 otherwise. Function call is unsuccessfull when
           `quality` parameter is wrong.
 **/
-int vox_context_set_quality (struct vox_rnd_ctx *ctx, int quality);
+int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality);
 
 /**
    \brief Free context after use

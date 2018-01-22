@@ -7,18 +7,31 @@
 static void usage()
 {
     fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] "
-                     "[-q quality] [-m] -s script\n");
+                     "[-q quality] [-m ray-merge-mode] -s script\n");
     fprintf (stderr, "quality = fast | best | adaptive\n");
+    fprintf (stderr, "ray-merge-mode = fast | accurate | no\n");
     exit (EXIT_FAILURE);
 }
 
-static int choose_quality (const char *quality_str)
+static unsigned int choose_quality (const char *quality_str)
 {
-    int quality;
+    unsigned int quality;
 
     if (strcmp (quality_str, "fast") == 0) quality = VOX_QUALITY_FAST;
     else if (strcmp (quality_str, "best") == 0) quality = VOX_QUALITY_BEST;
     else if (strcmp (quality_str, "adaptive") == 0) quality = VOX_QUALITY_ADAPTIVE;
+    else quality = -1;
+
+    return quality;
+}
+
+static unsigned int choose_raymerge (const char *quality_str)
+{
+    unsigned int quality;
+
+    if (strcmp (quality_str, "fast") == 0) quality = VOX_QUALITY_RAY_MERGE;
+    else if (strcmp (quality_str, "accurate") == 0) quality = VOX_QUALITY_RAY_MERGE_ACCURATE;
+    else if (strcmp (quality_str, "no") == 0) quality = 0;
     else quality = -1;
 
     return quality;
@@ -29,10 +42,10 @@ int main (int argc, char *argv[])
     int ch, width = 800, height = 600, fps = 30;
     const char *script = NULL;
     char *endptr;
-    int quality = VOX_QUALITY_ADAPTIVE;
-    int merge_rays = 0;
+    unsigned int quality = VOX_QUALITY_ADAPTIVE;
+    unsigned int merge_rays = 0;
 
-    while ((ch = getopt (argc, argv, "w:h:s:f:q:m")) != -1)
+    while ((ch = getopt (argc, argv, "w:h:s:f:q:m:")) != -1)
     {
         switch (ch)
         {
@@ -55,7 +68,7 @@ int main (int argc, char *argv[])
             quality = choose_quality (optarg);
             break;
         case 'm':
-            merge_rays = 1;
+            merge_rays = choose_raymerge (optarg);
             break;
         default:
             usage();
@@ -74,7 +87,7 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    quality |= (merge_rays)? VOX_QUALITY_RAY_MERGE: 0;
+    quality |= merge_rays;
     if (!vox_context_set_quality (engine->ctx, quality))
         fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
 
