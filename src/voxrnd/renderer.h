@@ -110,11 +110,18 @@ struct vox_rnd_ctx
 **/
 #define VOX_QUALITY_RAY_MERGE_ACCURATE 0b1000
 
-#ifdef VOXRND_SOURCE
+/**
+   \brief Ray merging mode mask.
+**/
 #define VOX_QUALITY_RM_MASK 0b1100 /* RM stands for Ray Merge */
-#define VOX_QUALITY_RM_MAX 0b1000
 
+/**
+   \brief Rendering mode mask.
+**/
 #define VOX_QUALITY_MODE_MASK 0b11
+
+#ifdef VOXRND_SOURCE
+#define VOX_QUALITY_RM_MAX 0b1000
 #define VOX_QUALITY_MODE_MAX 0b10
 #endif
 

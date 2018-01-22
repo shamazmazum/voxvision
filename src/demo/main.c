@@ -210,7 +210,6 @@ int main (int argc, char *argv[])
     }
     vox_context_set_scene (ctx, tree);
     vox_context_set_camera (ctx, camera);
-    vox_context_set_quality (ctx, global_settings.quality);
     cd = vox_make_cd();
     vox_cd_attach_camera (cd, camera, 3);
     vox_cd_attach_context (cd, ctx);
@@ -220,6 +219,8 @@ int main (int argc, char *argv[])
     printf ("Default controls: WASD,1,2 - movement. Arrows,z,x - camera rotation\n");
     printf ("Other keys: q - quit. F11 - take screenshot in the current directory\n");
 
+    unsigned int quality = global_settings.quality;
+    vox_context_set_quality (ctx, quality);
     fps_controller = vox_make_fps_controller (global_settings.fps);
     while (1)
     {
@@ -285,6 +286,49 @@ int main (int argc, char *argv[])
                 {
                     suitable_shot_name (shot_name);
                     SDL_SaveBMP (ctx->surface, shot_name);
+                }
+                else if (event.key.keysym.scancode == SDL_SCANCODE_M) {
+                    unsigned int mode = quality & VOX_QUALITY_MODE_MASK;
+                    const char *msg;
+                    if (mode == VOX_QUALITY_BEST) {
+                        msg = "adaptive";
+                        mode = VOX_QUALITY_ADAPTIVE;
+                    } else if (mode == VOX_QUALITY_ADAPTIVE) {
+                        msg = "fast";
+                        mode = VOX_QUALITY_FAST;
+                    } else {
+                        msg = "best";
+                        mode = VOX_QUALITY_BEST;
+                    }
+
+                    printf ("Changing to %s mode\n", msg);
+                    vox_context_set_quality (ctx, mode);
+                    quality = mode;
+                }
+                else if (event.key.keysym.scancode == SDL_SCANCODE_E) {
+                    unsigned int ray_merge = quality & VOX_QUALITY_RM_MASK;
+                    unsigned int mode = quality & VOX_QUALITY_MODE_MASK;
+
+                    if (mode != VOX_QUALITY_ADAPTIVE) {
+                        printf ("Changing to adaptive mode\n");
+                        mode = VOX_QUALITY_ADAPTIVE;
+                    }
+
+                    const char *msg;
+                    if (ray_merge == 0) {
+                        msg = "accurate";
+                        ray_merge = VOX_QUALITY_RAY_MERGE_ACCURATE;
+                    } else if (ray_merge == VOX_QUALITY_RAY_MERGE_ACCURATE) {
+                        msg = "fast";
+                        ray_merge = VOX_QUALITY_RAY_MERGE;
+                    } else {
+                        msg = "no";
+                        ray_merge = 0;
+                    }
+
+                    quality = mode | ray_merge;
+                    printf ("Changing to %s ray merge mode\n", msg);
+                    vox_context_set_quality (ctx, quality);
                 }
                 break;
             case SDL_QUIT:
