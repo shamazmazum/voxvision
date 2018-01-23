@@ -61,10 +61,17 @@ struct scene_proxydata
     dispatch_queue_t scene_sync_queue;
 };
 
+struct context_data
+{
+    struct vox_rnd_ctx *context;
+    dispatch_queue_t rendering_queue;
+};
+
 #define TREE_META "voxtrees.vox_node"
 #define DOTSET_META "voxtrees.dotset"
 #define CAMERA_META "voxrnd.camera"
 #define CD_META "voxrnd.cd"
 #define SCENE_PROXY_META "voxrnd.scene_proxy"
+#define CONTEXT_META "voxrnd.context"
 
 #endif

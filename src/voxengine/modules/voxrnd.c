@@ -4,6 +4,7 @@
 #include <voxrnd.h>
 #include <voxtrees.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../modules.h"
 
 static int get_position (lua_State *L)
@@ -182,6 +183,18 @@ static int cd_attach_camera (lua_State *L)
     return 0;
 }
 
+static int cd_attach_context (lua_State *L)
+{
+    struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
+    struct context_data *ctx = luaL_checkudata (L, 2, CONTEXT_META);
+
+    vox_cd_attach_context (*cd, ctx->context);
+    lua_pushvalue (L, 1);
+    lua_setfield (L, 2, "cd");
+
+    return 0;
+}
+
 static int cd_gravity (lua_State *L)
 {
     struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
@@ -193,10 +206,20 @@ static int cd_gravity (lua_State *L)
     return 0;
 }
 
+static int cd_collide (lua_State *L)
+{
+    struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
+
+    vox_cd_collide (*cd);
+    return 0;
+}
+
 static const struct luaL_Reg cd_methods [] = {
     {"__gc", destroycd},
     {"__tostring", printcd},
     {"attach_camera", cd_attach_camera},
+    {"attach_context", cd_attach_context},
+    {"collide", cd_collide},
     {"gravity", cd_gravity},
     {NULL, NULL}
 };
@@ -204,7 +227,7 @@ static const struct luaL_Reg cd_methods [] = {
 static int l_scene_proxy (lua_State *L)
 {
     /*
-     * Because this object is associated engine-global context, it's a good idea
+     * Because this object is associated with engine-global context, it's a good idea
      * to implement it like a singleton.
      */
     struct vox_node **ndata = luaL_checkudata (L, 1, TREE_META);
@@ -382,6 +405,70 @@ static const struct luaL_Reg scene_proxy_methods [] = {
     {NULL, NULL}
 };
 
+static int l_context_tostring (lua_State *L)
+{
+    lua_pushstring (L, "<renderer context>");
+    return 1;
+}
+
+static int l_context_destroy (lua_State *L)
+{
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+
+    vox_destroy_context (data->context);
+    return 0;
+}
+
+static int l_context_geometry (lua_State *L)
+{
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+    struct vox_rnd_ctx *ctx = data->context;
+
+    lua_pushinteger (L, ctx->surface->w);
+    lua_pushinteger (L, ctx->surface->h);
+    return 2;
+}
+
+static int l_context_newindex (lua_State *L)
+{
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+    struct vox_rnd_ctx *ctx = data->context;
+    const char *field = luaL_checkstring (L, 2);
+
+    luaL_getmetatable (L, CONTEXT_META);
+    if (strcmp (field, "tree") == 0) {
+        /* FIXME: I need to use GCD sync to properly change a tree here */
+        struct scene_proxydata *pdata = luaL_checkudata (L, 3, SCENE_PROXY_META);
+        pdata->context = ctx;
+        vox_context_set_scene (ctx, pdata->tree);
+        data->rendering_queue = pdata->scene_sync_queue;
+
+        lua_pushvalue (L, 3);
+        lua_setfield (L, -2, "tree");
+    } else if (strcmp (field, "camera") == 0) {
+        struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
+        vox_context_set_camera (ctx, cdata->camera);
+
+        lua_pushvalue (L, 3);
+        lua_setfield (L, -2, "camera");
+    } else if (strcmp (field, "cd") == 0) {
+        luaL_checkudata (L, 3, CD_META);
+
+        lua_pushvalue (L, 3);
+        lua_setfield (L, -2, "cd");
+    } else luaL_error (L, "Cannot set %s field of the context", field);
+
+    return 0;
+}
+
+static const struct luaL_Reg context_methods [] = {
+    {"__tostring", l_context_tostring},
+    {"__gc", l_context_destroy},
+    {"__newindex", l_context_newindex},
+    {"get_geometry", l_context_geometry},
+    {NULL, NULL}
+};
+
 static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
@@ -405,6 +492,11 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, scene_proxy_methods, 0);
+
+    luaL_newmetatable(L, CONTEXT_META);
+    lua_pushvalue (L, -1);
+    lua_setfield (L, -2, "__index");
+    luaL_setfuncs (L, context_methods, 0);
 
     luaL_newlib (L, voxrnd);
     return 1;

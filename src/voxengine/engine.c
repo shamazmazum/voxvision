@@ -86,25 +86,6 @@ static void prepare_safe_environment (lua_State *L)
 #include <safe_environment.h>
 }
 
-static int l_get_geometry (lua_State *L)
-{
-    lua_pushlightuserdata (L, &engine_key);
-    lua_gettable (L, LUA_REGISTRYINDEX);
-    struct vox_engine **data = lua_touserdata (L, -1);
-    struct vox_engine *engine = *data;
-
-    lua_pushinteger (L, engine->width);
-    lua_pushinteger (L, engine->height);
-
-    return 2;
-}
-
-static int l_write_protect (lua_State *L)
-{
-    luaL_error (L, "Table %p is write protected", lua_topointer (L, 1));
-    return 0;
-}
-
 static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
@@ -131,10 +112,6 @@ static void initialize_lua (struct vox_engine *engine)
     // Also add some safe functions
     prepare_safe_environment (L);
 
-    // Add some core functions
-    lua_pushcfunction (L, l_get_geometry);
-    lua_setfield (L, -2, "get_geometry");
-
     // And load lua modules
     load_lua_module (L, "voxutils");
 
@@ -143,91 +120,44 @@ static void initialize_lua (struct vox_engine *engine)
     assert (lua_gettop (engine->L) == 0);
 }
 
-static int execute_init_early (struct vox_engine *engine)
+static int execute_init (struct vox_engine *engine)
 {
     lua_State *L = engine->L;
 
     lua_getglobal (L, "voxvision");
     lua_getfield (L, -1, "init");
-    lua_remove (L, 1);
+    lua_remove (L, -2);
 
-    if (!lua_isfunction (L, 1))
+    if (!lua_isfunction (L, -1))
         luaL_error (L, "init is not a function: %s", lua_tostring (L, -1));
 
     set_safe_environment (L);
 
-    if (lua_pcall (L, 0, 1, 0))
+    // Context is on top of the stack
+    lua_pushvalue (L, 1);
+    if (lua_pcall (L, 1, 1, 0))
         luaL_error (L, "Error executing init function: %s", lua_tostring (L, -1));
 
-    // Check that we have only the one return value on the stack
+    int status = lua_isnil (L, -1);
+    lua_pop (L, 1);
+
+    // Check that we have only the context on the stack
     assert (lua_gettop (engine->L) == 1);
+
+    /* Copy context group. */
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+    engine->rendering_queue = data->rendering_queue;
+
+    /* Check that we have the world properly set up */
+    if (data->context->scene == NULL ||
+        data->context->camera == NULL)
+        luaL_error (L, "World is not properly set up");
 
     /*
      * Did the engine was created only for debugging purposes?
      * If the answer is yes, init() must return nil.
      */
-    return lua_isnil (L, 1);
-}
-
-static void execute_init_late (struct vox_engine *engine)
-{
-    lua_State *L = engine->L;
-
-    lua_getfield (L, 1, "tree");
-    lua_getfield (L, 1, "camera");
-    lua_getfield (L, 1, "cd");
-
-    struct vox_node *tree;
-    struct vox_camera *camera;
-    /*
-     * "tree" field can contain the tree itself, or a thread-safe proxy. The
-     * latter can be used to perform insert, delete and rebuild calls in the
-     * tick() function in a thread-safe manner.
-     */
-    struct scene_proxydata *scene = luaL_testudata (L, 2, SCENE_PROXY_META);
-    struct vox_node **ndata;
-    if (scene != NULL) {
-        tree = scene->tree;
-        engine->rendering_queue = scene->scene_sync_queue;
-        scene->context = engine->ctx;
-    } else {
-        ndata = luaL_checkudata (L, 2, TREE_META);
-        tree = *ndata;
-    }
-
-    struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
-    camera = cdata->camera;
-
-    struct vox_cd **cd;
-    if (!lua_isnil (L, 4)) {
-        cd = luaL_checkudata (L, 4, CD_META);
-        engine->cd = *cd;
-    }
-
-    /* Remove tree, camera and cd from the stack */
-    lua_pop (L, 3);
-
-    /* Set write protection on the world table. */
-    lua_newtable (L);
-    lua_pushcfunction (L, l_write_protect);
-    lua_setfield (L, -2, "__newindex");
-
-    /* Push the world table. */
-    lua_pushvalue (L, -2);
-    lua_setfield (L, -2, "__index");
-
-    /* Set metatable on a proxy table. */
-    lua_pushvalue (L, -1);
-    lua_setmetatable (L, -2);
-    /* Remove the world from the stack, leaving a proxy table. */
-    lua_remove (L, 1);
-
-    vox_context_set_scene (engine->ctx, tree);
-    vox_context_set_camera (engine->ctx, camera);
-    if (engine->cd != NULL) vox_cd_attach_context (engine->cd, engine->ctx);
-
-    // Check that we have only the world table on the stack
-    assert (lua_gettop (engine->L) == 1);
+    return status;
 }
 
 static void engine_load_script (struct vox_engine *engine, const char *script)
@@ -334,10 +264,6 @@ struct vox_engine* vox_create_engine (int width, int height, const char *script,
     initialize_lua (engine);
     initialize_arguments (engine, nargs, arguments);
     engine_load_script (engine, script);
-    if (execute_init_early (engine)) {
-        // Was called only for debugging
-        goto bad;
-    }
 
     // Init SDL
     if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
@@ -352,8 +278,17 @@ struct vox_engine* vox_create_engine (int width, int height, const char *script,
         fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
         goto bad;
     }
-    // execute_init_late() needs context to be created
-    execute_init_late (engine);
+
+    // Create context on top of lua stack
+    struct context_data *data = lua_newuserdata (engine->L, sizeof (struct context_data));
+    luaL_getmetatable (engine->L, CONTEXT_META);
+    lua_setmetatable (engine->L, -2);
+    data->context = engine->ctx;
+
+    if (execute_init (engine)) {
+        // Was called only for debugging
+        goto bad;
+    }
 
     return engine;
 
@@ -371,16 +306,12 @@ vox_engine_status vox_engine_tick (struct vox_engine *engine)
      * operation to that queue and wait for its completion. This will assure us
      * that the tree is in consistent state while the rendering is performed.
      */
-    if (engine->rendering_queue != NULL) {
-        dispatch_sync (engine->rendering_queue, ^{
-                vox_render (engine->ctx);
-            });
-    }
-    else vox_render (engine->ctx);
+    dispatch_sync (engine->rendering_queue, ^{
+            vox_render (engine->ctx);
+        });
     vox_redraw (engine->ctx);
 
     res = execute_tick (engine);
-    if (engine->cd != NULL) vox_cd_collide (engine->cd);
     assert (lua_gettop (engine->L) == 1);
     return res;
 }
@@ -388,7 +319,6 @@ vox_engine_status vox_engine_tick (struct vox_engine *engine)
 void vox_destroy_engine (struct vox_engine *engine)
 {
     if (engine->L != NULL) lua_close (engine->L);
-    if (engine->ctx != NULL) vox_destroy_context (engine->ctx);
     if (SDL_WasInit(0)) SDL_Quit();
     free (engine);
 }
