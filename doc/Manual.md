@@ -285,6 +285,36 @@ All these modes are selected using `vox_context_set_quality()` function which
 you can call anytime between two `vox_render()` calls. The defalut mode is
 *adaptive*.
 
+### Ray merging
+Reusing a leaf obtained from a previous step works best when you are close
+enough to some object, so all rays belonging to one block hit voxels belonging
+to one leaf in the tree. On long distances from the camera's origin there is
+another optimization called *ray merging* which works in conjunction with
+adaptive rendering mode. In this mode, when its likely that a ray belonging to
+every second column on the screen will travel a long way from the camera, it is
+simply merged with corresponding ray from every first column. Merging means that
+no search is performed for a merged ray and two subsequent pixels on the screen
+will have the same value. This is illustrated on the picture below. On this
+picture, for example, the second ray (from the left) is merged with the first
+when it's likely that it will travel a long distance (merging is shown with dash
+line). Note, that my renderer has no means to determine actuall distance
+traveled by a ray (all rays are of infinite length, so it's a ray in
+mathematical sence, not just a line segment), but can predict more or less
+precisely the distance between the camera and an intersection with the tree for
+rays in a block. So the decision to merge or not to merge is evaluted on
+per-block basis, not for every ray individually.
+![Ray merging scheme](ray-merge.png)
+
+There are two modes of ray merging: *fast* and *accurate*. *Fast* means that ray
+merging is performed for those blocks which have long distances between the
+camera origin and intersections with the tree. *Accurate* mode disables ray
+merging on edges of objects and some other problematic zones. Here is a
+demonstration (here, merged rays produce blue dots for clarity).
+![Fast ray merging (left) vs accurate ray merging (right)](ray-merge-example.png)
+You can enable ray merging with `vox_context_set_quality()` OR'ing
+`VOX_QUALITY_ADAPTIVE` with either `VOX_QUALITY_RAY_MERGE` or
+`VOX_QUALITY_RAY_MERGE_ACCURATE`.
+
 ### Cameras
 Let's talk more about cameras and their interfaces. There are few structures to work
 with cameras. The first is `struct vox_camera`. It is a generic camera class. All

@@ -5,7 +5,7 @@ Hard and medium changes:
    see voxtrees-ng branch).
    1.1 Rewrite insertion/deletion and search algorithms.
 2. Level of details. Maybe do not render those voxels which are only a few pixels in width.
-   2.1 Or another idea: drop some rays (say 1 of 2) if they travel a long way from origin.
+   2.1 Or another idea: drop some rays (say 1 of 2) if they travel a long way from origin. (DONE: 23 jan 2018)
 3. Render image with 4x4 squares. Exploit "locality" in each square. (DONE: September 2017)
    3.1 Do something with possible quality degradation. (DONE: 08 Jan 2018, but some improvements can
    be made to adaptive mode).
