@@ -1,5 +1,7 @@
--- This example explains how to modify the tree "online", i.e. when the render
--- is working.
+--[[
+   This example explains how to modify the tree "online", i.e. when the renderer
+   is working.
+]]--
 
 -- Shortcuts as always
 vt = voxtrees
@@ -9,11 +11,13 @@ vs = voxsdl
 -- Create an empty table which will help us to track created voxels
 n = {}
 
-function init ()
+function init (ctx)
    -- An empty tree
    local tree = vt.tree()
-   -- "Doom" camera is just like in the good old Doom. It's a little faster then
-   -- simple-camera   
+   --[[
+      "Doom" camera is just like one in the good old Doom. It's a little faster than
+      simple-camera.
+   ]]--
    local camera = vr.camera "doom-camera"
    camera:set_position {50, -50, -20}
 
@@ -23,9 +27,9 @@ function init ()
       n[i] = {}
    end
 
-   -- Here we return not a tree, but a so-called scene proxy. It replaces
-   -- dangerous calls like rebuild or insert with thread-safe equivalents.
-   return {tree = vr.scene_proxy (tree), camera = camera}
+   ctx.tree = tree
+   ctx.camera = camera
+   return true
 end
 
 function tick (world, time)

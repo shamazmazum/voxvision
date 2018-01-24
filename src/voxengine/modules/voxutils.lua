@@ -36,7 +36,7 @@ function process_keyboard_movement (world, keystate, mdelta, controls)
       camera:move_camera {0,0,-mdelta}
    end
 
-   cd:collide()
+   if cd then cd:collide() end
 end
 
 return voxutils

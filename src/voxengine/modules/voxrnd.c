@@ -224,63 +224,6 @@ static const struct luaL_Reg cd_methods [] = {
     {NULL, NULL}
 };
 
-static int l_scene_proxy (lua_State *L)
-{
-    /*
-     * Because this object is associated with engine-global context, it's a good idea
-     * to implement it like a singleton.
-     */
-    struct vox_node **ndata = luaL_checkudata (L, 1, TREE_META);
-    luaL_getmetatable (L, SCENE_PROXY_META);
-    lua_getfield (L, -1, "__self");
-    struct scene_proxydata *data = luaL_testudata (L, -1, SCENE_PROXY_META);
-    if (data != NULL) {
-        /* The object is already created, just set a new tree. */
-        data->tree = *ndata;
-
-        /* Updata lua reference */
-        lua_pushvalue (L, 1);
-        lua_setfield (L, -3, "__tree");
-    } else {
-        /* Pop __self */
-        lua_pop (L, 1);
-        data = lua_newuserdata (L, sizeof (struct scene_proxydata));
-        /* Copy metatable */
-        lua_pushvalue (L, -2);
-        lua_setmetatable (L, -2);
-
-        /*
-         * Fill C-side internal fields.
-         */
-        data->tree = *ndata;
-        data->scene_group = dispatch_group_create ();
-        data->scene_sync_queue = dispatch_queue_create ("scene operations", 0);
-
-        /*
-         * Store reference to the tree in the proxy's metatable to prevent GC from
-         * destroying it.
-         */
-
-        /* Copy tree */
-        lua_pushvalue (L, 1);
-        lua_setfield (L, -3, "__tree");
-
-        /* Copy self */
-        lua_pushvalue (L, -1);
-        lua_setfield (L, -3, "__self");
-    }
-    return 1;
-}
-
-static int l_scene_proxy_destroy (lua_State *L)
-{
-    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
-    dispatch_release (data->scene_sync_queue);
-    dispatch_release (data->scene_group);
-
-    return 0;
-}
-
 static int l_scene_proxy_tostring (lua_State *L)
 {
     lua_pushfstring (L, "<async scene proxy %p>", lua_topointer (L, 1));
@@ -397,7 +340,6 @@ static int l_scene_proxy_ray_intersection (lua_State *L)
  */
 static const struct luaL_Reg scene_proxy_methods [] = {
     {"__tostring", l_scene_proxy_tostring},
-    {"__gc", l_scene_proxy_destroy},
     {"rebuild", l_scene_proxy_rebuild},
     {"insert", l_scene_proxy_insert},
     {"delete", l_scene_proxy_delete},
@@ -415,6 +357,8 @@ static int l_context_destroy (lua_State *L)
 {
     struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
 
+    dispatch_release (data->rendering_queue);
+    dispatch_release (data->rendering_group);
     vox_destroy_context (data->context);
     return 0;
 }
@@ -438,12 +382,21 @@ static int l_context_newindex (lua_State *L)
     luaL_getmetatable (L, CONTEXT_META);
     if (strcmp (field, "tree") == 0) {
         /* FIXME: I need to use GCD sync to properly change a tree here */
-        struct scene_proxydata *pdata = luaL_checkudata (L, 3, SCENE_PROXY_META);
-        pdata->context = ctx;
-        vox_context_set_scene (ctx, pdata->tree);
-        data->rendering_queue = pdata->scene_sync_queue;
+        struct vox_node **ndata = luaL_checkudata (L, 3, TREE_META);
+        struct vox_node *scene = *ndata;
 
+        /* Provide access to the tree via asyncronous proxy */
+        struct scene_proxydata *pdata = lua_newuserdata (L, sizeof (struct scene_proxydata));
+        luaL_getmetatable (L, SCENE_PROXY_META);
         lua_pushvalue (L, 3);
+        lua_setfield (L, -2, "__tree"); // To prevent gc'ing
+        lua_setmetatable (L, -2);
+        pdata->tree = scene;
+        pdata->context = ctx;
+        pdata->scene_group = data->rendering_group;
+        pdata->scene_sync_queue = data->rendering_queue;
+        vox_context_set_scene (ctx, pdata->tree);
+
         lua_setfield (L, -2, "tree");
     } else if (strcmp (field, "camera") == 0) {
         struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
@@ -472,7 +425,6 @@ static const struct luaL_Reg context_methods [] = {
 static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
-    {"scene_proxy", l_scene_proxy},
     {NULL, NULL}
 };
 

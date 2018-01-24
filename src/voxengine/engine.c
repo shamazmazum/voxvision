@@ -139,19 +139,23 @@ static int execute_init (struct vox_engine *engine)
         luaL_error (L, "Error executing init function: %s", lua_tostring (L, -1));
 
     int status = lua_isnil (L, -1);
-    lua_pop (L, 1);
-
-    // Check that we have only the context on the stack
-    assert (lua_gettop (engine->L) == 1);
 
     /* Copy context group. */
     struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
     engine->rendering_queue = data->rendering_queue;
 
     /* Check that we have the world properly set up */
-    if (data->context->scene == NULL ||
-        data->context->camera == NULL)
+    lua_getfield (L, 1, "tree");
+    lua_getfield (L, 1, "camera");
+
+    if (luaL_testudata (L, -2, SCENE_PROXY_META) == NULL ||
+        luaL_testudata (L, -1, CAMERA_META) == NULL)
         luaL_error (L, "World is not properly set up");
+
+    lua_pop (L, 3);
+
+    // Check that we have only the context on the stack
+    assert (lua_gettop (engine->L) == 1);
 
     /*
      * Did the engine was created only for debugging purposes?
@@ -245,6 +249,20 @@ void initialize_arguments (const struct vox_engine *engine,
     assert (lua_gettop (L) == 0);
 }
 
+/* Lua-side of rendering context */
+static void create_lua_context (struct vox_engine *engine)
+{
+    lua_State *L = engine->L;
+
+    struct context_data *data = lua_newuserdata (L, sizeof (struct context_data));
+    luaL_getmetatable (L, CONTEXT_META);
+    lua_setmetatable (L, -2);
+    data->context = engine->ctx;
+
+    data->rendering_group = dispatch_group_create ();
+    data->rendering_queue = dispatch_queue_create ("scene operations", 0);
+}
+
 struct vox_engine* vox_create_engine (int width, int height, const char *script,
                                       int nargs, char * const arguments[])
 {
@@ -280,10 +298,7 @@ struct vox_engine* vox_create_engine (int width, int height, const char *script,
     }
 
     // Create context on top of lua stack
-    struct context_data *data = lua_newuserdata (engine->L, sizeof (struct context_data));
-    luaL_getmetatable (engine->L, CONTEXT_META);
-    lua_setmetatable (engine->L, -2);
-    data->context = engine->ctx;
+    create_lua_context (engine);
 
     if (execute_init (engine)) {
         // Was called only for debugging

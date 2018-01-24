@@ -2,7 +2,7 @@ vt = voxtrees
 vr = voxrnd
 vs = voxsdl
 
-function init ()
+function init (ctx)
    local test = function (sample) return sample > 40 end
    -- Build tree from a raw file 'skull.dat' in voxvision's system-wide data directory
    -- 'skull.dat' is provided as an example.
@@ -12,7 +12,11 @@ function init ()
    local camera = vr.camera "simple-camera"
    camera:set_position {100,60,-100}
    camera:set_rot_angles {1.4, 0, 0}
-   return {tree = tree, camera = camera}
+
+   ctx.tree = tree
+   ctx.camera = camera
+
+   return true
 end
 
 function tick (world, time)

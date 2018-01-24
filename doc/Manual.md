@@ -490,15 +490,17 @@ includes (but is not limited to):
 You can get the full list of available functions/tables/variables if you look at
 `src/voxengine/genenvironment.py` and `src/voxengine/engine.c` files.
 
-`init` function takes no arguments and must return a table. The table is your "world". It
-must contain a tree to render and a camera to see through. Let's see an example:
+`init` function takes a *renderer context* as a single argument and must return
+true (if it returns nil, the engine will be stopped after returning from `init`,
+it's sometimes useful for debugging). The `init` function must set up your
+world, i.e. add at least a camera and a tree to it. Let's see an example:
 
 ~~~~~~~~~~~~~~~{.lua}
 vt = voxtrees
 vr = voxrnd
 vs = voxsdl
 
-function init ()
+function init (ctx)
    -- Set voxel size
    vt.voxelsize {0.25, 0.25, 0.25}
    -- Create a set for up to 50*50*50 dots
@@ -522,8 +524,12 @@ function init ()
    camera:set_position {25,-100,25}
    camera:look_at {25,25,25}
    camera:set_fov (0.45)
-   -- You must return at least 2 values in table from init: a tree and a camera
-   return {tree = t, camera = camera}
+
+   -- Populate the context
+   ctx.tree = t
+   ctx.camera = camera
+
+   return true
 end
 
 function tick (world, time)
@@ -563,7 +569,7 @@ vt = voxtrees
 vr = voxrnd
 vs = voxsdl
 
-function init ()
+function init (ctx)
    -- You can also create an empty tree
    local t = vt.tree()
    -- And add a voxel to it
@@ -572,16 +578,17 @@ function init ()
    local camera = vr.camera "simple-camera"
    camera:set_position {0,-10,0}
 
-   --[[
-        Here is a collision detector.
-        Its interface is like its C equivalent, only it lacks attach_context() method.
-        Context which contains returned tree is attached by the engine automatically
-   ]]--
+   -- Here is a collision detector. Its interface is like its C equivalent
    local cd = vr.cd()
    cd:attach_camera (camera, 4)
+   cd:attach_context (ctx)
 
-   -- Collision detector is returned in 'cd' field
-   return {tree = t, camera = camera, cd = cd}
+   ctx.tree = t
+   ctx.camera = camera
+   -- You need also to keep a reference to collision detector in the context.
+   ctx.cd = cd
+
+   return true
 end
 
 function tick (world, time)
@@ -626,6 +633,9 @@ function tick (world, time)
       camera:rotate_camera {0.05,0,0}
    end
 
+   -- Check for collisions
+   world.cd:collide ()
+
    return true
 end
 ~~~~~~~~~~~~~~~
@@ -635,20 +645,6 @@ end
 data files, using `vox_read_raw_data()` from **voxtrees**. Please look at lua
 scripts in `example` directory. All memory required for such objects as trees,
 dotsets etc. is handeled by lua automatically.
-
-**NB:** If you wish to modify your tree in `tick()` function in any way, please
-  wrap the tree in `voxrnd.scene_proxy()` in init function like so:
-  ~~~~~~~~~~~~~~~{.lua}
-  function init ()
-      local tree = voxtrees.tree()
-      .....
-      return {tree = voxrnd.scene_proxy (tree), ...} -- Not just "tree = tree"
-  end
-  ~~~~~~~~~~~~~~~
-  Then in `tick()` function you may alter the tree by `world.tree:insert()` or
-  `world.tree:delete()` as usual. `voxrnd.scene_proxy()` provides all necessary
-  synchronization between the renderer and insertion/deletion/rebuilding
-  operations.
 
 Demo application
 ----------------

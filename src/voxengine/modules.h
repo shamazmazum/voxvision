@@ -64,6 +64,7 @@ struct scene_proxydata
 struct context_data
 {
     struct vox_rnd_ctx *context;
+    dispatch_group_t rendering_group;
     dispatch_queue_t rendering_queue;
 };
 

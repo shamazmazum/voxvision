@@ -2,11 +2,12 @@ vt = voxtrees
 vr = voxrnd
 vs = voxsdl
 
-function init ()
+function init (ctx)
    -- Build tree from a raw file 'skull.dat' in voxvision's system-wide data directory
    -- 'skull.dat' is provided as an example.
    -- read_raw_data_ranged() is like faster read_raw_data() with test function checking
    -- min <= sample < max (in current example sample >= 40)
+   print (ctx:get_geometry())
    local tree = vt.read_raw_data_ranged (vt.find_data_file "skull.dat", {256,256,256}, 1, 40)
    print (#tree)
 
@@ -14,13 +15,17 @@ function init ()
    camera:set_position {100,60,-100}
    camera:set_rot_angles {1.4, 0, 0}
 
-   -- Also attach camera to collision detector
+   -- Also create a collision detector
    local cd = vr.cd()
-   -- 4 is camera's body radius
+   -- Attach the context and your camera. 4 is the camera's body radius
    cd:attach_camera (camera, 4)
+   cd:attach_context (ctx)
 
-   -- Do not forget to specify collision detector in the world table
-   return {tree = tree, camera = camera, cd = cd}
+   -- Do not forget to add collision detector to the context to prevent GC'ing.
+   ctx.tree = tree
+   ctx.camera = camera
+   ctx.cd = cd
+   return true
 end
 
 function tick (world, time)
@@ -43,13 +48,14 @@ function tick (world, time)
       This is as in previous example. 'voxutils' table has a function
       process_keyboard_movement to process basic keyboard movement in one line
       of code. It can be called so:
-      process_keyboard_movement (keystate, camera, mdelta, controls).
+      process_keyboard_movement (context, keystate, mdelta, controls).
       mdelta is delta for move_camera method. Control keys can be redefined in
-      'controls' table (see source code).
+      'controls' table (see source code). Also it calls world.cd:collide() after
+      the camera was moved.
    ]]--
 
    -- Also 'framedelta' contains time in milliseconds taken to render previous frame
-   voxutils.process_keyboard_movement (keystate, world.camera, 0.25*framedelta)
+   voxutils.process_keyboard_movement (world, keystate, 0.25*framedelta)
 
    -- This is how mouse movement is handeled
    local mask, x, y = vs.getRelativeMouseState()

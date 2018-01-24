@@ -2,7 +2,7 @@ vt = voxtrees
 vr = voxrnd
 vs = voxsdl
 
-function init ()
+function init (ctx)
    -- Set voxel size
    vt.voxelsize {0.125, 0.125, 0.125}
    -- Create a set for up to 50*50*50 dots
@@ -41,11 +41,10 @@ function init ()
    camera:look_at {25,25,25}
    camera:set_fov (0.45)
 
-   --[[
-      You must return 2 values from init: a tree and a camera. They must be put
-      in a table, which is called the world table.
-   --]]
-   return {tree = t, camera = camera}
+   -- You must add at leat two elements to the context: a tree and a camera.
+   ctx.tree = t
+   ctx.camera = camera
+   return true
 end
 
 function tick (world, time)
@@ -58,10 +57,10 @@ function tick (world, time)
          quit = true
       end
    end
-   -- Call request_quit when you wish to shut down the engine
+   -- Return false when you wish to shut down the engine or true otherwise
    if quit then return false end
 
-   -- You can rotate camera or modify tree in tick() function
+   -- You can rotate the camera or modify the tree in tick() function
    local camera = world.camera
    time = time / 2000
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
