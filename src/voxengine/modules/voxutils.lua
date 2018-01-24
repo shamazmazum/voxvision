@@ -1,5 +1,7 @@
 local voxutils = {}
 local scancodes = voxvision.voxsdl.scancode
+local format = string.format
+local print = print
 _ENV = voxutils
 
 default_controls = {
@@ -37,6 +39,30 @@ function process_keyboard_movement (world, keystate, mdelta, controls)
    end
 
    if cd then cd:collide() end
+end
+
+rendering_modes = {"best", "adaptive", "fast"}
+function next_rendering_mode (context)
+   current_rendering_mode = current_rendering_mode or 1
+   local mode = rendering_modes[current_rendering_mode]
+   print (format ("Setting %s rendering mode", mode))
+   context:rendering_mode (mode)
+   current_rendering_mode = current_rendering_mode + 1
+   if (current_rendering_mode > #rendering_modes) then
+      current_rendering_mode = 1
+   end
+end
+
+ray_merge_modes = {"no", "accurate", "fast"}
+function next_ray_merge_mode (context)
+   current_rm_mode = current_rm_mode or 1
+   local mode = ray_merge_modes [current_rm_mode]
+   context:ray_merge_mode (mode)
+   print (format ("Setting %s ray merge mode", mode))
+   current_rm_mode = current_rm_mode + 1
+   if (current_rm_mode > #ray_merge_modes) then
+      current_rm_mode = 1
+   end
 end
 
 return voxutils

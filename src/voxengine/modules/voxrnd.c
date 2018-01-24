@@ -414,11 +414,55 @@ static int l_context_newindex (lua_State *L)
     return 0;
 }
 
+static int l_context_rendering_mode (lua_State *L)
+{
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+    const char *mode = luaL_checkstring (L, 2);
+    struct vox_rnd_ctx *ctx = data->context;
+    unsigned int quality = 0;
+    int res = 1;
+
+    if (strcmp (mode, "best") == 0)
+        quality = VOX_QUALITY_BEST;
+    else if (strcmp (mode, "adaptive") == 0)
+        quality = VOX_QUALITY_ADAPTIVE;
+    else if (strcmp (mode, "fast") == 0)
+        quality = VOX_QUALITY_FAST;
+    else res = 0;
+
+    if (res) vox_context_set_quality (ctx, quality);
+    lua_pushboolean (L, res);
+    return 1;
+}
+
+static int l_context_ray_merge_mode (lua_State *L)
+{
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+    const char *mode = luaL_checkstring (L, 2);
+    struct vox_rnd_ctx *ctx = data->context;
+    unsigned int quality = VOX_QUALITY_ADAPTIVE;
+    int res = 1;
+
+    if (strcmp (mode, "no") == 0)
+        quality |= 0;
+    else if (strcmp (mode, "accurate") == 0)
+        quality |= VOX_QUALITY_RAY_MERGE_ACCURATE;
+    else if (strcmp (mode, "fast") == 0)
+        quality |= VOX_QUALITY_RAY_MERGE;
+    else res = 0;
+
+    if (res) vox_context_set_quality (ctx, quality);
+    lua_pushboolean (L, res);
+    return 1;
+}
+
 static const struct luaL_Reg context_methods [] = {
     {"__tostring", l_context_tostring},
     {"__gc", l_context_destroy},
     {"__newindex", l_context_newindex},
     {"get_geometry", l_context_geometry},
+    {"rendering_mode", l_context_rendering_mode},
+    {"ray_merge_mode", l_context_ray_merge_mode},
     {NULL, NULL}
 };
 
