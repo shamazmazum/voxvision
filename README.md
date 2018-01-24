@@ -86,3 +86,9 @@ Last step is optional. Also you can add `-DSSE_INTRIN=OFF` to the third line if
 you have old hardware. If you do not have GCD, add `-DWITH_GCD=OFF`.
 
 For more info visit [the project page](http://shamazmazum.github.io/voxvision)
+
+Special thanks
+--------------
+
+I want to thank Tangent128 for his luasdl2, lua binding to SDL2 which I currently
+use.
