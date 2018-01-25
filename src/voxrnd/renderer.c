@@ -31,8 +31,8 @@ static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
         vox_bounding_box (tree, &bb);
         __v4sf min = _mm_load_ps (bb.min);
         __v4sf max = _mm_load_ps (bb.max);
-        __v4sf m = _mm_set_ps1 (255.0) / (max - min);
-        __v4sf a = _mm_set_ps1 (255.0) * min / (min - max);
+        __v4sf m = _mm_rcp_ps (max - min);
+        __v4sf a = min / (min - max);
         _mm_store_ps (mul, m);
         _mm_store_ps (add, a);
     }
@@ -43,7 +43,15 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, vox_dot mul, vo
     assert (format->format == SDL_PIXELFORMAT_ARGB8888);
     __v4sf m = _mm_load_ps (mul);
     __v4sf a = _mm_load_ps (add);
-    __v4sf color = _mm_load_ps (inter) * m + a;
+    __v4sf i = _mm_load_ps (inter);
+
+    __v4sf color1 = i * m + a;
+    __v4sf color2 = color1 + _mm_set_ps1 (0.05);
+    __v4sf voxel = _mm_load_ps (vox_voxel);
+    __v4sf aligned = voxel * _mm_floor_ps (i / voxel);
+    __v4sf color = _mm_blendv_ps (color1, color2, i == aligned);
+    color = _mm_set1_ps (255) * _mm_min_ps (color, _mm_set1_ps (1.0));
+
     __m128i icol = _mm_cvtps_epi32 (color);
     __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
                                  0x80, 0x80, 0x80, 0x80, 0x80,    0,    4,    8);
