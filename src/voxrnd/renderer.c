@@ -11,6 +11,11 @@
 #include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
 
+struct vox_draw {
+    vox_dot mul;
+    vox_dot add;
+};
+
 /*
  * Pixels on the screen are rendered by 4x4 blocks. In case you use GCD, each
  * block is scheduled to a separate CPU core. Inside each block the rendering is
@@ -23,7 +28,7 @@ static int rendering_order[] = {
 };
 
 #ifdef SSE_INTRIN
-static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
+static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
 {
     struct vox_box bb;
 
@@ -33,16 +38,19 @@ static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
         __v4sf max = _mm_load_ps (bb.max);
         __v4sf m = _mm_rcp_ps (max - min);
         __v4sf a = min / (min - max);
-        _mm_store_ps (mul, m);
-        _mm_store_ps (add, a);
+        _mm_store_ps (draw->mul, m);
+        _mm_store_ps (draw->add, a);
+    } else {
+        _mm_store_ps (draw->mul, _mm_set1_ps (0));
+        _mm_store_ps (draw->add, _mm_set1_ps (0));
     }
 }
 
-static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, vox_dot mul, vox_dot add)
+static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, const struct vox_draw *draw)
 {
     assert (format->format == SDL_PIXELFORMAT_ARGB8888);
-    __v4sf m = _mm_load_ps (mul);
-    __v4sf a = _mm_load_ps (add);
+    __v4sf m = _mm_load_ps (draw->mul);
+    __v4sf a = _mm_load_ps (draw->add);
     __v4sf i = _mm_load_ps (inter);
 
     __v4sf color1 = i * m + a;
@@ -61,7 +69,7 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, vox_dot mul, vo
 }
 
 #else
-static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
+static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
 {
     int i;
     struct vox_box bb;
@@ -71,21 +79,31 @@ static void color_coeff (const struct vox_node *tree, vox_dot mul, vox_dot add)
         vox_bounding_box (tree, &bb);
         for (i=0; i<3; i++)
         {
-            mul[i] = 255 / (bb.max[i] - bb.min[i]);
-            add[i] = -255 * bb.min[i] / (bb.max[i] - bb.min[i]);
+            draw->mul[i] = 255 / (bb.max[i] - bb.min[i]);
+            draw->add[i] = -255 * bb.min[i] / (bb.max[i] - bb.min[i]);
         }
-    }
+    } else memset (draw, 0, sizeof (struct vox_draw));
 }
 
-static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, vox_dot mul, vox_dot add)
+static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, struct vox_draw *draw)
 {
-    Uint8 r = mul[0]*inter[0]+add[0];
-    Uint8 g = mul[1]*inter[1]+add[1];
-    Uint8 b = mul[2]*inter[2]+add[2];
+    Uint8 r = draw->mul[0] * inter[0] + draw->add[0];
+    Uint8 g = draw->mul[1] * inter[1] + draw->add[1];
+    Uint8 b = draw->mul[2] * inter[2] + draw->add[2];
     Uint32 color = SDL_MapRGB (format, r, g, b);
     return color;
 }
 #endif
+
+static struct vox_rnd_ctx* allocate_context ()
+{
+    struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
+    memset (ctx, 0, sizeof (*ctx));
+    ctx->draw = aligned_alloc (16, sizeof (struct vox_draw));
+    ctx->quality = VOX_QUALITY_ADAPTIVE;
+
+    return ctx;
+}
 
 static void allocate_squares (struct vox_rnd_ctx *ctx)
 {
@@ -109,9 +127,7 @@ static int bad_geometry (unsigned int width, unsigned int height)
 struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
 {
     if (bad_geometry (surface->w, surface->h)) return NULL;
-    struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
-    memset (ctx, 0, sizeof (*ctx));
-    ctx->quality = VOX_QUALITY_ADAPTIVE;
+    struct vox_rnd_ctx *ctx = allocate_context ();
     ctx->surface = surface;
     ctx->type = VOX_CTX_WO_WINDOW;
     allocate_squares (ctx);
@@ -139,9 +155,7 @@ struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned in
 #ifdef __FreeBSD__
     if (SDL_GL_LoadLibrary (NULL) < 0) return NULL;
 #endif
-    ctx = malloc (sizeof (struct vox_rnd_ctx));
-    memset (ctx, 0, sizeof (*ctx));
-    ctx->quality = VOX_QUALITY_ADAPTIVE;
+    ctx = allocate_context ();
     if (SDL_CreateWindowAndRenderer (width, height, 0, &ctx->window, &ctx->renderer)) goto failure;
     ctx->texture = SDL_CreateTexture (ctx->renderer, SDL_PIXELFORMAT_ARGB8888,
                                       SDL_TEXTUREACCESS_STREAMING, width, height);
@@ -167,7 +181,8 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
     if (ctx->texture != NULL) SDL_DestroyTexture (ctx->texture);
     if (ctx->renderer != NULL) SDL_DestroyRenderer (ctx->renderer);
     if (ctx->window != NULL) SDL_DestroyWindow (ctx->window);
-    if (ctx->square_output != NULL) free (ctx->square_output);
+    free (ctx->square_output);
+    free (ctx->draw);
 }
 
 void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
@@ -181,7 +196,7 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
     ctx->scene = scene;
     // FIXME: calculate colors in runtime
     // Only a temporary solution to get a colorful output
-    color_coeff (scene, ctx->mul, ctx->add);
+    color_coeff (scene, ctx->draw);
 }
 
 int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)
@@ -210,6 +225,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
     SDL_Surface *surface = ctx->surface;
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
+    struct vox_draw *draw = ctx->draw;
     int ws = ctx->ws;
     int quality = ctx->quality;
     int rnd_mode = quality & VOX_QUALITY_MODE_MASK;
@@ -264,12 +280,12 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             if (corner1 != NULL) {
                                 iend = 15;
                                 /* Since we are already there, draw a pixel now. */
-                                color = get_color (surface->format, inter1, ctx->mul, ctx->add);
+                                color = get_color (surface->format, inter1, draw);
                                 output[cs][0] = color;
                                 camera->iface->screen2world (camera, dir2, xstart + 3, ystart + 3);
                                 corner2 = vox_ray_tree_intersection (ctx->scene, origin, dir2, inter2);
                                 if (corner2 != NULL) {
-                                    color = get_color (surface->format, inter2, ctx->mul, ctx->add);
+                                    color = get_color (surface->format, inter2, draw);
                                     output[cs][15] = color;
                                     float d1 = vox_sqr_metric (inter1, origin);
                                     float d2 = vox_sqr_norm (dir1);
@@ -317,7 +333,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             }
 
                             if (leaf != NULL) {
-                                color = (merge)? output[cs][prev_p]: get_color (surface->format, inter1, ctx->mul, ctx->add);
+                                color = (merge)? output[cs][prev_p]: get_color (surface->format, inter1, draw);
                                 output[cs][p] = color;
                             }
                             prev_p = p;

@@ -18,6 +18,8 @@ enum vox_context_type
     VOX_CTX_W_WINDOW
 };
 
+struct vox_draw;
+
 struct vox_rnd_ctx
 {
     SDL_Window *window;
@@ -27,10 +29,9 @@ struct vox_rnd_ctx
 
     struct vox_node *scene;
     struct vox_camera *camera;
-
-    vox_dot mul;
-    vox_dot add;
+    struct vox_draw *draw; // Things needed to draw a voxel
     square *square_output;
+
     unsigned int type, squares_num, ws, hs;
     unsigned int quality;
 };
