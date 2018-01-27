@@ -3,7 +3,13 @@ cmake_minimum_required (VERSION 2.6)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxtrees.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld)
 add_definitions (-DVOXTREES_SOURCE)
 
-add_library (voxtrees SHARED geom.c geom-sse.c search.c tree.c datareader.c)
+add_library (voxtrees SHARED
+  geom.c
+  geom-sse.c
+  search.c
+  tree.c
+  datareader.c
+  mtree.c)
 if (WITH_DTRACE)
   include_directories (${CMAKE_CURRENT_BINARY_DIR})
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/voxtrees-dtrace.d
@@ -31,7 +37,7 @@ set_target_properties (voxtrees PROPERTIES VERSION ${voxvision_VERSION}
   LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld ${ADDITIONAL_LINK_FLAGS}")
 
 target_link_libraries (voxtrees m BlocksRuntime)
-install (FILES params.h tree.h search.h geom.h datareader.h
+install (FILES params.h tree.h search.h geom.h datareader.h mtree.h
          DESTINATION include/voxvision/voxtrees)
 install (TARGETS voxtrees LIBRARY
          DESTINATION lib)

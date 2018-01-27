@@ -19,6 +19,17 @@ VOXTREES_@voxvision_VERSION@ {
             vox_set_voxel_size;
             vox_read_raw_data;
             vox_find_data_file;
+
+# M-trees
+            vox_mtree_add_sphere;
+            vox_mtree_remove_sphere;
+            vox_mtree_contains_sphere;
+            vox_mtree_destroy;
+            vox_mtree_items;
+            vox_mtree_dump;
+            vox_mtree_spheres_containing;
+            vox_mtree_spheres_containing_f;
+
 # FIXME: Used only for tests:
             get_subspace_idx;
     local: *;
