@@ -74,5 +74,6 @@ struct context_data
 #define CD_META "voxrnd.cd"
 #define SCENE_PROXY_META "voxrnd.scene_proxy"
 #define CONTEXT_META "voxrnd.context"
+#define LIGHT_MANAGER_META "voxrnd.light_manager"
 
 #endif

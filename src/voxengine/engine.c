@@ -261,6 +261,15 @@ static void create_lua_context (struct vox_engine *engine)
 
     data->rendering_group = dispatch_group_create ();
     data->rendering_queue = dispatch_queue_create ("scene operations", 0);
+
+    /* Create lua side of light manager */
+    luaL_getmetatable (L, CONTEXT_META);
+    struct vox_light_manager **light_data = lua_newuserdata (L, sizeof (struct vox_light_manager*));
+    *light_data = engine->ctx->light_manager;
+    luaL_getmetatable (L, LIGHT_MANAGER_META);
+    lua_setmetatable (L, -2);
+    lua_setfield (L, -2, "light_manager");
+    lua_pop (L, 1);
 }
 
 struct vox_engine* vox_create_engine (int width, int height, const char *script,

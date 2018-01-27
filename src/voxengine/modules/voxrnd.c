@@ -466,6 +466,80 @@ static const struct luaL_Reg context_methods [] = {
     {NULL, NULL}
 };
 
+static int l_light_manager_tostring (lua_State *L)
+{
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+
+    lua_pushfstring (L, "<Light manager, %d shadowless lights>",
+                     vox_shadowless_lights_number (light_manager));
+    return 1;
+}
+
+static int l_light_manager_len (lua_State *L)
+{
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+
+    lua_pushinteger (L, vox_shadowless_lights_number (light_manager));
+    return 1;
+}
+
+static int l_insert_shadowless_light (lua_State *L)
+{
+    vox_dot center, color;
+    float radius;
+
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+    READ_DOT (center, 2);
+    radius = luaL_checknumber (L, 3);
+    READ_DOT (color, 4);
+
+    int res = vox_insert_shadowless_light (light_manager, center, radius, color);
+    lua_pushboolean (L, res);
+
+    return 1;
+}
+
+static int l_delete_shadowless_light (lua_State *L)
+{
+    vox_dot center;
+    float radius;
+
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+    READ_DOT (center, 2);
+    radius = luaL_checknumber (L, 3);
+
+    int res = vox_delete_shadowless_light (light_manager, center, radius);
+    lua_pushboolean (L, res);
+
+    return 1;
+}
+
+static int l_set_ambient_light (lua_State *L)
+{
+    vox_dot color;
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+    READ_DOT (color, 2);
+
+    int res = vox_set_ambient_light (light_manager, color);
+    lua_pushboolean (L, res);
+
+    return 1;
+}
+
+static const struct luaL_Reg light_manager_methods [] = {
+    {"__tostring", l_light_manager_tostring},
+    {"__len", l_light_manager_len},
+    {"insert_shadowless_light", l_insert_shadowless_light},
+    {"delete_shadowless_light", l_delete_shadowless_light},
+    {"set_ambient_light", l_set_ambient_light},
+    {NULL, NULL}
+};
+
 static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
@@ -493,6 +567,11 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, context_methods, 0);
+
+    luaL_newmetatable(L, LIGHT_MANAGER_META);
+    lua_pushvalue (L, -1);
+    lua_setfield (L, -2, "__index");
+    luaL_setfuncs (L, light_manager_methods, 0);
 
     luaL_newlib (L, voxrnd);
     return 1;

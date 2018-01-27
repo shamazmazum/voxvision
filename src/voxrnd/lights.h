@@ -20,18 +20,6 @@
 struct vox_light_manager;
 
 /**
-   \brief Create a light manager.
-
-   The newly created manager will have no lights.
-**/
-struct vox_light_manager* vox_create_light_manager ();
-
-/**
-   \brief Destroy a light manager.
-**/
-void vox_destroy_light_manager (struct vox_light_manager *light_manager);
-
-/**
    \brief Insert a shadowless light.
 
    This function inserts a soft, shadowless light which is bound by a
@@ -73,10 +61,11 @@ int vox_set_ambient_light (struct vox_light_manager *light_manager,
                            const vox_dot color);
 
 #ifdef VOXRND_SOURCE
+struct vox_light_manager* vox_create_light_manager ();
+void vox_destroy_light_manager (struct vox_light_manager *light_manager);
 void vox_get_light (const struct vox_light_manager *light_manager,
                     const vox_dot intersection,
                     vox_dot light);
-
 #endif
 
 #endif

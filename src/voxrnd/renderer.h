@@ -61,6 +61,13 @@ struct vox_rnd_ctx
        To set this value, use vox_context_set_camera() rather than writing to
        this field directly.
     **/
+
+    struct vox_light_manager *light_manager;
+    /**< \brief A light manager for the context
+
+       This light manager created automatically when the context is created. So
+       you do not need to free it manually.
+    **/
 };
 #endif
 
