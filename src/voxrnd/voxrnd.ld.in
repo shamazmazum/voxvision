@@ -17,11 +17,20 @@ VOXRND_@voxvision_VERSION@ {
             vox_cd_gravity;
             vox_use_camera_methods;
             vox_init_camera;
+
 # For the camera modules
             vox_quat_mul;
             vox_rotate_vector;
             vox_rotate_vector_q;
             vox_quat_set_identity;
             vox_quat_normalize;
+
+# Lights
+            vox_insert_shadowless_light;
+            vox_delete_shadowless_light;
+            vox_set_ambient_light;
+            vox_shadowless_lights_number;
+            vox_create_light_manager;
+            vox_destroy_light_manager;
     local: *;
 };

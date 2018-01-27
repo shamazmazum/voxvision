@@ -46,10 +46,10 @@ static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
     }
 }
 
-static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, const struct vox_draw *draw)
+static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    __v4sf m = _mm_load_ps (draw->mul);
-    __v4sf a = _mm_load_ps (draw->add);
+    __v4sf m = _mm_load_ps (context->draw->mul);
+    __v4sf a = _mm_load_ps (context->draw->add);
     __v4sf i = _mm_load_ps (inter);
 
     __v4sf color1 = i * m + a;
@@ -57,6 +57,10 @@ static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, const struct vo
     __v4sf voxel = _mm_load_ps (vox_voxel);
     __v4sf aligned = voxel * _mm_floor_ps (i / voxel);
     __v4sf color = _mm_blendv_ps (color1, color2, i == aligned);
+
+    vox_dot light;
+    vox_get_light (context->light_manager, inter, light);
+    color *= _mm_load_ps (light);
     color = _mm_set1_ps (255) * _mm_min_ps (color, _mm_set1_ps (1.0));
 
     __m128i icol = _mm_cvtps_epi32 (color);
@@ -84,12 +88,16 @@ static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
     } else memset (draw, 0, sizeof (struct vox_draw));
 }
 
-static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, struct vox_draw *draw)
+static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    Uint8 r = draw->mul[0] * inter[0] + draw->add[0];
-    Uint8 g = draw->mul[1] * inter[1] + draw->add[1];
-    Uint8 b = draw->mul[2] * inter[2] + draw->add[2];
-    Uint32 color = SDL_MapRGB (format, r, g, b);
+    vox_dot light;
+    const struct vox_draw *draw = context->draw;
+    vox_get_light (context->light_manager, inter, light);
+
+    Uint8 r = light[0] * (draw->mul[0] * inter[0] + draw->add[0]);
+    Uint8 g = light[1] * (draw->mul[1] * inter[1] + draw->add[1]);
+    Uint8 b = light[2] * (draw->mul[2] * inter[2] + draw->add[2]);
+    Uint32 color = SDL_MapRGB (context->surface->format, r, g, b);
     return color;
 }
 #endif
@@ -100,6 +108,7 @@ static struct vox_rnd_ctx* allocate_context ()
     memset (ctx, 0, sizeof (*ctx));
     ctx->draw = aligned_alloc (16, sizeof (struct vox_draw));
     ctx->quality = VOX_QUALITY_ADAPTIVE;
+    ctx->light_manager = vox_create_light_manager ();
 
     return ctx;
 }
@@ -176,6 +185,7 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
         ctx->surface = NULL; // We do not need to free it manually
     }
     if (ctx->surface != NULL) SDL_FreeSurface(ctx->surface);
+    if (ctx->light_manager != NULL) vox_destroy_light_manager (ctx->light_manager);
     free (ctx->square_output);
     free (ctx->draw);
 }
@@ -217,10 +227,8 @@ int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)
 
 void vox_render (struct vox_rnd_ctx *ctx)
 {
-    SDL_Surface *surface = ctx->surface;
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
-    struct vox_draw *draw = ctx->draw;
     int ws = ctx->ws;
     int quality = ctx->quality;
     int rnd_mode = quality & VOX_QUALITY_MODE_MASK;
@@ -275,12 +283,12 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             if (corner1 != NULL) {
                                 iend = 15;
                                 /* Since we are already there, draw a pixel now. */
-                                color = get_color (surface->format, inter1, draw);
+                                color = get_color (ctx, inter1);
                                 output[cs][0] = color;
                                 camera->iface->screen2world (camera, dir2, xstart + 3, ystart + 3);
                                 corner2 = vox_ray_tree_intersection (ctx->scene, origin, dir2, inter2);
                                 if (corner2 != NULL) {
-                                    color = get_color (surface->format, inter2, draw);
+                                    color = get_color (ctx, inter2);
                                     output[cs][15] = color;
                                     float d1 = vox_sqr_metric (inter1, origin);
                                     float d2 = vox_sqr_norm (dir1);
@@ -328,7 +336,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             }
 
                             if (leaf != NULL) {
-                                color = (merge)? output[cs][prev_p]: get_color (surface->format, inter1, draw);
+                                color = (merge)? output[cs][prev_p]: get_color (ctx, inter1);
                                 output[cs][p] = color;
                             }
                             prev_p = p;

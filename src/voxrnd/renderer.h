@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include "../voxtrees/tree.h"
 #include "camera.h"
+#include "lights.h"
 
 #ifdef VOXRND_SOURCE
 typedef Uint32 square[16] __attribute__((aligned(16)));
@@ -27,9 +28,12 @@ struct vox_rnd_ctx
     struct vox_node *scene;
     struct vox_camera *camera;
 
+    struct vox_light_manager *light_manager;
     struct vox_draw *draw; // Things needed to draw a voxel
     square *square_output;
-    unsigned int squares_num, ws, hs, quality;
+    unsigned int squares_num, ws;
+
+    unsigned int hs, quality;
 };
 #else
 
