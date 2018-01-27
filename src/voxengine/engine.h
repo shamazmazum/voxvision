@@ -21,10 +21,7 @@
 struct vox_engine {
     struct vox_rnd_ctx *ctx;
     lua_State *L;
-
-    struct vox_cd *cd;
     dispatch_queue_t rendering_queue;
-
     int width, height;
 };
 #else /* VOXENGINE_SOURCE */
