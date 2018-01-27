@@ -23,17 +23,13 @@ struct vox_draw;
 struct vox_rnd_ctx
 {
     SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
     SDL_Surface *surface;
-
     struct vox_node *scene;
     struct vox_camera *camera;
+
     struct vox_draw *draw; // Things needed to draw a voxel
     square *square_output;
-
-    unsigned int type, squares_num, ws, hs;
-    unsigned int quality;
+    unsigned int squares_num, ws, hs, quality;
 };
 #else
 
@@ -44,10 +40,7 @@ struct vox_rnd_ctx
 {
     SDL_Window *window;
     /**< \brief A window associated with the context, if any. **/
-    SDL_Renderer *renderer;
-    /**< \brief A renderer associated with the context, if any. **/
-    SDL_Texture *texture;
-    /**< \brief A texture associated with the context, if any. **/
+
     SDL_Surface *surface;
     /**< \brief A surface the context will draw to.**/
 

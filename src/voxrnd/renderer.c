@@ -48,7 +48,6 @@ static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
 
 static Uint32 get_color (SDL_PixelFormat *format, vox_dot inter, const struct vox_draw *draw)
 {
-    assert (format->format == SDL_PIXELFORMAT_ARGB8888);
     __v4sf m = _mm_load_ps (draw->mul);
     __v4sf a = _mm_load_ps (draw->add);
     __v4sf i = _mm_load_ps (inter);
@@ -129,7 +128,6 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
     if (bad_geometry (surface->w, surface->h)) return NULL;
     struct vox_rnd_ctx *ctx = allocate_context ();
     ctx->surface = surface;
-    ctx->type = VOX_CTX_WO_WINDOW;
     allocate_squares (ctx);
 
     return ctx;
@@ -138,8 +136,6 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
 struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height)
 {
     struct vox_rnd_ctx *ctx;
-    int bpp;
-    Uint32 Rmask, Gmask, Bmask, Amask;
 
     if (bad_geometry (width, height)) return NULL;
     if (!(SDL_WasInit (0) & SDL_INIT_VIDEO)) return NULL;
@@ -156,18 +152,16 @@ struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned in
     if (SDL_GL_LoadLibrary (NULL) < 0) return NULL;
 #endif
     ctx = allocate_context ();
-    if (SDL_CreateWindowAndRenderer (width, height, 0, &ctx->window, &ctx->renderer)) goto failure;
-    ctx->texture = SDL_CreateTexture (ctx->renderer, SDL_PIXELFORMAT_ARGB8888,
-                                      SDL_TEXTUREACCESS_STREAMING, width, height);
-    if (ctx->texture == NULL) goto failure;
-    SDL_PixelFormatEnumToMasks (SDL_PIXELFORMAT_ARGB8888, &bpp, &Rmask, &Gmask, &Bmask, &Amask);
-    ctx->surface = SDL_CreateRGBSurface (0, width, height,
-                                    bpp, Rmask, Gmask, Bmask, Amask);
+    ctx->window = SDL_CreateWindow ("voxrnd window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                    width, height, 0);
+    if (ctx->window == NULL) goto failure;
+
+    ctx->surface = SDL_GetWindowSurface (ctx->window);
     if (ctx->surface == NULL) goto failure;
 
-    ctx->type = VOX_CTX_W_WINDOW;
+    /* Sorry, only native pixel format by now */
+    assert (ctx->surface->format->BitsPerPixel == 32);
     allocate_squares (ctx);
-
     return ctx;
 
 failure:
@@ -177,10 +171,11 @@ failure:
 
 void vox_destroy_context (struct vox_rnd_ctx *ctx)
 {
-    if ((ctx->surface != NULL) & (ctx->type == VOX_CTX_W_WINDOW)) SDL_FreeSurface(ctx->surface);
-    if (ctx->texture != NULL) SDL_DestroyTexture (ctx->texture);
-    if (ctx->renderer != NULL) SDL_DestroyRenderer (ctx->renderer);
-    if (ctx->window != NULL) SDL_DestroyWindow (ctx->window);
+    if (ctx->window != NULL) {
+        SDL_DestroyWindow (ctx->window);
+        ctx->surface = NULL; // We do not need to free it manually
+    }
+    if (ctx->surface != NULL) SDL_FreeSurface(ctx->surface);
     free (ctx->square_output);
     free (ctx->draw);
 }
@@ -345,10 +340,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
 void vox_redraw (struct vox_rnd_ctx *ctx)
 {
     copy_squares (ctx->square_output, ctx->surface->pixels, ctx->ws, ctx->hs);
-    if (ctx->type == VOX_CTX_WO_WINDOW) return;
-
-    SDL_UpdateTexture (ctx->texture, NULL, ctx->surface->pixels, ctx->surface->pitch);
     memset (ctx->square_output, 0, ctx->squares_num*sizeof(square));
-    SDL_RenderCopy (ctx->renderer, ctx->texture, NULL, NULL);
-    SDL_RenderPresent (ctx->renderer);
+
+    if (ctx->window != NULL) SDL_UpdateWindowSurface (ctx->window);
 }
