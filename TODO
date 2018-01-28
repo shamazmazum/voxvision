@@ -20,10 +20,12 @@ Hard and medium changes:
 7. Investigate a huge slowdown in example1.lua after the commit: 69406f4fb (Remove lua vox_dot and vox_box types...)
    (DONE: 12 sep 2017)
 8. Investigate camera axes inversion after call to look_at method in simple camera. (DONE: 25 oct 2017)
-9. Merge lights branch without much degradation in speed. Add some procedural generated textures.
+9. Merge lights branch without much degradation in speed. (DONE: 27 jan 2018). Add some procedural generated textures.
+10. Remove legacy non-SSE code and make type vox_dot equal to __v4sf.
 
 Easy changes:
 1. Allow dynamic modification of the voxel tree in lua engine (just like as in demo application)
    (DONE: late 2017).
 2. Screen geometry must not bring destortion in rendered scene. (DONE: 04 sep 2017)
 3. Use queue in statistic histograms. (DONE: 04 sep 2017)
+4. Improve deletion from M-trees (reparent a node if its parents has this node as its only child).
