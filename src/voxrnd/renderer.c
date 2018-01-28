@@ -58,9 +58,11 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
     __v4sf aligned = voxel * _mm_floor_ps (i / voxel);
     __v4sf color = _mm_blendv_ps (color1, color2, i == aligned);
 
+#ifdef LIGHT_MANAGER
     vox_dot light;
     vox_get_light (context->light_manager, inter, light);
     color *= _mm_load_ps (light);
+#endif
     color = _mm_set1_ps (255) * _mm_min_ps (color, _mm_set1_ps (1.0));
 
     __m128i icol = _mm_cvtps_epi32 (color);
@@ -90,13 +92,20 @@ static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
 
 static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    vox_dot light;
     const struct vox_draw *draw = context->draw;
-    vox_get_light (context->light_manager, inter, light);
 
-    Uint8 r = light[0] * (draw->mul[0] * inter[0] + draw->add[0]);
-    Uint8 g = light[1] * (draw->mul[1] * inter[1] + draw->add[1]);
-    Uint8 b = light[2] * (draw->mul[2] * inter[2] + draw->add[2]);
+    Uint8 r = draw->mul[0] * inter[0] + draw->add[0];
+    Uint8 g = draw->mul[1] * inter[1] + draw->add[1];
+    Uint8 b = draw->mul[2] * inter[2] + draw->add[2];
+
+#ifdef LIGHT_MANAGER
+    vox_dot light;
+    vox_get_light (context->light_manager, inter, light);
+    r *= light[0];
+    g *= light[1];
+    b *= light[2];
+#endif
+
     Uint32 color = SDL_MapRGB (context->surface->format, r, g, b);
     return color;
 }

@@ -5,7 +5,7 @@ project (voxvision)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Modules")
 
 set (voxvision_VERSION_MAJOR 0)
-set (voxvision_VERSION_MINOR 28)
+set (voxvision_VERSION_MINOR 29)
 set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
 set (CMAKE_C_FLAGS_RELEASE "-O2")
@@ -20,6 +20,7 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 option (SSE_INTRIN "Enable SSE intrinsic" ON)
 option (WITH_GCD "Enable GCD" ON)
 option (WITH_DTRACE "Enable Dtrace" OFF)
+option (WITH_LIGHT_MANAGER "Enable light manager code" OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   set (WITH_DTRACE ON)

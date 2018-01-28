@@ -9,6 +9,10 @@ include_directories (${GCD_INCLUDE_DIR})
 add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 
+if (WITH_LIGHT_MANAGER)
+  add_definitions (-DLIGHT_MANAGER)
+endif (WITH_LIGHT_MANAGER)
+
 set (VOXRND_SOURCES
   lights.c
   camera.c
