@@ -24,7 +24,7 @@ static void simple_screen2world (const struct vox_camera *cam, vox_dot ray, int 
     float ysub = camera->ysub;
 
     assert (mul != 0 && xsub != 0 && ysub != 0);
-    vox_dot_set (ray, mul*sx - xsub, 1, mul*sy - ysub);
+    vox_dot_set (ray, mul*sx - xsub, 1, ysub - mul*sy);
     vox_rotate_vector (camera->rotation, ray, ray);
 }
 

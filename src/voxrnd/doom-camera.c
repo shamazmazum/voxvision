@@ -43,7 +43,7 @@ static void doom_screen2world (const struct vox_camera *cam, vox_dot ray, int sx
     vox_dot dir;
     dir[0] = mul*sx - xsub;
     dir[1] = 1;
-    dir[2] = mul*sy - ysub;
+    dir[2] = ysub - mul*sy;
     /*
      * Here the norm of the original vector is not saved.
      * To perform fast transformation, we just add a value k to the vector's Z

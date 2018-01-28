@@ -165,8 +165,6 @@ int main (int argc, char *argv[])
         goto end;
     }
 
-    vox_dot angles = {0,0,0};
-    _iniparser_getvector3_float (cfg, "Camera:Rot", angles);
     iniparser_freedict (cfg);
     cfg = NULL;
 
@@ -199,7 +197,12 @@ int main (int argc, char *argv[])
     camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
     camera->iface->set_position (camera, origin);
     camera->iface->set_fov (camera, fov);
-    camera->iface->set_rot_angles (camera, angles);
+    vox_dot look;
+    vox_dot_set (look,
+                 vox_voxel[0]/2 * dim[0],
+                 vox_voxel[1]/2 * dim[1],
+                 vox_voxel[2]/2 * dim[2]);
+    camera->iface->look_at (camera, look);
     int width = global_settings.window_width;
     int height = global_settings.window_height;
     ctx = vox_make_context_and_window (width, height);
