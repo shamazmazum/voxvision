@@ -1,7 +1,15 @@
 local voxutils = {}
+
 local scancodes = voxvision.voxsdl.scancode
-local format = string.format
+local rendering_modes = voxvision.voxrnd.rendering_modes
+
 local print = print
+local next = next
+
+local yield = coroutine.yield
+local wrap = coroutine.wrap
+local format = string.format
+
 _ENV = voxutils
 
 default_controls = {
@@ -41,28 +49,21 @@ function process_keyboard_movement (world, keystate, mdelta, controls)
    if cd then cd:collide() end
 end
 
-rendering_modes = {"best", "adaptive", "fast"}
-function next_rendering_mode (context)
-   current_rendering_mode = current_rendering_mode or 1
-   local mode = rendering_modes[current_rendering_mode]
-   print (format ("Setting %s rendering mode", mode))
-   context:rendering_mode (mode)
-   current_rendering_mode = current_rendering_mode + 1
-   if (current_rendering_mode > #rendering_modes) then
-      current_rendering_mode = 1
+function circlenext (t, key)
+   local newkey, val = next (t, key)
+   if newkey == nil then
+      return next (t, nil)
    end
+
+   return newkey, val
 end
 
-ray_merge_modes = {"no", "accurate", "fast"}
-function next_ray_merge_mode (context)
-   current_rm_mode = current_rm_mode or 1
-   local mode = ray_merge_modes [current_rm_mode]
-   context:ray_merge_mode (mode)
-   print (format ("Setting %s ray merge mode", mode))
-   current_rm_mode = current_rm_mode + 1
-   if (current_rm_mode > #ray_merge_modes) then
-      current_rm_mode = 1
-   end
-end
+next_rendering_mode = wrap (function (context)
+      local key, val
+      for key, val in circlenext, rendering_modes do
+         print (format ("Setting rendering mode to: %s", key))
+         yield (context:rendering_mode (val))
+      end
+end)
 
 return voxutils
