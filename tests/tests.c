@@ -795,6 +795,7 @@ static void verify_mtree (const struct vox_mtree_node *node)
             for (i=0; i<node->num; i++)
                 CU_ASSERT_FATAL (sphere_inside_sphere (&(node->data.spheres[i]), &(node->bounding_sphere)));
         } else {
+            CU_ASSERT_FATAL (node->num > 1);
             for (i=0; i<node->num; i++) {
                 child = node->data.children[i];
                 CU_ASSERT_FATAL (child != NULL);

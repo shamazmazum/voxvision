@@ -28,4 +28,4 @@ Easy changes:
    (DONE: late 2017).
 2. Screen geometry must not bring destortion in rendered scene. (DONE: 04 sep 2017)
 3. Use queue in statistic histograms. (DONE: 04 sep 2017)
-4. Improve deletion from M-trees (reparent a node if its parents has this node as its only child).
+4. Improve deletion from M-trees (reparent a node if its parents has this node as its only child). (DONE: 02 feb 2018).

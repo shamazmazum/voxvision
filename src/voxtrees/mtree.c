@@ -268,47 +268,69 @@ int vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphe
     return success;
 }
 
-// This is "split_node() for deletion"
-static struct vox_mtree_node* recursively_delete (struct vox_mtree_node *node)
+/*
+ * This function does two things.
+ * The first: it deletes a node passed to it as an argument, also updating a
+ * state of its parent.
+ * The second: When a parent has only one child left, this function deletes it
+ * as well, reparenting the remaining child to the parent's parent.
+ */
+static struct vox_mtree_node* node_delete (struct vox_mtree_node *node)
 {
-    assert (node->num == 1);
     struct vox_mtree_node *parent = node->parent;
-    struct vox_mtree_node *res = node;
     unsigned int i;
 
+    assert (node->leaf);
     vox_mtree_destroy (node);
-    if (parent == NULL) return NULL;
+    if (parent == NULL) goto done;
 
-    assert (!parent->leaf && parent->num > 0);
+    assert (!parent->leaf && parent->num > 1);
 
-    if (parent->num == 1) {
-        parent->data.children[0] = NULL;
-        return recursively_delete (parent);
-    }
-
-    for (i=0; i<parent->num; i++) {
+    for (i=0; i<parent->num; i++)
         if (parent->data.children[i] == node) break;
-    }
     assert (i < parent->num);
 
-    memcpy (&(parent->data.children[i]), &(parent->data.children[i+1]),
-            sizeof (struct vox_mtree_node*) * (parent->num - i - 1));
-    parent->num--;
-    parent->data.children[parent->num] = NULL;
-    propagate_bounding_sphere_update (parent);
+    if (parent->num == 2) {
+        /* Remove parent and reparent the remaining node. */
+        struct vox_mtree_node *other_child = parent->data.children[1-i];
+        struct vox_mtree_node *top_parent = parent->parent;
 
-    return res;
+        free (parent);
+        other_child->parent = top_parent;
+        if (top_parent == NULL) {
+            /* There is no need to update bounding sphere. Return now. */
+            return other_child;
+        }
+
+        for (i=0; i<top_parent->num; i++)
+            if (top_parent->data.children[i] == parent) break;
+        assert (i < top_parent->num);
+
+        top_parent->data.children[i] = other_child;
+        parent = top_parent;
+        goto done;
+    }
+
+    parent->num--;
+    memmove (&(parent->data.children[i]), &(parent->data.children[i+1]),
+             sizeof (struct vox_mtree_node*) * (parent->num - i));
+    parent->data.children[parent->num] = NULL;
+
+done:
+    /* It's OK to call this with argument being NULL. */
+    propagate_bounding_sphere_update (parent);
+    return parent;
 }
 
-static int remove_sphere_helper (struct vox_mtree_node *node, const struct vox_sphere *s)
+static struct vox_mtree_node*
+remove_sphere_helper (struct vox_mtree_node *node, const struct vox_sphere *s)
 {
     unsigned int i;
-    int tree_empty = 0;
+    struct vox_mtree_node *last_modified = node;
 
     assert (node != NULL && node->leaf);
     if (node->num == 1) {
-        node = recursively_delete (node);
-        if (node == NULL) tree_empty = 1;
+        last_modified = node_delete (node);
     } else {
         for (i=0; i<node->num; i++) {
             if (vox_dot_equalp (node->data.spheres[i].center, s->center) &&
@@ -316,24 +338,30 @@ static int remove_sphere_helper (struct vox_mtree_node *node, const struct vox_s
         }
 
         assert (i < node->num);
-        memcpy (&(node->data.spheres[i]), &(node->data.spheres[i+1]),
-                sizeof (struct vox_sphere) * (node->num - i - 1));
+        memmove (&(node->data.spheres[i]), &(node->data.spheres[i+1]),
+                 sizeof (struct vox_sphere) * (node->num - i - 1));
         node->num--;
         propagate_bounding_sphere_update (node);
     }
 
-    return tree_empty;
+    return last_modified;
 }
 
 int vox_mtree_remove_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s)
 {
     struct vox_mtree_node *leaf = vox_mtree_contains_sphere (*nodeptr, s);
+    struct vox_mtree_node *last_modified;
     int success = (s->radius > 0) && (leaf != NULL);
 
     if (success) {
-        if (remove_sphere_helper (leaf, s)) {
-            // Tree is empty
-            *nodeptr = NULL;
+        last_modified = remove_sphere_helper (leaf, s);
+        if (last_modified == NULL ||
+            last_modified->parent == NULL) {
+            /*
+             * We removed entire tree or got a new root. Update reference to the
+             * root.
+             */
+            *nodeptr = last_modified;
         }
     }
 
