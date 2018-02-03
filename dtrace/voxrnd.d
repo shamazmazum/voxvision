@@ -30,3 +30,8 @@ voxrnd$target:::block-leafs-changed
 {
     @leafs_changed["Number of leafs picked for prediction in block"] = lquantize (arg0, 0, 15, 1);
 }
+
+voxrnd$target:::raymerge-block
+{
+    @c6["Blocks with ray merging"] = count();
+}

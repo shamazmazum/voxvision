@@ -316,6 +316,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                 }
                             }
                         }
+                        WITH_STAT (if (block_merge_mode) VOXRND_RAYMERGE_BLOCK ());
 
                         int prev_p = 0;
                         /* istart and iend have been adjusted to a not yet drawn region. */
