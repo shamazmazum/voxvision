@@ -2,7 +2,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 #include <voxrnd.h>
-#include <voxtrees.h>
+#include <voxtrees-ng.h>
 #include <stdlib.h>
 #include "../modules.h"
 

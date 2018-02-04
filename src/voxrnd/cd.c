@@ -1,7 +1,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include "cd.h"
-#include "../voxtrees/search.h"
+#include "../voxtrees-ng/search.h"
 
 struct vox_cd {
     struct vox_camera *camera;

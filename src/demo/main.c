@@ -16,7 +16,7 @@
 #include "../gcd-stubs.c"
 #endif
 
-#include <voxtrees.h>
+#include <voxtrees-ng.h>
 #include <voxrnd.h>
 #include "config.h"
 

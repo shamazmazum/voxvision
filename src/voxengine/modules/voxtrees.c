@@ -4,7 +4,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
-#include <voxtrees.h>
+#include <voxtrees-ng.h>
 #include "../modules.h"
 
 #include <stdlib.h>
@@ -122,80 +122,89 @@ static const struct luaL_Reg tree_methods [] = {
     {NULL, NULL}
 };
 
-struct dotset {
-    vox_dot *array;
-    unsigned int length, max_length;
-};
-
-static int newdotset (lua_State *L)
+static int newdotmap (lua_State *L)
 {
-    unsigned int len = luaL_checkinteger (L, 1);
-    struct dotset *set = lua_newuserdata (L, sizeof (struct dotset));
-    luaL_getmetatable (L, DOTSET_META);
+    lua_geti (L, 1, 1);
+    lua_geti (L, 1, 2);
+    lua_geti (L, 1, 3);
+
+    unsigned int dim[3];
+    dim[0] = luaL_checkinteger (L, 2);
+    dim[1] = luaL_checkinteger (L, 3);
+    dim[2] = luaL_checkinteger (L, 4);
+
+    struct vox_map_3d **data = lua_newuserdata (L, sizeof (struct vox_map_3d*));
+    *data = vox_create_map_3d (dim);
+
+    luaL_getmetatable (L, DOTMAP_META);
     lua_setmetatable (L, -2);
-    set->length = 0;
-    set->max_length = len;
-    set->array = aligned_alloc (16, sizeof (vox_dot)*len);
 
     return 1;
 }
 
-static int printdotset (lua_State *L)
+static int printdotmap (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
-    lua_pushfstring (L, "<dot array, %d dots>", set->length);
+    struct vox_map_3d **data = luaL_checkudata (L, 1, DOTMAP_META);
+    struct vox_map_3d *map = *data;
+
+    lua_pushfstring (L, "<dot map %ix%ix%i>", map->dim[0], map->dim[1], map->dim[2]);
 
     return 1;
 }
 
-static int destroydotset (lua_State *L)
+static int destroydotmap (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
-    free (set->array);
+    struct vox_map_3d **data = luaL_checkudata (L, 1, DOTMAP_META);
+    struct vox_map_3d *map = *data;
+    vox_destroy_map_3d (map);
 
     return 0;
 }
 
-static int lengthdotset (lua_State *L)
+static int setdotmap (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
-    lua_pushinteger (L, set->length);
+    struct vox_map_3d **data = luaL_checkudata (L, 1, DOTMAP_META);
+    struct vox_map_3d *map = *data;
+    int set = lua_toboolean (L, 3);
 
+    lua_geti (L, 2, 1);
+    lua_geti (L, 2, 2);
+    lua_geti (L, 2, 3);
+
+    unsigned int pos[3];
+    pos[0] = luaL_checkinteger (L, 4);
+    pos[1] = luaL_checkinteger (L, 5);
+    pos[2] = luaL_checkinteger (L, 6);
+
+    int success = 0;
+    if (pos[0] < map->dim[0] &&
+        pos[1] < map->dim[1] &&
+        pos[2] < map->dim[2]) {
+        success = 1;
+        size_t idx = map->dim[1]*map->dim[2]*pos[0] +
+            map->dim[2]*pos[1] + pos[2];
+        map->map[idx] = set;
+    }
+
+    lua_pushboolean (L, success);
     return 1;
 }
 
-static int pushdotset (lua_State *L)
-{
-    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
-    vox_dot dot;
-    READ_DOT (dot, 2);
-    int argc = 0;
-
-    if (set->length == set->max_length)
-    {
-        lua_pushstring (L, "set is full");
-        argc = 1;
-    }
-    else memcpy (set->array[set->length++], dot, sizeof(vox_dot));
-
-    return argc;
-}
-
-static const struct luaL_Reg dotset_methods [] = {
-    {"__tostring", printdotset},
-    {"__gc", destroydotset},
-    {"__len", lengthdotset},
-    {"push", pushdotset},
+static const struct luaL_Reg dotmap_methods [] = {
+    {"__tostring", printdotmap},
+    {"__gc", destroydotmap},
+    {"set", setdotmap},
     {NULL, NULL}
 };
 
-static int newsettree (lua_State *L)
+static int newmaptree (lua_State *L)
 {
-    struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
+    struct vox_map_3d **data = luaL_checkudata (L, 1, DOTMAP_META);
+    struct vox_map_3d *map = *data;
     newtree (L);
 
-    struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
-    *data = vox_make_tree (set->array, set->length);
+    struct vox_node **tdata = luaL_checkudata (L, -1, TREE_META);
+    *tdata = vox_make_tree (map);
 
     return 1;
 }
@@ -204,7 +213,7 @@ static int voxelsize (lua_State *L)
 {
     vox_dot voxel;
     READ_DOT (voxel, 1);
-    memcpy (vox_voxel, voxel, sizeof (vox_dot));
+    vox_set_voxel (voxel);
     return 0;
 }
 
@@ -308,9 +317,9 @@ static int find_data_file (lua_State *L)
 
 static const struct luaL_Reg voxtrees [] = {
     {"tree", newtree},
-    {"dotset", newdotset},
+    {"dotmap", newdotmap},
     {"boxtree", newdenseleaf},
-    {"settree", newsettree},
+    {"maptree", newmaptree},
     {"voxelsize", voxelsize},
     {"read_raw_data", read_raw_data},
     {"read_raw_data_ranged", read_raw_data_ranged},
@@ -325,10 +334,10 @@ int luaopen_voxtrees (lua_State *L)
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, tree_methods, 0);
 
-    luaL_newmetatable(L, DOTSET_META);
+    luaL_newmetatable(L, DOTMAP_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
-    luaL_setfuncs (L, dotset_methods, 0);
+    luaL_setfuncs (L, dotmap_methods, 0);
 
     luaL_newlib (L, voxtrees);
     return 1;

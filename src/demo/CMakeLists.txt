@@ -8,6 +8,6 @@ endif (GCD_FOUND)
 add_definitions (-fblocks)
 
 add_executable (voxvision-demo main.c config.c)
-target_link_libraries (voxvision-demo voxrnd voxtrees ${INIPARSER_LIBRARY})
+target_link_libraries (voxvision-demo voxrnd voxtrees-ng ${INIPARSER_LIBRARY})
 install (TARGETS voxvision-demo RUNTIME
          DESTINATION bin)

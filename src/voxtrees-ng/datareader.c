@@ -10,9 +10,9 @@
 #include "datareader.h"
 #include "map.h"
 
-struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[3],
-                                    unsigned int samplesize, int (^test)(unsigned int sample),
-                                    const char **error)
+struct vox_map_3d* vox_read_raw_data_in_map (const char *filename, unsigned int dim[3],
+                                             unsigned int samplesize, int (^test)(unsigned int sample),
+                                             const char **error)
 {
 #define BUFSIZE 4096
     unsigned char buf[BUFSIZE];
@@ -58,7 +58,16 @@ done:
     }
     if (fd != -1) close (fd);
 
-    struct vox_node *tree = (map != NULL)? vox_make_tree (map): NULL;
+    return map;
+}
+
+struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[3],
+                                    unsigned int samplesize, int (^test)(unsigned int sample),
+                                    const char **error)
+{
+    struct vox_node *tree = NULL;
+    struct vox_map_3d *map = vox_read_raw_data_in_map (filename, dim, samplesize, test, error);
+    if (map != NULL) tree = vox_make_tree (map);
     vox_destroy_map_3d (map);
 
     return tree;

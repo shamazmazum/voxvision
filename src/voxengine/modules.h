@@ -62,7 +62,7 @@ struct scene_proxydata
 };
 
 #define TREE_META "voxtrees.vox_node"
-#define DOTSET_META "voxtrees.dotset"
+#define DOTMAP_META "voxtrees.dotmap"
 #define CAMERA_META "voxrnd.camera"
 #define CD_META "voxrnd.cd"
 #define SCENE_PROXY_META "voxrnd.scene_proxy"

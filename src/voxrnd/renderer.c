@@ -7,7 +7,7 @@
 #include "renderer.h"
 #include "copy-helper.h"
 #include "probes.h"
-#include "../voxtrees/search.h"
+#include "../voxtrees-ng/search.h"
 
 static void color_coeff (const struct vox_node *tree, float mul[], float add[])
 {

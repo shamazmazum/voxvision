@@ -1,5 +1,6 @@
 VOXTREES_NG_@voxvision_VERSION@ {
     global: vox_read_raw_data;
+            vox_read_raw_data_in_map;
             vox_create_map_3d;
             vox_destroy_map_3d;
             vox_find_data_file;

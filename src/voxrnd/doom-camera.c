@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "camera.h"
-#include "../voxtrees/geom.h"
+#include "../voxtrees-ng/geom.h"
 
 struct vox_doom_camera
 {

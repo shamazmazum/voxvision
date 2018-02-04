@@ -11,7 +11,7 @@
 #include "../gcd-stubs.c"
 #endif
 
-#include "../voxtrees/tree.h"
+#include "../voxtrees-ng/tree.h"
 #include "../voxrnd/camera.h"
 #include "../voxrnd/fps-control.h"
 #include "../voxrnd/renderer.h"

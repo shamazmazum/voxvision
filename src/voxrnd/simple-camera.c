@@ -1,7 +1,7 @@
 #include <math.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "../voxtrees/geom.h"
+#include "../voxtrees-ng/geom.h"
 #include "vect-ops.h"
 #include "camera.h"
 

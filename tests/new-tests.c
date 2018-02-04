@@ -28,7 +28,7 @@ static void test_data_loading ()
     sprintf (name, "%s/skull.dat", DATAPATH);
     unsigned int dim[3] = {256,256,256};
     const char *error;
-    map = vox_read_raw_data (name, dim, 1, ^(unsigned int sample){return sample >= 40;}, &error);
+    map = vox_read_raw_data_in_map (name, dim, 1, ^(unsigned int sample){return sample >= 40;}, &error);
     CU_ASSERT (map != NULL);
 }
 
