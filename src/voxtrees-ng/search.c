@@ -14,6 +14,7 @@ struct dot_pair {
  * the leaf which contains solid voxels.
  */
 static const struct vox_node*
+__attribute__((noinline))
 ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_point,
                                   const vox_dot dir, vox_dot res)
 {
@@ -53,6 +54,7 @@ ray_tree_intersection_leaf_solid (const struct vox_node* tree, vox_dot starting_
  * hit with voxel NOT belonging the leaf.
  */
 static const struct vox_node*
+__attribute__((noinline))
 ray_tree_intersection_leaf_hole (const struct vox_node* tree, vox_dot starting_point,
                                  const vox_dot dir, vox_dot res)
 {
@@ -266,4 +268,10 @@ vox_ray_tree_intersection (const struct vox_node* tree, const vox_dot origin,
     }
 
     return NULL;
+}
+
+// FIXME: This function is a stub.
+int vox_tree_ball_collidep (const struct vox_node* tree, const vox_dot center, float radius)
+{
+    return 0;
 }

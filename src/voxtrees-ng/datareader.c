@@ -70,3 +70,37 @@ done:
 
     return map;
 }
+
+static int check_file (const char* filename)
+{
+    struct stat sb;
+
+    if (!stat (filename, &sb) && S_ISREG(sb.st_mode)) return 1;
+    return 0;
+}
+
+int vox_find_data_file (const char *filename, char *fullpath)
+{
+    // At first, try the path "as is"
+    if (check_file (strncpy (fullpath, filename, MAXPATHLEN))) return 1;
+
+    // Then try to find data file in system-wide data directory
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s%s", VOX_DATA_PATH, filename) >= MAXPATHLEN)
+        return 0;
+    if (check_file (fullpath)) return 1;
+
+    // Then check at ~/.voxvision
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s/.voxvision/%s", getenv ("HOME"), filename) >= MAXPATHLEN)
+        return 0;
+    if (check_file (fullpath)) return 1;
+
+    // Then as last resort try environment variable VOXVISION_DATA
+    if (snprintf (fullpath, MAXPATHLEN,
+                  "%s/%s", getenv ("VOXVISION_DATA"), filename) >= MAXPATHLEN)
+        return 0;
+    if (check_file (fullpath)) return 1;
+
+    return 0;
+}

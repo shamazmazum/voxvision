@@ -378,3 +378,32 @@ void vox_bounding_box (const struct vox_node *tree, struct vox_box *box)
 {
     vox_box_copy (box, &(tree->actual_bb));
 }
+
+struct vox_node* vox_make_dense_leaf (const struct vox_box *box)
+{
+    struct vox_node *node = aligned_alloc (16, sizeof (struct vox_node));
+    memset (node, 0, sizeof (struct vox_node));
+
+    node->flags = NODATA;
+    vox_box_copy (&(node->actual_bb), box);
+    node->leaf_data.dots_num = 0;
+
+    return node;
+}
+
+/* Stubs. */
+
+int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
+{
+    return 0;
+}
+
+int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel)
+{
+    return 0;
+}
+
+struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
+{
+    return NULL;
+}

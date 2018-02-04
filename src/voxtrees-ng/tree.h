@@ -40,6 +40,11 @@ void vox_dump_tree (const struct vox_node *tree);
 void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 void vox_set_voxel (const vox_dot dot);
 
+int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
+struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
+
 extern vox_dot vox_voxel;
 
 #endif

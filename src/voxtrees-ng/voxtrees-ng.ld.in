@@ -1,6 +1,7 @@
 VOXTREES_NG_@voxvision_VERSION@ {
     global: vox_read_raw_data;
             vox_destroy_map_3d;
+            vox_find_data_file;
 
             vox_voxel;
             vox_make_tree;
@@ -10,8 +11,12 @@ VOXTREES_NG_@voxvision_VERSION@ {
             vox_dump_tree;
             vox_bounding_box;
             vox_set_voxel;
+            vox_insert_voxel;
+            vox_delete_voxel;
+            vox_rebuild_tree;
 
             vox_ray_tree_intersection;
+            vox_tree_ball_collidep;
 
             vox_abs_metric;
             vox_sqr_metric;
