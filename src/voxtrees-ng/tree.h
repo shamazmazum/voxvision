@@ -1,6 +1,7 @@
 #ifndef TREE_H_
 #define TREE_H_
-#include "types.h"
+#include "../voxvision.h"
+#include "map.h"
 
 #ifdef VOXTREES_NG_SOURCE
 #define LEAF 1

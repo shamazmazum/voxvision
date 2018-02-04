@@ -1,6 +1,6 @@
 #ifndef _GEOM_H_
 #define _GEOM_H_
-#include "types.h"
+#include "../voxvision.h"
 
 #define vox_dot_add(a,b,res) do { \
         res[0] = a[0] + b[0];     \
