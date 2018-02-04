@@ -47,6 +47,11 @@ int vox_delete_shadowless_light (struct vox_light_manager *light_manager,
                                  const vox_dot center, float radius);
 
 /**
+   \brief Delete all shadowless lights.
+**/
+void vox_delete_shadowless_lights (struct vox_light_manager *light_manager);
+
+/**
    \brief Return a number of shadowless lights.
 **/
 int vox_shadowless_lights_number (const struct vox_light_manager *light_manager);

@@ -25,6 +25,7 @@ struct vox_light_manager* vox_create_light_manager ()
 
 void vox_destroy_light_manager (struct vox_light_manager *light_manager)
 {
+    vox_mtree_destroy (light_manager->bound_lights);
     free (light_manager);
 }
 
@@ -63,6 +64,12 @@ int vox_delete_shadowless_light (struct vox_light_manager *light_manager,
     s.radius = radius;
 
     return vox_mtree_remove_sphere (&(light_manager->bound_lights), &s);
+}
+
+void vox_delete_shadowless_lights (struct vox_light_manager *light_manager)
+{
+    vox_mtree_destroy (light_manager->bound_lights);
+    light_manager->bound_lights = NULL;
 }
 
 int vox_shadowless_lights_number (const struct vox_light_manager *light_manager)

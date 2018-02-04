@@ -486,6 +486,16 @@ static int l_delete_shadowless_light (lua_State *L)
     return 1;
 }
 
+static int l_delete_shadowless_lights (lua_State *L)
+{
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+
+    vox_delete_shadowless_lights (light_manager);
+
+    return 0;
+}
+
 static int l_set_ambient_light (lua_State *L)
 {
     vox_dot color;
@@ -504,6 +514,7 @@ static const struct luaL_Reg light_manager_methods [] = {
     {"__len", l_light_manager_len},
     {"insert_shadowless_light", l_insert_shadowless_light},
     {"delete_shadowless_light", l_delete_shadowless_light},
+    {"delete_shadowless_lights", l_delete_shadowless_lights},
     {"set_ambient_light", l_set_ambient_light},
     {NULL, NULL}
 };
