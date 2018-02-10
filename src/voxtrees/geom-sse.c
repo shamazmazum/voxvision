@@ -94,7 +94,7 @@ int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir,
     __v4sf d = _mm_load_ps (dir);
     __v4sf mask = d == _mm_set_ps1(0);
 
-    // Replace NaNs (they can appear if d == 0) with zeros
+    // Replace infinities (they can appear if d == 0) with zeros
     __v4sf dist = _mm_blendv_ps (sub / d, _mm_set_ps1(0), mask);
 
     // Find the maximum distance
