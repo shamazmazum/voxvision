@@ -27,6 +27,7 @@ LIGHT_MANAGER_DESC=	Enable experimental light manager (slow)
 DOXYGEN_BUILD_DEPENDS=	doxygen:devel/doxygen
 NO_SSE_CMAKE_BOOL_OFF=	SSE_INTRIN
 LIGHT_MANAGER_CMAKE_BOOL=	WITH_LIGHT_MANAGER
+OPTIONS_SUB=	yes
 .include <bsd.port.options.mk>
 
 do-install-DOXYGEN-on:
