@@ -8,7 +8,7 @@ set (voxvision_VERSION_MAJOR 0)
 set (voxvision_VERSION_MINOR 30)
 set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
-set (CMAKE_C_FLAGS_RELEASE "-O2")
+set (CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
