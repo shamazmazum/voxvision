@@ -387,16 +387,23 @@ static int l_context_newindex (lua_State *L)
 
         /* Provide access to the tree via asyncronous proxy */
         struct scene_proxydata *pdata = lua_newuserdata (L, sizeof (struct scene_proxydata));
-        luaL_getmetatable (L, SCENE_PROXY_META);
-        lua_pushvalue (L, 3);
-        lua_setfield (L, -2, "__tree"); // To prevent gc'ing
-        lua_setmetatable (L, -2);
         pdata->tree = scene;
         pdata->context = ctx;
         pdata->scene_group = data->rendering_group;
         pdata->scene_sync_queue = data->rendering_queue;
+        /*
+         * KLUDGE:
+         * We must wait here for all operations on the tree to complete.
+         * Unfortunately, we cannot add the following actions in queue (e.g. via
+         * dispatch_group_notify) because it will mess with lua state.
+         */
+        dispatch_group_wait (data->rendering_group, DISPATCH_TIME_FOREVER);
         vox_context_set_scene (ctx, pdata->tree);
 
+        luaL_getmetatable (L, SCENE_PROXY_META);
+        lua_pushvalue (L, 3);
+        lua_setfield (L, -2, "__tree"); // To prevent gc'ing
+        lua_setmetatable (L, -2);
         lua_setfield (L, -2, "tree");
     } else if (strcmp (field, "camera") == 0) {
         struct cameradata *cdata = luaL_checkudata (L, 3, CAMERA_META);
@@ -404,12 +411,11 @@ static int l_context_newindex (lua_State *L)
 
         lua_pushvalue (L, 3);
         lua_setfield (L, -2, "camera");
-    } else if (strcmp (field, "cd") == 0) {
-        luaL_checkudata (L, 3, CD_META);
-
+    } else {
+        // Allow user to store anything world-related in the world table.
         lua_pushvalue (L, 3);
-        lua_setfield (L, -2, "cd");
-    } else luaL_error (L, "Cannot set %s field of the context", field);
+        lua_setfield (L, -2, field);
+    }
 
     return 0;
 }
