@@ -525,9 +525,59 @@ static const struct luaL_Reg light_manager_methods [] = {
     {NULL, NULL}
 };
 
+static int l_new_fps_controller (lua_State *L)
+{
+    unsigned int fps = luaL_checkinteger (L, 1);
+    vox_fps_controller_t *data = lua_newuserdata (L, sizeof (vox_fps_controller_t));
+    luaL_getmetatable (L, FPS_CTRL_META);
+    lua_setmetatable (L, -2);
+    *data = vox_make_fps_controller (fps);
+
+    return 1;
+}
+
+static int l_fps_controller_to_string (lua_State *L)
+{
+    lua_pushfstring (L, "<fps controller at address %p>", lua_topointer (L, 1));
+    return 1;
+}
+
+static int l_fps_controller_gc (lua_State *L)
+{
+    vox_fps_controller_t *data = luaL_checkudata (L, 1, FPS_CTRL_META);
+    vox_destroy_fps_controller (*data);
+
+    return 0;
+}
+
+static int l_fps_controller_delay (lua_State *L)
+{
+    vox_fps_controller_t *data = luaL_checkudata (L, 1, FPS_CTRL_META);
+    vox_fps_controller_t fps_controller = *data;
+
+    struct vox_fps_info fps_info = fps_controller ();
+    int updated = vox_fpsstatus_updated (fps_info.status);
+    int fps = vox_fpsstatus_fps (fps_info.status);
+    Uint32 frame_time = fps_info.frame_time;
+
+    lua_pushinteger (L, fps);
+    lua_pushboolean (L, updated);
+    lua_pushinteger (L, frame_time);
+
+    return 3;
+}
+
+static const struct luaL_Reg fps_controller_methods [] = {
+    {"__tostring", l_fps_controller_to_string},
+    {"__gc", l_fps_controller_gc},
+    {"delay", l_fps_controller_delay},
+    {NULL, NULL}
+};
+
 static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
+    {"fps_controller", l_new_fps_controller},
     {NULL, NULL}
 };
 
@@ -568,6 +618,11 @@ int luaopen_voxrnd (lua_State *L)
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
     luaL_setfuncs (L, light_manager_methods, 0);
+
+    luaL_newmetatable(L, FPS_CTRL_META);
+    lua_pushvalue (L, -1);
+    lua_setfield (L, -2, "__index");
+    luaL_setfuncs (L, fps_controller_methods, 0);
 
     luaL_newlib (L, voxrnd);
 

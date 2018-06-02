@@ -39,7 +39,7 @@ static unsigned int choose_raymerge (const char *quality_str)
 
 int main (int argc, char *argv[])
 {
-    int ch, width = 800, height = 600, fps = 30;
+    int ch, width = 800, height = 600, fps = -1;
     const char *script = NULL;
     char *endptr;
     unsigned int quality = VOX_QUALITY_ADAPTIVE;
@@ -91,7 +91,8 @@ int main (int argc, char *argv[])
     if (!vox_context_set_quality (engine->ctx, quality))
         fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
 
-    vox_fps_controller_t fps_controller = vox_make_fps_controller (fps);
+    vox_fps_controller_t fps_controller = NULL;
+    if (fps >= 0) fps_controller = vox_make_fps_controller (fps);
     SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
     SDL_SetRelativeMouseMode (SDL_TRUE);
     vox_engine_status status;
@@ -99,13 +100,15 @@ int main (int argc, char *argv[])
     while (1)
     {
         status = vox_engine_tick (engine);
-        struct vox_fps_info fps_info = fps_controller();
-        if (vox_fpsstatus_updated (fps_info.status))
-            printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
+        if (fps_controller != NULL) {
+            struct vox_fps_info fps_info = fps_controller();
+            if (vox_fpsstatus_updated (fps_info.status))
+                printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
+        }
         if (vox_engine_quit_requested (status)) goto end;
     }
 end:
-    vox_destroy_engine (engine);
+    if (fps_controller != NULL) vox_destroy_engine (engine);
     
     return 0;
 }
