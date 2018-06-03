@@ -1,7 +1,7 @@
 PORTNAME=	voxvision
-DISTVERSION=	0.20-130
+DISTVERSION=	0.20-135
 DISTVERSIONPREFIX=	v
-DISTVERSIONSUFFIX=	-ge100f2f
+DISTVERSIONSUFFIX=	-g1912218
 CATEGORIES=	graphics
 MAINTAINER=	shamaz.mazum@gmail.com
 COMMENT=	Voxel visualisation library
@@ -17,7 +17,7 @@ USES=		lua:53 cmake:outsource python:build
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	shamazmazum
-GH_TUPLE=	shamazmazum:voxvision:e100f2f:voxvision \
+GH_TUPLE=	shamazmazum:voxvision:1912218:voxvision \
 		shamazmazum:luasdl2:37f2163:voxvision/src/voxengine/modules/luasdl2
 
 OPTIONS_DEFINE=	DOXYGEN NO_SSE LIGHT_MANAGER

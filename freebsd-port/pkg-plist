@@ -7,6 +7,7 @@ include/voxvision/voxrnd/camera.h
 include/voxvision/voxrnd/cd.h
 include/voxvision/voxrnd/fps-control.h
 include/voxvision/voxrnd/lights.h
+include/voxvision/voxrnd/modules.h
 include/voxvision/voxrnd/renderer.h
 include/voxvision/voxtrees.h
 include/voxvision/voxtrees/datareader.h
