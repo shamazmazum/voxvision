@@ -1,5 +1,6 @@
 VOXRND_@voxvision_VERSION@ {
-    global: vox_camera_methods;
+    global: vox_load_module;
+            vox_camera_methods;
             vox_make_context_from_surface;
             vox_make_context_and_window;
             vox_redraw;

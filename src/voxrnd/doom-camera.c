@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "camera.h"
+#include "modules.h"
 #include "../voxtrees/geom.h"
 
 struct vox_doom_camera
@@ -12,7 +13,8 @@ struct vox_doom_camera
     float phi, sinphi, cosphi, k;
     float mul, fov;
 };
-struct vox_camera_interface* get_methods ();
+
+struct vox_module* module_init();
 
 /*
  * This function performs vector rotation according to the camera's orientation
@@ -143,7 +145,8 @@ static struct vox_camera* doom_construct_camera (const struct vox_camera *cam)
         camera->cosphi = 1.0;
     }
 
-    vox_use_camera_methods ((struct vox_camera*)camera, get_methods ());
+    vox_use_camera_methods ((struct vox_camera*)camera,
+                            (struct vox_camera_interface*)module_init()->methods);
     return (struct vox_camera*)camera;
 }
 
@@ -176,7 +179,13 @@ static struct vox_camera_interface vox_doom_camera_interface =
     .set_fov = doom_set_fov
 };
 
-struct vox_camera_interface* get_methods ()
+static struct vox_module vox_doom_camera_module =
 {
-    return &vox_doom_camera_interface;
+    .type = CAMERA_MODULE,
+    .methods = (struct vox_module_methods*)&vox_doom_camera_interface
+};
+
+struct vox_module* module_init ()
+{
+    return &vox_doom_camera_module;
 }

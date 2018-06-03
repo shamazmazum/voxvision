@@ -174,7 +174,9 @@ void vox_init_camera (struct vox_camera *camera);
    If needed, the camera is loaded as a shared object from local or global
    module directories or from directory specified in `VOXVISION_MODULES`
    environment variable. To get a pointer to the camera's methods, a function
-   `get_methods` is called from that shared object.
+   `module_init()` is called from that shared object.
+
+   Now this function uses generic module mechanism provided in `modules.h`.
 
    \return A pointer to the camera's methods or NULL if no camera module was
            found.

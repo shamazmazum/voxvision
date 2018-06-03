@@ -14,6 +14,7 @@ if (WITH_LIGHT_MANAGER)
 endif (WITH_LIGHT_MANAGER)
 
 set (VOXRND_SOURCES
+  modules.c
   lights.c
   camera.c
   renderer.c
