@@ -20,5 +20,5 @@ add_subdirectory (voxengine)
 add_subdirectory (demo2)
 endif (LUA_FOUND)
 
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/voxvision.h voxtrees.h voxrnd.h voxengine.h modules.h
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/voxvision.h voxtrees.h voxrnd.h voxengine.h
          DESTINATION include/voxvision)

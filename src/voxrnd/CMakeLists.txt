@@ -60,7 +60,7 @@ set_target_properties (simple-camera-module PROPERTIES OUTPUT_NAME simple-camera
 add_library (doom-camera-module SHARED doom-camera.c)
 set_target_properties (doom-camera-module PROPERTIES OUTPUT_NAME doom-camera PREFIX "")
 
-install (FILES camera.h renderer.h fps-control.h cd.h lights.h
+install (FILES camera.h renderer.h fps-control.h cd.h lights.h modules.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)
