@@ -197,6 +197,7 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
     if (ctx->light_manager != NULL) vox_destroy_light_manager (ctx->light_manager);
     free (ctx->square_output);
     free (ctx->draw);
+    free (ctx);
 }
 
 void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
