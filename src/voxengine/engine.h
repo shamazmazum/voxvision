@@ -4,7 +4,6 @@
 **/
 #ifndef ENGINE_H
 #define ENGINE_H
-#include <SDL2/SDL.h>
 #ifdef USE_GCD
 #include <dispatch/dispatch.h>
 #else

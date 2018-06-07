@@ -11,7 +11,6 @@
 
 #ifndef __LIGHTS_H__
 #define __LIGHTS_H__
-#include <SDL2/SDL.h>
 #include "../voxtrees/mtree.h"
 
 /**

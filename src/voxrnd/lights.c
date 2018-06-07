@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "lights.h"
 #include "../voxtrees/geom.h"
 
