@@ -194,7 +194,12 @@ int main (int argc, char *argv[])
     tree_group = dispatch_group_create ();
 #endif
 
-    camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
+    struct vox_camera_interface *camera_iface = vox_camera_methods ("simple-camera");
+    if (camera_iface == NULL) {
+        fprintf (stderr, "Cannot find camera module\n");
+        goto end;
+    }
+    camera = camera_iface->construct_camera (NULL);
     camera->iface->set_position (camera, origin);
     camera->iface->set_fov (camera, fov);
     vox_dot look;
