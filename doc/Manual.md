@@ -666,7 +666,8 @@ function init (ctx)
    ctx.fps = voxrnd.fps_controller (60)
 end
 ~~~~~~~~~~
-Then call `ctx.fps:delay()` once in the `tick()` function.
+Then call `ctx.fps:delay()` once in the `tick()` function. If you use this
+method, do NOT specify `-f` key to `voxvision-engine` program.
 
 **Voxengine**'s lua interface can interact with SDL by means of
 [**luasdl2**](https://github.com/Tangent128/luasdl2). It can also understand raw
