@@ -1,6 +1,7 @@
 #include <math.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../voxtrees/geom.h"
 #include "vect-ops.h"
 #include "camera.h"
@@ -193,6 +194,32 @@ static float simple_get_fov (const struct vox_camera *cam)
     return camera->fov;
 }
 
+static void simple_set_property_number (struct vox_camera *cam, const char *name, float value)
+{
+    struct vox_simple_camera *camera = (struct vox_simple_camera*)cam;
+    if (strcmp (name, "fov") == 0) camera->fov = value;
+}
+
+static void simple_set_property_dot (struct vox_camera *cam, const char *name, const vox_dot value)
+{
+    struct vox_simple_camera *camera = (struct vox_simple_camera*)cam;
+    if (strcmp (name, "position") == 0) {
+        vox_dot_copy (camera->position, value);
+    } else if (strcmp (name, "rotation") == 0) {
+        vox_quat r[3];
+        /*
+         * NB: We divide angles by 2 because rotation function rotates
+         * by doubled angle.
+         */
+        vox_quat_set (r[0], cosf (value[0]/2), sinf (value[0]/2), 0, 0);
+        vox_quat_set (r[1], cosf (value[1]/2), 0, sinf (value[1]/2), 0);
+        vox_quat_set (r[2], cosf (value[2]/2), 0, 0, sinf (value[2]/2));
+
+        vox_quat_mul (r[1], r[0], camera->rotation);
+        vox_quat_mul (r[2], camera->rotation, camera->rotation);
+    }
+}
+
 static struct vox_camera_interface vox_simple_camera_interface =
 {
     .screen2world = simple_screen2world,
@@ -205,7 +232,9 @@ static struct vox_camera_interface vox_simple_camera_interface =
     .set_window_size = simple_set_window_size,
     .construct_camera = simple_construct_camera,
     .get_fov = simple_get_fov,
-    .set_fov = simple_set_fov
+    .set_fov = simple_set_fov,
+    .set_property_number = simple_set_property_number,
+    .set_property_dot = simple_set_property_dot,
 };
 
 static struct vox_module vox_simple_camera_module =

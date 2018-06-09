@@ -7,7 +7,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "../voxvision.h"
+#include "object.h"
 
 struct vox_camera;
 
@@ -16,6 +16,7 @@ struct vox_camera;
 **/
 struct vox_camera_interface
 {
+    VOX_OBJECT (vox_camera);
     /*
      * -------
      * Methods
@@ -140,6 +141,16 @@ struct vox_camera_interface
    \brief A generic camera class.
 
    User is only allowed to access its methods.
+   Also user can set the following properties of a camera:
+
+   `"fov"` which stands for "field of view" with the method
+   `set_property_number`.
+
+   `"position"` which is position of the camera with the method
+   `set_property_dot`.
+
+   `"rotation"` which is rotation angles of the camera with the method
+   `set_property_dot`.
 **/
 struct vox_camera
 {

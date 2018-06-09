@@ -86,6 +86,27 @@ static void prepare_safe_environment (lua_State *L)
 #include <safe_environment.h>
 }
 
+// FIXME: Only camera can be a vox_object now
+static int l_set_object_property (lua_State *L)
+{
+    struct vox_object **data = luaL_checkudata (L, 1, CAMERA_META);
+    struct vox_object *obj = *data;
+    const char *name = luaL_checkstring (L, 2);
+    int t = lua_type (L, 3);
+    vox_dot dot;
+    switch (t) {
+    case LUA_TNUMBER:
+        obj->iface->set_property_number (obj, name, lua_tonumber (L, 3));
+        break;
+    case LUA_TTABLE:
+        READ_DOT (dot, 3);
+        obj->iface->set_property_dot (obj, name, dot);
+        break;
+    }
+
+    return 0;
+}
+
 static void initialize_lua (struct vox_engine *engine)
 {
     lua_State *L = luaL_newstate ();
@@ -114,6 +135,10 @@ static void initialize_lua (struct vox_engine *engine)
 
     // And load lua modules
     load_lua_module (L, "voxutils");
+
+    // Add some core functions
+    lua_pushcfunction (L, l_set_object_property);
+    lua_setfield (L, -2, "set_object_property");
 
     // Remove the environment from the stack, it is in "voxvision" global now
     lua_pop (L, 1);

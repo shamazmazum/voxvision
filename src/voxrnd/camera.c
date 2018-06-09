@@ -15,25 +15,6 @@ void vox_use_camera_methods (struct vox_camera *camera, const struct vox_camera_
     }
 }
 
-static void dummy_vector (const struct vox_camera *camera, vox_dot ray, ...)
-{
-    vox_dot_set (ray, 0, 0, 0);
-}
-
-static void dummy_void (struct vox_camera *camera, ...)
-{
-}
-
-static float dummy_fl (struct vox_camera *camera, ...)
-{
-    return 0;
-}
-
-static void* dummy_ptr (struct vox_camera *camera, ...)
-{
-    return NULL;
-}
-
 static void destroy_camera (struct vox_camera *camera)
 {
     free (camera->iface);
@@ -41,19 +22,19 @@ static void destroy_camera (struct vox_camera *camera)
 }
 
 struct vox_camera_interface dummy_methods = {
-    .screen2world = (void*)dummy_vector,
-    .rotate_camera = (void*)dummy_void,
-    .move_camera = (void*)dummy_void,
-    .look_at = (void*)dummy_void,
-    .set_rot_angles = (void*)dummy_void,
-    .get_position = (void*)dummy_vector,
-    .set_position = (void*)dummy_void,
-    .get_fov = (void*)dummy_fl,
-    .set_fov = (void*)dummy_void,
-    .set_window_size = (void*)dummy_void,
+    .screen2world = (void*)vox_method_dot_dummy,
+    .rotate_camera = (void*)vox_method_void_dummy,
+    .move_camera = (void*)vox_method_void_dummy,
+    .look_at = (void*)vox_method_void_dummy,
+    .set_rot_angles = (void*)vox_method_void_dummy,
+    .get_position = (void*)vox_method_dot_dummy,
+    .set_position = (void*)vox_method_void_dummy,
+    .get_fov = (void*)vox_method_float_dummy,
+    .set_fov = (void*)vox_method_void_dummy,
+    .set_window_size = (void*)vox_method_void_dummy,
 
-    .construct_camera = (void*)dummy_ptr,
-    .destroy_camera = destroy_camera
+    .destroy_camera = destroy_camera,
+    VOX_OBJECT_METHODS
 };
 
 void vox_init_camera (struct vox_camera *camera)

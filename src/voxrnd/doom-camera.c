@@ -78,6 +78,25 @@ static void doom_set_rot_angles (struct vox_camera *cam, const vox_dot angles)
     camera->cosphi = cosf (camera->phi);
 }
 
+static void doom_set_property_number (struct vox_camera *cam, const char *name, float value)
+{
+    struct vox_doom_camera *camera = (struct vox_doom_camera*)cam;
+    if (strcmp (name, "fov") == 0) camera->fov = value;
+}
+
+static void doom_set_property_dot (struct vox_camera *cam, const char *name, const vox_dot value)
+{
+    struct vox_doom_camera *camera = (struct vox_doom_camera*)cam;
+    if (strcmp (name, "position") == 0) {
+        vox_dot_copy (camera->position, value);
+    } else if (strcmp (name, "rotation") == 0) {
+        camera->k = value[0];
+        camera->phi = value[2];
+        camera->sinphi = sinf (camera->phi);
+        camera->cosphi = cosf (camera->phi);
+    }
+}
+
 static void doom_move_camera (struct vox_camera *cam, const vox_dot delta)
 {
     struct vox_doom_camera *camera = (void*)cam;
@@ -176,7 +195,9 @@ static struct vox_camera_interface vox_doom_camera_interface =
     .set_window_size = doom_set_window_size,
     .construct_camera = doom_construct_camera,
     .get_fov = doom_get_fov,
-    .set_fov = doom_set_fov
+    .set_fov = doom_set_fov,
+    .set_property_number = doom_set_property_number,
+    .set_property_dot = doom_set_property_dot
 };
 
 static struct vox_module vox_doom_camera_module =

@@ -5,6 +5,7 @@
 #ifndef __VOXRND__
 #define __VOXRND__
 
+#include "voxrnd/object.h"
 #include "voxrnd/modules.h"
 #include "voxrnd/camera.h"
 #include "voxrnd/renderer.h"
