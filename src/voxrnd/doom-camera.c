@@ -62,22 +62,6 @@ static void doom_get_position (const struct vox_camera *cam, vox_dot res)
     vox_dot_copy (res, camera->position);
 }
 
-static void doom_set_position (struct vox_camera *cam, const vox_dot pos)
-{
-    struct vox_doom_camera *camera = (void*)cam;
-    vox_dot_copy (camera->position, pos);
-}
-
-static void doom_set_rot_angles (struct vox_camera *cam, const vox_dot angles)
-{
-    struct vox_doom_camera *camera = (void*)cam;
-
-    camera->k = angles[0];
-    camera->phi = angles[2];
-    camera->sinphi = sinf (camera->phi);
-    camera->cosphi = cosf (camera->phi);
-}
-
 static void doom_set_property_number (struct vox_camera *cam, const char *name, float value)
 {
     struct vox_doom_camera *camera = (struct vox_doom_camera*)cam;
@@ -169,33 +153,15 @@ static struct vox_camera* doom_construct_camera (const struct vox_camera *cam)
     return (struct vox_camera*)camera;
 }
 
-static void doom_set_fov (struct vox_camera *cam, float fov)
-{
-    struct vox_doom_camera *camera = (void*)cam;
-
-    camera->fov = fov;
-}
-
-static float doom_get_fov (const struct vox_camera *cam)
-{
-    const struct vox_doom_camera *camera = (void*)cam;
-
-    return camera->fov;
-}
-
 static struct vox_camera_interface vox_doom_camera_interface =
 {
     .screen2world = doom_screen2world,
     .get_position = doom_get_position,
-    .set_position = doom_set_position,
-    .set_rot_angles = doom_set_rot_angles,
     .move_camera = doom_move_camera,
     .rotate_camera = doom_rotate_camera,
     .look_at = doom_look_at,
     .set_window_size = doom_set_window_size,
     .construct_camera = doom_construct_camera,
-    .get_fov = doom_get_fov,
-    .set_fov = doom_set_fov,
     .set_property_number = doom_set_property_number,
     .set_property_dot = doom_set_property_dot
 };

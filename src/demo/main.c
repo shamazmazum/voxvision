@@ -200,8 +200,8 @@ int main (int argc, char *argv[])
         goto end;
     }
     camera = camera_iface->construct_camera (NULL);
-    camera->iface->set_position (camera, origin);
-    camera->iface->set_fov (camera, fov);
+    camera->iface->set_property_dot (camera, "position", origin);
+    camera->iface->set_property_number (camera, "fov", fov);
     vox_dot look;
     vox_dot_set (look,
                  vox_voxel[0]/2 * dim[0],

@@ -26,11 +26,7 @@ struct vox_camera_interface dummy_methods = {
     .rotate_camera = (void*)vox_method_void_dummy,
     .move_camera = (void*)vox_method_void_dummy,
     .look_at = (void*)vox_method_void_dummy,
-    .set_rot_angles = (void*)vox_method_void_dummy,
     .get_position = (void*)vox_method_dot_dummy,
-    .set_position = (void*)vox_method_void_dummy,
-    .get_fov = (void*)vox_method_float_dummy,
-    .set_fov = (void*)vox_method_void_dummy,
     .set_window_size = (void*)vox_method_void_dummy,
 
     .destroy_camera = destroy_camera,

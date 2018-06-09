@@ -198,8 +198,20 @@ values, depending on camera's implementation):
 camera->iface->set_fov (camera, 1.2);
 vox_dot position = {-10, 10, 100};
 camera->iface->set_position (camera, position); // Here argument is copied.
-
 ~~~~~~~~~~~~~~~~~~~~
+
+**NB:**
+Starting with version 0.32 you must use different construction for setting FOV
+and position:
+~~~~~~~~~~~~~~~~~~~~{.c}
+camera->iface->set_property_number (camera, "fov", 1.2);
+vox_dot position = {-10, 10, 100};
+camera->iface->set_property_dot (camera, "position", position);
+~~~~~~~~~~~~~~~~~~~~
+This change was made to reduce overall interface size and, what's more
+important, to allow user to pass different specific parameters to objects in a
+uniform way.
+
 Putting it all together you will get something
 like this:
 
@@ -209,8 +221,8 @@ vox_dot origin = {0,0,0}; // Camera's origin
 float fov = 1.2; // Camera's field of view
 // Make a default camera
 struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
-camera->iface->set_position (camera, origin);
-camera->iface->set_fov (camera, fov);
+camera->iface->set_property_dot (camera, "position", origin);
+camera->iface->set_property_number (camera, "fov", fov);
 struct vox_rnd_ctx *ctx =
      vox_make_context_from_surface (surface);
 vox_context_set_scene (ctx, tree);
@@ -520,10 +532,15 @@ function init (ctx)
 
    -- Create a new simple camera
    local camera = vr.camera "simple-camera"
-   -- These methods are like methods in vox_camera_interface
-   camera:set_position {25,-100,25}
+   --[[
+        These methods are like methods in vox_camera_interface.
+        Also note, that there is only one set_property method, as opposed to
+        voxrnd's set_property_dot and set_property_number, you do not need to
+        worry about type of the property.
+   ]]--
+   camera:set_property ("position", {25,-100,25})
+   camera:set_property ("fov", 0.45)
    camera:look_at {25,25,25}
-   camera:set_fov (0.45)
 
    -- Populate the context
    ctx.tree = t
@@ -549,7 +566,7 @@ function tick (world, time)
    local camera = world.camera
    time = time / 2000
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
-   camera:set_position (dot)
+   camera:set_property ("position", dot)
    camera:look_at {25,25,25}
 
    return true
@@ -576,7 +593,7 @@ function init (ctx)
    t:insert {0,0,0}
 
    local camera = vr.camera "simple-camera"
-   camera:set_position {0,-10,0}
+   camera:set_property ("position", {0,-10,0})
 
    -- Here is a collision detector. Its interface is like its C equivalent
    local cd = vr.cd()
@@ -640,6 +657,17 @@ function tick (world, time)
 end
 ~~~~~~~~~~~~~~~
 
+Since version 0.31 you can also control fps rate from lua code. To do this,
+create fps controller in `init()` function like so:
+~~~~~~~~~~{.lua}
+function init (ctx)
+   ......
+   -- Set frames per second ratio to 60
+   ctx.fps = voxrnd.fps_controller (60)
+end
+~~~~~~~~~~
+Then call `ctx.fps:delay()` once in the `tick()` function.
+
 **Voxengine**'s lua interface can interact with SDL by means of
 [**luasdl2**](https://github.com/Tangent128/luasdl2). It can also understand raw
 data files, using `vox_read_raw_data()` from **voxtrees**. Please look at lua
@@ -648,6 +676,8 @@ dotsets etc. is handeled by lua automatically.
 
 Demo application
 ----------------
+**NB:** This section of documentation is out of the date.
+
 This application is meant as a demonstration of **voxvision** libraries and as a
 developer's playground. I'll provide information on it here too.
 

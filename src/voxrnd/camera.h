@@ -60,16 +60,10 @@ struct vox_camera_interface
     */
 
     /*
-     * --------------
-     * Setters/getters
-     * ---------------
+     * ------------------------
+     * Specific setters/getters
+     * ------------------------
      */
-    void (*set_rot_angles) (struct vox_camera *camera, const vox_dot angles);
-    /**< \brief set camera rotation angles
-
-         Rotation angles are in the world coordinate system
-     */
-
     void (*get_position) (const struct vox_camera *camera, vox_dot res);
     /**<
        \brief Get camera position.
@@ -78,27 +72,6 @@ struct vox_camera_interface
 
        \param res where result is stored
     */
-
-    void (*set_position) (struct vox_camera *camera, const vox_dot pos);
-    /**<
-       \brief Set camera position.
-
-       \param pos a new position
-    */
-
-    float (*get_fov) (const struct vox_camera *camera);
-    /**<
-       \brief Get field of view.
-    **/
-
-    /*
-     * 64 byte border. Rarely used methods are below this line.
-     */
-
-    void (*set_fov) (struct vox_camera *camera, float fov);
-    /**<
-       \brief Set field of view.
-    **/
 
     void (*set_window_size) (struct vox_camera *camera, int w, int h);
     /**<
@@ -111,6 +84,12 @@ struct vox_camera_interface
        \param w width of the window
        \param h height of the window
     */
+
+    /*
+     * --------------
+     * 64-byte border
+     * --------------
+     */
 
     /*
      * ----------------------

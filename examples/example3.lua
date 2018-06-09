@@ -12,8 +12,8 @@ function init (ctx)
    print (#tree)
 
    local camera = vr.camera "simple-camera"
-   camera:set_position {100,60,-100}
-   camera:set_rot_angles {1.4, 0, 0}
+   camera:set_property ("position", {100,60,-100})
+   camera:set_property ("rotation", {1.4, 0, 0})
 
    -- Also create a collision detector
    local cd = vr.cd()

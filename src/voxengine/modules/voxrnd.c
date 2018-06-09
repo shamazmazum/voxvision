@@ -17,43 +17,6 @@ static int get_position (lua_State *L)
     return 1;
 }
 
-static int set_position (lua_State *L)
-{
-    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
-    vox_dot position;
-    READ_DOT (position, 2);
-    camera->iface->set_position (camera->camera, position);
-
-    return 0;
-}
-
-static int get_fov (lua_State *L)
-{
-    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
-    lua_pushnumber (L, camera->iface->get_fov (camera->camera));
-
-    return 1;
-}
-
-static int set_fov (lua_State *L)
-{
-    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
-    float fov = luaL_checknumber (L, 2);
-    camera->iface->set_fov (camera->camera, fov);
-
-    return 0;
-}
-
-static int set_rot_angles (lua_State *L)
-{
-    struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
-    vox_dot angles;
-    READ_DOT (angles, 2);
-    camera->iface->set_rot_angles (camera->camera, angles);
-
-    return 0;
-}
-
 static int rotate_camera (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
@@ -138,10 +101,6 @@ static const struct luaL_Reg camera_methods [] = {
     {"__gc", destroycamera},
     {"__tostring", printcamera},
     {"get_position", get_position},
-    {"set_position", set_position},
-    {"get_fov", get_fov},
-    {"set_fov", set_fov},
-    {"set_rot_angles", set_rot_angles},
     {"rotate_camera", rotate_camera},
     {"move_camera", move_camera},
     {"look_at", look_at},
@@ -597,6 +556,11 @@ int luaopen_voxrnd (lua_State *L)
     luaL_newmetatable(L, CAMERA_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
+    // Object-style set_property
+    lua_getglobal (L, "voxvision");
+    lua_getfield (L, -1, "set_property");
+    lua_setfield (L, -3, "set_property");
+    lua_pop (L, 1);
     luaL_setfuncs (L, camera_methods, 0);
 
     luaL_newmetatable(L, CD_META);

@@ -19,7 +19,7 @@ function init (ctx)
       simple-camera.
    ]]--
    local camera = vr.camera "doom-camera"
-   camera:set_position {50, -50, -20}
+   camera:set_property ("position", {50, -50, -20})
 
    -- Initialize n with empty tables
    local i

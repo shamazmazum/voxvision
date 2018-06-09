@@ -37,9 +37,9 @@ function init (ctx)
    -- Create a new simple camera
    local camera = vr.camera "simple-camera"
    -- These methods are like methods in vox_camera_interface
-   camera:set_position {25,-100,25}
+   camera:set_property ("position", {25,-100,25})
+   camera:set_property ("fov", 0.45)
    camera:look_at {25,25,25}
-   camera:set_fov (0.45)
 
    -- You must add at leat two elements to the context: a tree and a camera.
    ctx.tree = t
@@ -64,7 +64,7 @@ function tick (world, time)
    local camera = world.camera
    time = time / 2000
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
-   camera:set_position (dot)
+   camera:set_property ("position", dot)
    camera:look_at {25,25,25}
 
    return true

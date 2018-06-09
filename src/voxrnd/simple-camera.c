@@ -36,29 +36,6 @@ static void simple_get_position (const struct vox_camera *cam, vox_dot res)
     vox_dot_copy (res, camera->position);
 }
 
-static void simple_set_position (struct vox_camera *cam, const vox_dot pos)
-{
-    struct vox_simple_camera *camera = (void*)cam;
-    vox_dot_copy (camera->position, pos);
-}
-
-static void simple_set_rot_angles (struct vox_camera *cam, const vox_dot angles)
-{
-    struct vox_simple_camera *camera = (void*)cam;
-    vox_quat r[3];
-
-    /*
-     * NB: We divide angles by 2 because rotation function rotates
-     * by doubled angle.
-     */
-    vox_quat_set (r[0], cosf (angles[0]/2), sinf (angles[0]/2), 0, 0);
-    vox_quat_set (r[1], cosf (angles[1]/2), 0, sinf (angles[1]/2), 0);
-    vox_quat_set (r[2], cosf (angles[2]/2), 0, 0, sinf (angles[2]/2));
-
-    vox_quat_mul (r[1], r[0], camera->rotation);
-    vox_quat_mul (r[2], camera->rotation, camera->rotation);
-}
-
 static void simple_move_camera (struct vox_camera *cam, const vox_dot delta)
 {
     vox_dot deltatr;
@@ -180,20 +157,6 @@ static struct vox_camera* simple_construct_camera (const struct vox_camera *cam)
     return (struct vox_camera*)camera;
 }
 
-static void simple_set_fov (struct vox_camera *cam, float fov)
-{
-    struct vox_simple_camera *camera = (void*)cam;
-
-    camera->fov = fov;
-}
-
-static float simple_get_fov (const struct vox_camera *cam)
-{
-    const struct vox_simple_camera *camera = (void*)cam;
-
-    return camera->fov;
-}
-
 static void simple_set_property_number (struct vox_camera *cam, const char *name, float value)
 {
     struct vox_simple_camera *camera = (struct vox_simple_camera*)cam;
@@ -224,15 +187,11 @@ static struct vox_camera_interface vox_simple_camera_interface =
 {
     .screen2world = simple_screen2world,
     .get_position = simple_get_position,
-    .set_position = simple_set_position,
-    .set_rot_angles = simple_set_rot_angles,
     .move_camera = simple_move_camera,
     .rotate_camera = simple_rotate_camera,
     .look_at = simple_look_at,
     .set_window_size = simple_set_window_size,
     .construct_camera = simple_construct_camera,
-    .get_fov = simple_get_fov,
-    .set_fov = simple_set_fov,
     .set_property_number = simple_set_property_number,
     .set_property_dot = simple_set_property_dot,
 };

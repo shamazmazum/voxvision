@@ -13,7 +13,7 @@ int main ()
     struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
 
     time = gettime();
-    for (i=0; i<N; i++) camera->iface->set_rot_angles (camera, angles);
+    for (i=0; i<N; i++) camera->iface->set_property_dot (camera, "rotation", angles);
     time = gettime() - time;
     printf ("Setting rotation angles took %f seconds (%i iterations)\n", time, N);
 
