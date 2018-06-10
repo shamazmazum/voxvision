@@ -8,6 +8,7 @@ include/voxvision/voxrnd/cd.h
 include/voxvision/voxrnd/fps-control.h
 include/voxvision/voxrnd/lights.h
 include/voxvision/voxrnd/modules.h
+include/voxvision/voxrnd/object.h
 include/voxvision/voxrnd/renderer.h
 include/voxvision/voxtrees.h
 include/voxvision/voxtrees/datareader.h
@@ -19,13 +20,13 @@ include/voxvision/voxtrees/tree.h
 include/voxvision/voxvision.h
 lib/libvoxengine.so
 lib/libvoxengine.so.0
-lib/libvoxengine.so.0.30
+lib/libvoxengine.so.0.32
 lib/libvoxrnd.so
 lib/libvoxrnd.so.0
-lib/libvoxrnd.so.0.30
+lib/libvoxrnd.so.0.32
 lib/libvoxtrees.so
 lib/libvoxtrees.so.0
-lib/libvoxtrees.so.0.30
+lib/libvoxtrees.so.0.32
 %%DOXYGEN%%%%PORTDOCS%%%%DOCSDIR%%/html/annotated.html
 %%DOXYGEN%%%%PORTDOCS%%%%DOCSDIR%%/html/bc_s.png
 %%DOXYGEN%%%%PORTDOCS%%%%DOCSDIR%%/html/bdwn.png
