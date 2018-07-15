@@ -25,6 +25,8 @@ function init (ctx)
    ctx.tree = tree
    ctx.camera = camera
    ctx.cd = cd
+   ctx.fps_controller = vr.fps_controller (60)
+   ctx.fps_restricted = true
    return true
 end
 
@@ -33,8 +35,18 @@ function tick (world, time)
    for event in vs.pollEvent() do
       if event.type == vs.event.KeyDown and event.keysym.sym == vs.key.Escape then
          quit = true
+
       elseif event.type == vs.event.Quit then
          quit = true
+
+      elseif event.type == vs.event.KeyDown and event.keysym.sym == vs.key.f then
+         if world.fps_restricted == true then
+            world.fps_controller = vr.fps_controller (0)
+            world.fps_restricted = nil
+         else
+            world.fps_controller = vr.fps_controller (60)
+            world.fps_restricted = true
+         end
       end
    end
    if quit then return nil end
@@ -63,6 +75,11 @@ function tick (world, time)
    world.camera:rotate_camera (rot)
 
    previous_time = time
+
+   local fps, upd = world.fps_controller:delay ()
+   if upd then
+      print (fps)
+   end
 
    return true
 end
