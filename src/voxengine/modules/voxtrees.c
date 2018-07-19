@@ -11,7 +11,7 @@
 
 static int newtree (lua_State *L)
 {
-    struct vox_node **data = lua_newuserdata (L, sizeof (struct vox_node**));
+    struct vox_node **data = lua_newuserdata (L, sizeof (struct vox_node*));
     *data = NULL;
     luaL_getmetatable (L, TREE_META);
     lua_setmetatable (L, -2);

@@ -133,6 +133,9 @@ static void initialize_lua (struct vox_engine *engine)
     // Load C modules
     load_module (L, "voxtrees");
     load_module (L, "voxrnd");
+#ifdef WITH_VN3D
+    load_module (L, "vn3d");
+#endif
 
     // Also add some safe functions
     prepare_safe_environment (L);

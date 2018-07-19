@@ -27,6 +27,9 @@ target_link_libraries (voxengine ${LUA_LIBRARIES} BlocksRuntime)
 if (GCD_FOUND)
 target_link_libraries (voxengine ${GCD_LIBRARY})
 endif (GCD_FOUND)
+if (VN3D_FOUND)
+  target_compile_definitions (voxengine PRIVATE -DWITH_VN3D)
+endif (VN3D_FOUND)
 
 install (TARGETS voxengine LIBRARY
          DESTINATION lib)

@@ -76,5 +76,6 @@ struct context_data
 #define CONTEXT_META "voxrnd.context"
 #define LIGHT_MANAGER_META "voxrnd.light_manager"
 #define FPS_CTRL_META "voxrnd.fps_controller"
+#define NOISE_GEN "vn3d.noise_gen"
 
 #endif
