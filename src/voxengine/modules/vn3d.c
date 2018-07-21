@@ -52,16 +52,22 @@ static int l_new_noise_gen (lua_State *L)
     unsigned int height = luaL_checkinteger (L, 3);
     unsigned int depth = luaL_checkinteger (L, 4);
     struct vn_generator *generator = vn_make_generator (octaves, width, height, depth);
+    int res;
 
     // FIXME: Report an error
-    if (generator == NULL) return 0;
+    if (generator == NULL) {
+        lua_pushnil (L);
+        lua_pushstring (L, vn_get_error_msg ());
+        res = 2;
+    } else {
+        struct vn_generator **data = lua_newuserdata (L, sizeof (struct vn_generator*));
+        luaL_getmetatable (L, NOISE_GEN);
+        lua_setmetatable (L, -2);
+        *data = generator;
+        res = 1;
+    }
 
-    struct vn_generator **data = lua_newuserdata (L, sizeof (struct vn_generator*));
-    luaL_getmetatable (L, NOISE_GEN);
-    lua_setmetatable (L, -2);
-    *data = generator;
-
-    return 1;
+    return res;
 }
 
 static int l_randomize (lua_State *L)
