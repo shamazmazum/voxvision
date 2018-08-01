@@ -9,9 +9,11 @@
 
 #define DISPATCH_QUEUE_PRIORITY_DEFAULT 0L
 #define DISPATCH_QUEUE_PRIORITY_HIGH 0L
+#define DISPATCH_TIME_FOREVER 0L
 
 typedef void *dispatch_queue_t;
 typedef void *dispatch_group_t;
+typedef long dispatch_time_t;
 
 static inline void* dispatch_get_global_queue (long priority, unsigned long flags)
 {
@@ -56,6 +58,11 @@ static inline dispatch_queue_t dispatch_queue_create (const char *name, int flag
 static inline dispatch_group_t dispatch_group_create ()
 {
     return NULL;
+}
+
+static inline long dispatch_group_wait (dispatch_group_t group, dispatch_time_t timeout)
+{
+    return 0;
 }
 
 #endif
