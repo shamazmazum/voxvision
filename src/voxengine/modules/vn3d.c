@@ -45,16 +45,39 @@ static const struct luaL_Reg noisegen_methods[] = {
     {NULL, NULL}
 };
 
-static int l_new_noise_gen (lua_State *L)
+static int l_new_value_noise_gen (lua_State *L)
 {
     unsigned int octaves = luaL_checkinteger (L, 1);
     unsigned int width = luaL_checkinteger (L, 2);
     unsigned int height = luaL_checkinteger (L, 3);
     unsigned int depth = luaL_checkinteger (L, 4);
-    struct vn_generator *generator = vn_make_generator (octaves, width, height, depth);
+    struct vn_generator *generator = vn_value_generator (octaves, width, height, depth);
     int res;
 
-    // FIXME: Report an error
+    if (generator == NULL) {
+        lua_pushnil (L);
+        lua_pushstring (L, vn_get_error_msg ());
+        res = 2;
+    } else {
+        struct vn_generator **data = lua_newuserdata (L, sizeof (struct vn_generator*));
+        luaL_getmetatable (L, NOISE_GEN);
+        lua_setmetatable (L, -2);
+        *data = generator;
+        res = 1;
+    }
+
+    return res;
+}
+
+static int l_new_worley_noise_gen (lua_State *L)
+{
+    unsigned int ndots = luaL_checkinteger (L, 1);
+    unsigned int width = luaL_checkinteger (L, 2);
+    unsigned int height = luaL_checkinteger (L, 3);
+    unsigned int depth = luaL_checkinteger (L, 4);
+    struct vn_generator *generator = vn_worley_generator (ndots, width, height, depth);
+    int res;
+
     if (generator == NULL) {
         lua_pushnil (L);
         lua_pushstring (L, vn_get_error_msg ());
@@ -77,7 +100,8 @@ static int l_randomize (lua_State *L)
 }
 
 static const struct luaL_Reg vn3d[] = {
-    {"noise_gen", l_new_noise_gen},
+    {"value_noise_generator", l_new_value_noise_gen},
+    {"worley_noise_generator", l_new_worley_noise_gen},
     {"randomize", l_randomize},
     {NULL, NULL}
 };
