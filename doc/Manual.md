@@ -534,12 +534,10 @@ function init (ctx)
    local camera = vr.camera "simple-camera"
    --[[
         These methods are like methods in vox_camera_interface.
-        Also note, that there is only one set_property method, as opposed to
-        voxrnd's set_property_dot and set_property_number, you do not need to
-        worry about type of the property.
+        You can set property of an object using "object.property =" scheme.
    ]]--
-   camera:set_property ("position", {25,-100,25})
-   camera:set_property ("fov", 0.45)
+   camera.position = {25,-100,25}
+   camera.fov = 0.45
    camera:look_at {25,25,25}
 
    -- Populate the context
@@ -566,7 +564,7 @@ function tick (world, time)
    local camera = world.camera
    time = time / 2000
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
-   camera:set_property ("position", dot)
+   camera.position = dot
    camera:look_at {25,25,25}
 
    return true
@@ -593,7 +591,7 @@ function init (ctx)
    t:insert {0,0,0}
 
    local camera = vr.camera "simple-camera"
-   camera:set_property ("position", {0,-10,0})
+   camera.position = {0,-10,0}
 
    -- Here is a collision detector. Its interface is like its C equivalent
    local cd = vr.cd()

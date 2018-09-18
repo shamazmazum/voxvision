@@ -3,17 +3,18 @@ vr = voxrnd
 vs = voxsdl
 
 function init (ctx)
-   -- Build tree from a raw file 'skull.dat' in voxvision's system-wide data directory
-   -- 'skull.dat' is provided as an example.
-   -- read_raw_data_ranged() is like faster read_raw_data() with test function checking
-   -- min <= sample < max (in current example sample >= 40)
+   --[[
+      Build tree from a raw file 'skull.dat' in voxvision's system-wide data directory.
+      read_raw_data_ranged() is like faster read_raw_data() with test function checking
+      min <= sample < max (in current example sample >= 40)
+   ]]--
    print (ctx:get_geometry())
    local tree = vt.read_raw_data_ranged (vt.find_data_file "skull.dat", {256,256,256}, 1, 40)
    print (#tree)
 
    local camera = vr.camera "simple-camera"
-   camera:set_property ("position", {100,60,-100})
-   camera:set_property ("rotation", {1.4, 0, 0})
+   camera.position = {100,60,-100}
+   camera.rotation = {1.4, 0, 0}
 
    -- Also create a collision detector
    local cd = vr.cd()
@@ -25,6 +26,7 @@ function init (ctx)
    ctx.tree = tree
    ctx.camera = camera
    ctx.cd = cd
+   -- This example creates FPS controller which limits frames per second amount by 60.
    ctx.fps_controller = vr.fps_controller (60)
    ctx.fps_restricted = true
    return true
@@ -40,6 +42,7 @@ function tick (world, time)
          quit = true
 
       elseif event.type == vs.event.KeyDown and event.keysym.sym == vs.key.f then
+         -- Toggle FPS control
          if world.fps_restricted == true then
             world.fps_controller = vr.fps_controller (0)
             world.fps_restricted = nil
@@ -57,8 +60,8 @@ function tick (world, time)
    previous_time = previous_time or time
    local framedelta = time - previous_time
    --[[
-      This is as in previous example. 'voxutils' table has a function
-      process_keyboard_movement to process basic keyboard movement in one line
+      This is keyboard events processing code. 'voxutils' module has a function
+      `process_keyboard_movement` to process basic keyboard movement in one line
       of code. It can be called so:
       process_keyboard_movement (context, keystate, mdelta, controls).
       mdelta is delta for move_camera method. Control keys can be redefined in
@@ -75,6 +78,12 @@ function tick (world, time)
    world.camera:rotate_camera (rot)
 
    previous_time = time
+
+   --[[
+      Delay method of FPS controller must be called once somewhere in tick() function.
+      It returns actual FPS value which is updated once per second. When it is updated,
+      update flag (true) is returned as the second value.
+   ]]--
 
    local fps, upd = world.fps_controller:delay ()
    if upd then

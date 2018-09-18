@@ -553,14 +553,16 @@ static const struct {
 
 int luaopen_voxrnd (lua_State *L)
 {
+    // Put set_property on top of the stack
+    lua_getglobal (L, "voxvision");
+    lua_getfield (L, -1, "set_property");
+    lua_remove (L, -2);
+
     luaL_newmetatable(L, CAMERA_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
-    // Object-style set_property
-    lua_getglobal (L, "voxvision");
-    lua_getfield (L, -1, "set_property");
-    lua_setfield (L, -3, "set_property");
-    lua_pop (L, 1);
+    lua_pushvalue (L, -2);
+    lua_setfield (L, -2, "__newindex");
     luaL_setfuncs (L, camera_methods, 0);
 
     luaL_newmetatable(L, CD_META);

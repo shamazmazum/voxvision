@@ -20,8 +20,10 @@ function init (ctx)
    -- How many dots are in the tree?
    print (#t)
 
-   -- This is another way to create the same tree. Do not worry about freeing
-   -- the previous tree, GC will do it for us.
+   --[[
+      This is another way to create the same tree. Do not worry about freeing
+      the previous tree, GC will do it for us.
+   ]]--
    t = vt.tree() -- Empty tree
    for i = 0,50 do
       for j = 0,50 do
@@ -36,9 +38,14 @@ function init (ctx)
 
    -- Create a new simple camera
    local camera = vr.camera "simple-camera"
-   -- These methods are like methods in vox_camera_interface
-   camera:set_property ("position", {25,-100,25})
-   camera:set_property ("fov", 0.45)
+
+   --[[
+      These methods are like methods in vox_camera_interface.
+      You can set position and FOV using dot notation, needed property setters
+      will be called automatically.
+   ]]--
+   camera.position = {25,-100,25}
+   camera.fov = 0.45
    camera:look_at {25,25,25}
 
    -- You must add at leat two elements to the context: a tree and a camera.
@@ -64,7 +71,7 @@ function tick (world, time)
    local camera = world.camera
    time = time / 2000
    local dot = {25+125*math.sin(time),25-125*math.cos(time),25}
-   camera:set_property ("position", dot)
+   camera.position = dot
    camera:look_at {25,25,25}
 
    return true

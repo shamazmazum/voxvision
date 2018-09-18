@@ -4,14 +4,16 @@ vs = voxsdl
 
 function init (ctx)
    local test = function (sample) return sample > 40 end
-   -- Build tree from a raw file 'skull.dat' in voxvision's system-wide data directory
-   -- 'skull.dat' is provided as an example.
+   --[[
+      Build tree from a raw file 'skull.dat' in voxvision's system-wide data
+      directory. 'skull.dat' is provided as an example.
+   ]]--
    local tree = vt.read_raw_data (vt.find_data_file "skull.dat", {256,256,256}, 1, test)
    print (#tree)
 
    local camera = vr.camera "simple-camera"
-   camera:set_property ("position", {100,60,-100})
-   camera:set_property ("rotation", {1.4, 0, 0})
+   camera.position = {100,60,-100}
+   camera.rotation = {1.4, 0, 0}
 
    ctx.tree = tree
    ctx.camera = camera
