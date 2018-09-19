@@ -24,7 +24,7 @@ function init (ctx)
    print "Generation of the noise takes some time."
    vn3d.randomize ()
    local tree = vt.tree()
-   local gen = vn3d.value_noise_generator (6, 8, 8, 8)
+   local gen = vn3d.value_noise_generator (4, 5, 5, 5)
    local min, max, val, dist
 
    local i,j,k
