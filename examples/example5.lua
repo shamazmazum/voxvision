@@ -23,27 +23,33 @@ function init (ctx)
    print "You can rebuild the tree by pressing 'r'."
    print "Generation of the noise takes some time."
    vn3d.randomize ()
-   local tree = vt.tree()
    local gen = vn3d.value_noise_generator (4, 5, 5, 5)
-   local min, max, val, dist
+   local val, dist
 
    local i,j,k
+   local coord = {}
+   local set = vt.dotset (100*100*1200)
    for i = 0,100 do
+      coord[1] = i
       for j = 0,1200 do
+         coord[2] = j
          for k = 0,100 do
+            coord[3] = k
             local x = i-50
             local z = k-50
             dist = x*x + z*z
-            min = (dist > 2000) and 1 or 0
-            max = dist < 2500
-            val = gen:getnoise {i,j,k}
-            if (val + min > 0.55) and max then
-               tree:insert {i, j, k}
+            if dist > 2000 and dist < 2500 then
+               set:push (coord)
+            elseif dist < 2000 then
+               val = gen:getnoise (coord)
+               if val > 0.55 then
+                  set:push (coord)
+               end
             end
          end
       end
    end
-   tree:rebuild ()
+   local tree = vt.settree (set)
    print (string.format ("There is %i voxels in the tree", #tree))
 
    local camera = vr.camera "simple-camera"
