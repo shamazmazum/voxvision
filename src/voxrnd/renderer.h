@@ -63,10 +63,10 @@ struct vox_rnd_ctx
     **/
 
     struct vox_light_manager *light_manager;
-    /**< \brief A light manager for the context
+    /**< \brief A light manager associated with the context.
 
-       This light manager created automatically when the context is created. So
-       you do not need to free it manually.
+       To set this value, use vox_context_set_light_manager() rather than writing to
+       this field directly.
     **/
 };
 #endif
@@ -176,6 +176,11 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene);
    \brief Camera setter for renderer context
 **/
 void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera);
+
+/**
+   \brief Light manager setter for renderer context
+**/
+void vox_context_set_light_manager (struct vox_rnd_ctx *ctx, struct vox_light_manager *camera);
 
 /**
    \brief Set quality of the renderer

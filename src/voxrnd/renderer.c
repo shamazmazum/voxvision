@@ -58,11 +58,11 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
     __v4sf aligned = voxel * _mm_floor_ps (i / voxel);
     __v4sf color = _mm_blendv_ps (color1, color2, i == aligned);
 
-#ifdef LIGHT_MANAGER
-    vox_dot light;
-    vox_get_light (context->light_manager, inter, light);
-    color *= _mm_load_ps (light);
-#endif
+    if (context->light_manager != NULL) {
+        vox_dot light;
+        vox_get_light (context->light_manager, inter, light);
+        color *= _mm_load_ps (light);
+    }
     color = _mm_set1_ps (255) * _mm_min_ps (color, _mm_set1_ps (1.0));
 
     __m128i icol = _mm_cvtps_epi32 (color);
@@ -98,13 +98,13 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
     Uint8 g = draw->mul[1] * inter[1] + draw->add[1];
     Uint8 b = draw->mul[2] * inter[2] + draw->add[2];
 
-#ifdef LIGHT_MANAGER
-    vox_dot light;
-    vox_get_light (context->light_manager, inter, light);
-    r *= light[0];
-    g *= light[1];
-    b *= light[2];
-#endif
+    if (context->light_manager != NULL) {
+        vox_dot light;
+        vox_get_light (context->light_manager, inter, light);
+        r *= light[0];
+        g *= light[1];
+        b *= light[2];
+    }
 
     Uint32 color = SDL_MapRGB (context->surface->format, r, g, b);
     return color;
@@ -117,7 +117,6 @@ static struct vox_rnd_ctx* allocate_context ()
     memset (ctx, 0, sizeof (*ctx));
     ctx->draw = aligned_alloc (16, sizeof (struct vox_draw));
     ctx->quality = VOX_QUALITY_ADAPTIVE;
-    ctx->light_manager = vox_create_light_manager ();
 
     return ctx;
 }
@@ -194,7 +193,6 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
         ctx->surface = NULL; // We do not need to free it manually
     }
     if (ctx->surface != NULL) SDL_FreeSurface(ctx->surface);
-    if (ctx->light_manager != NULL) vox_destroy_light_manager (ctx->light_manager);
     free (ctx->square_output);
     free (ctx->draw);
     free (ctx);
@@ -212,6 +210,11 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
     // FIXME: calculate colors in runtime
     // Only a temporary solution to get a colorful output
     color_coeff (scene, ctx->draw);
+}
+
+void vox_context_set_light_manager (struct vox_rnd_ctx *ctx, struct vox_light_manager *light_manager)
+{
+    ctx->light_manager = light_manager;
 }
 
 int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)

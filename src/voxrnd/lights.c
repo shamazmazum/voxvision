@@ -15,7 +15,7 @@ struct vox_light_manager {
 
 static int check_light (const vox_dot color);
 
-struct vox_light_manager* vox_create_light_manager ()
+struct vox_light_manager* vox_make_light_manager ()
 {
     struct vox_light_manager *light_manager = malloc (sizeof (struct vox_light_manager));
     light_manager->bound_lights = NULL;
@@ -78,35 +78,6 @@ int vox_shadowless_lights_number (const struct vox_light_manager *light_manager)
     return vox_mtree_items (light_manager->bound_lights);
 }
 
-#ifdef SSE_INTRIN
-static int check_light (const vox_dot color)
-{
-    __v4sf min = _mm_set_ps1 (0);
-    __v4sf max = _mm_set_ps1 (1);
-    __v4sf c = _mm_load_ps (color);
-
-    __v4sf c1 = c < min;
-    __v4sf c2 = c > max;
-    __v4sf c3 = _mm_or_ps (c1, c2);
-    int mask = _mm_movemask_ps (c3);
-    return !(mask & 0x7);
-}
-
-static void get_color_callback (const struct vox_sphere *sphere, void *arg)
-{
-    struct get_color_struct *gcs = arg;
-
-    float dist = sqrtf (vox_sqr_metric (sphere->center, gcs->intersection));
-    float add = 1 - dist/sphere->radius;
-
-    __v4sf color = _mm_load_ps (gcs->color);
-    color += _mm_set_ps1 (add) * _mm_load_ps (sphere->color);
-
-    _mm_store_ps (gcs->color, color);
-}
-
-
-#else /* SSE_INTRIN */
 static int check_light (const vox_dot color)
 {
     int i;
@@ -121,14 +92,14 @@ static void get_color_callback (const struct vox_sphere *sphere, void *arg)
 {
     struct get_color_struct *gcs = arg;
 
-    float dist = sqrtf (vox_sqr_metric (sphere->center, gcs->intersection));
+    float dist = fminf (sphere->radius, sqrtf (vox_sqr_metric (sphere->center, gcs->intersection)));
     float add = 1 - dist/sphere->radius;
 
-    gcs->color[0] += add * sphere->color[0];
-    gcs->color[1] += add * sphere->color[1];
-    gcs->color[2] += add * sphere->color[2];
+    float r = gcs->color [0] +  add * sphere->color[0];
+    float g = gcs->color [1] +  add * sphere->color[1];
+    float b = gcs->color [2] +  add * sphere->color[2];
+    vox_dot_set (gcs->color, r, g, b);
 }
-#endif
 
 void vox_get_light (const struct vox_light_manager *light_manager,
                     const vox_dot intersection,

@@ -6,6 +6,7 @@ VOXRND_@voxvision_VERSION@ {
             vox_redraw;
             vox_context_set_camera;
             vox_context_set_scene;
+            vox_context_set_light_manager;
             vox_context_set_quality;
             vox_destroy_context;
             vox_render;
@@ -18,6 +19,8 @@ VOXRND_@voxvision_VERSION@ {
             vox_cd_gravity;
             vox_use_camera_methods;
             vox_init_camera;
+            vox_make_light_manager;
+            vox_destroy_light_manager;
 
 # For the camera modules
             vox_quat_mul;

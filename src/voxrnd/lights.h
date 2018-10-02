@@ -64,9 +64,17 @@ int vox_shadowless_lights_number (const struct vox_light_manager *light_manager)
 int vox_set_ambient_light (struct vox_light_manager *light_manager,
                            const vox_dot color);
 
-#ifdef VOXRND_SOURCE
-struct vox_light_manager* vox_create_light_manager ();
+/**
+   \brief Create a new light manager with no lights.
+**/
+struct vox_light_manager* vox_make_light_manager ();
+
+/**
+   \brief Destroy a light manager.
+**/
 void vox_destroy_light_manager (struct vox_light_manager *light_manager);
+
+#ifdef VOXRND_SOURCE
 void vox_get_light (const struct vox_light_manager *light_manager,
                     const vox_dot intersection,
                     vox_dot light);

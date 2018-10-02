@@ -370,6 +370,12 @@ static int l_context_newindex (lua_State *L)
 
         lua_pushvalue (L, 3);
         lua_setfield (L, -2, "camera");
+    } else if (strcmp (field, "light_manager") == 0) {
+        struct vox_light_manager **lmdata = luaL_checkudata (L, 3, LIGHT_MANAGER_META);
+        vox_context_set_light_manager (ctx, *lmdata);
+
+        lua_pushvalue (L, 3);
+        lua_setfield (L, -2, "light_manager");
     } else {
         // Allow user to store anything world-related in the world table.
         lua_pushvalue (L, 3);
@@ -398,6 +404,25 @@ static const struct luaL_Reg context_methods [] = {
     {"rendering_mode", l_context_rendering_mode},
     {NULL, NULL}
 };
+
+static int l_new_light_manager (lua_State *L)
+{
+    struct vox_light_manager **light_data = lua_newuserdata (L, sizeof (struct vox_light_manager*));
+    *light_data = vox_make_light_manager ();
+    luaL_getmetatable (L, LIGHT_MANAGER_META);
+    lua_setmetatable (L, -2);
+
+    return 1;
+}
+
+static int l_destroy_light_manager (lua_State *L)
+{
+    struct vox_light_manager **data = luaL_checkudata (L, 1, LIGHT_MANAGER_META);
+    struct vox_light_manager *light_manager = *data;
+
+    vox_destroy_light_manager (light_manager);
+    return 0;
+}
 
 static int l_light_manager_tostring (lua_State *L)
 {
@@ -477,6 +502,7 @@ static int l_set_ambient_light (lua_State *L)
 static const struct luaL_Reg light_manager_methods [] = {
     {"__tostring", l_light_manager_tostring},
     {"__len", l_light_manager_len},
+    {"__gc", l_destroy_light_manager},
     {"insert_shadowless_light", l_insert_shadowless_light},
     {"delete_shadowless_light", l_delete_shadowless_light},
     {"delete_shadowless_lights", l_delete_shadowless_lights},
@@ -537,6 +563,7 @@ static const struct luaL_Reg voxrnd [] = {
     {"camera", new_camera},
     {"cd", new_cd},
     {"fps_controller", l_new_fps_controller},
+    {"light_manager", l_new_light_manager},
     {NULL, NULL}
 };
 
