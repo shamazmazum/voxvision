@@ -9,6 +9,7 @@ local next = next
 local yield = coroutine.yield
 local wrap = coroutine.wrap
 local format = string.format
+local getenv = os.getenv
 
 _ENV = voxutils
 
@@ -65,5 +66,10 @@ next_rendering_mode = wrap (function (context)
          yield (context:rendering_mode (val))
       end
 end)
+
+-- Return local voxvision data directory
+function voxvision_home ()
+   return getenv "VOXVISION_DATA"
+end
 
 return voxutils

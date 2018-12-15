@@ -396,12 +396,28 @@ static int l_context_rendering_mode (lua_State *L)
     return 1;
 }
 
+static int l_context_screenshot (lua_State *L)
+{
+    int res;
+    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+    struct vox_rnd_ctx *ctx = data->context;
+    const char *dirname;
+    if (lua_gettop (L) == 1) dirname = NULL;
+    else dirname = luaL_checkstring (L, 2);
+
+    res = vox_screenshot (ctx, dirname);
+    lua_pushboolean (L, res);
+
+    return res;
+}
+
 static const struct luaL_Reg context_methods [] = {
     {"__tostring", l_context_tostring},
     {"__gc", l_context_destroy},
     {"__newindex", l_context_newindex},
     {"get_geometry", l_context_geometry},
     {"rendering_mode", l_context_rendering_mode},
+    {"screenshot", l_context_screenshot},
     {NULL, NULL}
 };
 

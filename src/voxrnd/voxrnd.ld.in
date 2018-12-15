@@ -21,6 +21,7 @@ VOXRND_@voxvision_VERSION@ {
             vox_init_camera;
             vox_make_light_manager;
             vox_destroy_light_manager;
+            vox_screenshot;
 
 # For the camera modules
             vox_quat_mul;

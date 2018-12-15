@@ -80,16 +80,26 @@ int main (int argc, char *argv[])
 
     if (script == NULL) usage ();
 
+    if (quality == -1 ||
+        merge_rays == -1) {
+        usage();
+    }
+
+    // Ensure data directory exists
+    if (getenv ("VOXVISION_DATA") != NULL)
+    {
+        res = mkdir (getenv ("VOXVISION_DATA"), 0750);
+        if (res == -1 && errno != EEXIST) {
+            fprintf (stderr, "Cannot create voxvision home directory, exiting\n");
+            return EXIT_FAILURE;
+        }
+    }
+
     struct vox_engine *engine = vox_create_engine (width, height, script, argc,
                                                    (argc)? argv: NULL);
     if (engine == NULL) {
         fprintf (stderr, "Cannot create engine\n");
         return 1;
-    }
-
-    if (quality == -1 ||
-        merge_rays == -1) {
-        usage();
     }
 
     quality |= merge_rays;

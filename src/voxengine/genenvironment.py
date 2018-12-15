@@ -28,7 +28,7 @@ addfrommodule ("math", ["sin", "cos", "tan",
                         "huge", "log", "log10", "sqrt",
                         "max", "min", "pi", "pow",
                         "random", "randomseed"])
-addfrommodule ("os", ["clock", "difftime", "time"])
+addfrommodule ("os", ["clock", "difftime", "time", "getenv"])
 addfrommodule ("string", ["format"])
 
 def addfromcmodule (modname, names):

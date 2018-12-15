@@ -80,6 +80,16 @@ static int check_file (const char* filename)
     return 0;
 }
 
+ __attribute__((constructor))
+static void set_voxvision_data ()
+{
+    char path[MAXPATHLEN];
+    if (snprintf (path, MAXPATHLEN, "%s/.voxvision", getenv ("HOME")) >= MAXPATHLEN)
+        return;
+
+    setenv ("VOXVISION_DATA", path, 0);
+}
+
 int vox_find_data_file (const char *filename, char *fullpath)
 {
     // At first, try the path "as is"
@@ -98,12 +108,6 @@ int vox_find_data_file (const char *filename, char *fullpath)
             return 0;
         if (check_file (fullpath)) return 1;
     }
-
-    // Finally, check at ~/.voxvision
-    if (snprintf (fullpath, MAXPATHLEN,
-                  "%s/.voxvision/%s", getenv ("HOME"), filename) >= MAXPATHLEN)
-        return 0;
-    if (check_file (fullpath)) return 1;
 
     return 0;
 }

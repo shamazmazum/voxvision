@@ -19,7 +19,8 @@ set (VOXRND_SOURCES
   vect-ops-sse.c
   fps-control.c
   cd.c
-  copy-helper.c)
+  copy-helper.c
+  screenshot.c)
 
 add_library (voxrnd SHARED ${VOXRND_SOURCES})
 if (WITH_DTRACE)
@@ -57,7 +58,7 @@ set_target_properties (simple-camera-module PROPERTIES OUTPUT_NAME simple-camera
 add_library (doom-camera-module SHARED doom-camera.c)
 set_target_properties (doom-camera-module PROPERTIES OUTPUT_NAME doom-camera PREFIX "")
 
-install (FILES camera.h renderer.h fps-control.h cd.h lights.h modules.h object.h
+install (FILES camera.h renderer.h fps-control.h cd.h lights.h modules.h object.h screenshot.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)

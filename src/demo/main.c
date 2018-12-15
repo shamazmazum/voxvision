@@ -20,23 +20,6 @@
 #include <voxrnd.h>
 #include "config.h"
 
-static void suitable_shot_name (char *name)
-{
-    static int i = 0;
-    int res;
-    struct stat sb;
-
-again:
-    do
-    {
-        sprintf (name, "screen%i.bmp", i);
-        res = stat (name, &sb);
-        i++;
-    } while (res == 0);
-
-    if (errno != ENOENT) goto again;
-}
-
 static void usage ()
 {
     fprintf (stderr, "Usage: voxvision-demo [-c config-file] dataset-config\n");
@@ -76,11 +59,20 @@ int main (int argc, char *argv[])
     dispatch_group_t tree_group = NULL;
     vox_fps_controller_t fps_controller = NULL;
     struct vox_cd *cd = NULL;
-    char shot_name[MAXPATHLEN];
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
 
     printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
+
+    // Ensure data directory exists
+    if (getenv ("VOXVISION_DATA") != NULL)
+    {
+        res = mkdir (getenv ("VOXVISION_DATA"), 0750);
+        if (res == -1 && errno != EEXIST) {
+            fprintf (stderr, "Cannot create voxvision home directory, exiting\n");
+            return EXIT_FAILURE;
+        }
+    }
 
     // Parse command line arguments
     while ((ch = getopt (argc, argv, "c:")) != -1)
@@ -292,8 +284,7 @@ int main (int argc, char *argv[])
                 }
                 else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
                 {
-                    suitable_shot_name (shot_name);
-                    SDL_SaveBMP (ctx->surface, shot_name);
+                    vox_screenshot (ctx, NULL);
                 }
                 else if (event.key.keysym.scancode == SDL_SCANCODE_M) {
                     unsigned int mode = quality & VOX_QUALITY_MODE_MASK;
