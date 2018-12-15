@@ -87,6 +87,11 @@ int main (int argc, char *argv[])
         return 1;
     }
 
+    if (quality == -1 ||
+        merge_rays == -1) {
+        usage();
+    }
+
     quality |= merge_rays;
     if (!vox_context_set_quality (engine->ctx, quality))
         fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
