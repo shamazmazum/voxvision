@@ -1,6 +1,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include <voxengine.h>
 #include <SDL2/SDL.h>
 
@@ -35,6 +38,19 @@ static unsigned int choose_raymerge (const char *quality_str)
     else quality = -1;
 
     return quality;
+}
+
+static void ensure_datadir_exists()
+{
+    int res;
+    if (getenv ("VOXVISION_DATA") != NULL)
+    {
+        res = mkdir (getenv ("VOXVISION_DATA"), 0750);
+        if (res == -1 && errno != EEXIST) {
+            fprintf (stderr, "Cannot create voxvision home directory, exiting\n");
+            exit (EXIT_FAILURE);
+        }
+    }
 }
 
 int main (int argc, char *argv[])
@@ -85,15 +101,7 @@ int main (int argc, char *argv[])
         usage();
     }
 
-    // Ensure data directory exists
-    if (getenv ("VOXVISION_DATA") != NULL)
-    {
-        res = mkdir (getenv ("VOXVISION_DATA"), 0750);
-        if (res == -1 && errno != EEXIST) {
-            fprintf (stderr, "Cannot create voxvision home directory, exiting\n");
-            return EXIT_FAILURE;
-        }
-    }
+    ensure_datadir_exists();
 
     struct vox_engine *engine = vox_create_engine (width, height, script, argc,
                                                    (argc)? argv: NULL);
