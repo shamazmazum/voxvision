@@ -91,15 +91,17 @@ int vox_find_data_file (const char *filename, char *fullpath)
         return 0;
     if (check_file (fullpath)) return 1;
 
-    // Then check at ~/.voxvision
+    // Check if VOXVISION_DATA environment variable contains directory with needed file.
+    if (getenv ("VOXVISION_DATA") != NULL) {
+        if (snprintf (fullpath, MAXPATHLEN,
+                      "%s/%s", getenv ("VOXVISION_DATA"), filename) >= MAXPATHLEN)
+            return 0;
+        if (check_file (fullpath)) return 1;
+    }
+
+    // Finally, check at ~/.voxvision
     if (snprintf (fullpath, MAXPATHLEN,
                   "%s/.voxvision/%s", getenv ("HOME"), filename) >= MAXPATHLEN)
-        return 0;
-    if (check_file (fullpath)) return 1;
-
-    // Then as last resort try environment variable VOXVISION_DATA
-    if (snprintf (fullpath, MAXPATHLEN,
-                  "%s/%s", getenv ("VOXVISION_DATA"), filename) >= MAXPATHLEN)
         return 0;
     if (check_file (fullpath)) return 1;
 
