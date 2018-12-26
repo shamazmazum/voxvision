@@ -2,6 +2,8 @@ provider voxtrees {
     probe leaf__node();
     probe inner__node();
     probe empty__node();
+    probe leaf__overflow();
+    probe leaf__overflow__voxels(int);
 
     probe rti__early__exit();
     probe rti__first__subspace();

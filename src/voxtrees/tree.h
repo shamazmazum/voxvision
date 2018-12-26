@@ -15,6 +15,7 @@
 #define LEAF 1
 #define DENSE_LEAF 2
 #define LEAF_MASK 3
+#define OVERFLOW 4
 #define VOX_LEAFP(node) (!(node) || ((node)->flags & LEAF_MASK))
 #define VOX_FULLP(node) ((node))
 

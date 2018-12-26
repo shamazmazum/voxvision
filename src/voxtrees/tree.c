@@ -28,20 +28,26 @@ static void update_fill_ratio (const struct vox_box *box, size_t n)
 #endif
 
 #ifdef SSE_INTRIN
-static void find_center (const vox_dot set[], size_t n, vox_dot res)
+static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot res)
 {
     size_t i;
     __v4sf len = _mm_set_ps1 (n);
     __v4sf sum = _mm_set_ps1 (0.0);
     __v4sf voxel = _mm_load_ps (vox_voxel);
-
-    for (i=0; i<n; i++) sum += _mm_load_ps (set[i]);
-    sum /= len;
+    __v4sf min = _mm_load_ps (box->min);
 
     /*
-      Align the center of division, so any voxel belongs to only one subspace
-      entirely. Faces of voxels may be the exception though
-    */
+     * Subtract bounding box minimal value from voxel coordinates to reduce
+     * computational error. I add it again after division by len.
+     */
+    for (i=0; i<n; i++) sum += (_mm_load_ps (set[i]) - min);
+    sum /= len;
+    sum += min;
+
+    /*
+     * Align the center of division, so any voxel belongs to only one subspace
+     * entirely. Faces of voxels may be the exception though
+     */
     __v4sf resv = sum / voxel;
     resv = _mm_ceil_ps (resv) * voxel;
 
@@ -116,13 +122,17 @@ static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 }
 
 #else /* SSE_INTRIN */
-static void find_center (const vox_dot set[], size_t n, vox_dot res)
+static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot res)
 {
     size_t i;
     memset (res, 0, sizeof(vox_dot));
+    vox_dot tmp;
 
-    for (i=0; i<n; i++) vox_dot_add (set[i], res, res);
-    for (i=0; i<VOX_N; i++) res[i] = ceilf (res[i]/n/vox_voxel[i])*vox_voxel[i];
+    for (i=0; i<n; i++) {
+        vox_dot_sub (set[i], box->min, tmp);
+        vox_dot_add (tmp, res, res);
+    }
+    for (i=0; i<VOX_N; i++) res[i] = ceilf ((res[i]/n + box->min[i])/vox_voxel[i])*vox_voxel[i];
 }
 
 static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *box)
@@ -264,15 +274,35 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             size_t new_offset, offset = 0;
 
             node->flags = 0;
-            find_center (set, n, inner->center);
+            find_center (set, n, &(node->bounding_box), inner->center);
             for (idx=0; idx<VOX_NS; idx++)
             {
-                /*
-                  XXX: Current algorithm always divides voxels by two or more
-                  subspaces. Is it true in general?
-                */
                 new_offset = sort_set (set, n, offset, idx, inner->center);
-                assert (new_offset - offset != n);
+                if (offset == 0 && new_offset == n) {
+                    /*
+                     * In this case my current algorithm cannot divide voxels
+                     * into two or more subspaces. We just create one overflowed
+                     * leaf (meaning it has number of voxels > VOX_MAX_DOTS).
+                     */
+                    struct vox_node *newnode = node_alloc (LEAF);
+                    vox_box_copy (&(newnode->bounding_box), &(node->bounding_box));
+                    /*
+                     * I set OVERFLOW flag only for statistics and testing. In
+                     * the renderer itself overflowed leafs are processed as
+                     * usual leafs.
+                     */
+                    newnode->flags = LEAF | OVERFLOW;
+                    newnode->dots_num = n;
+                    newnode->data.dots = vox_alloc (n*sizeof(vox_dot));
+                    memcpy (newnode->data.dots, set, n*sizeof(vox_dot));
+                    /*
+                     * We can free() the old node, since it has not any
+                     * allocated children.
+                     */
+                    free (node);
+                    node = newnode;
+                    break;
+                }
                 inner->children[idx] = vox_make_tree (set+offset, new_offset-offset);
                 offset = new_offset;
             }
@@ -296,6 +326,10 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
             else update_fill_ratio (&(node->bounding_box), n);
             VOXTREES_LEAF_NODE();
+            if (node->flags & OVERFLOW) {
+                VOXTREES_LEAF_OVERFLOW();
+                VOXTREES_LEAF_OVERFLOW_VOXELS(node->dots_num);
+            }
         }
         else VOXTREES_INNER_NODE();
     }

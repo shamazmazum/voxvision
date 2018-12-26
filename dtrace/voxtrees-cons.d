@@ -22,6 +22,16 @@ voxtrees$target:::leaf-node
     @depth_hist[self->make_tree_rec_level-1] = count();
 }
 
+voxtrees$target:::leaf-overflow
+{
+    @leaf_node_overlow["Overflowed leaf nodes"] = count();
+}
+
+voxtrees$target:::leaf-overflow-voxels
+{
+    @leaf_node_overlow_voxels["Voxels in overflowed leafs"] = sum(arg0);
+}
+
 voxtrees$target:::dense-leaf
 {
     @dense_node["Dense nodes"] = count();
