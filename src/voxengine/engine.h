@@ -21,7 +21,8 @@ struct vox_engine {
     struct vox_rnd_ctx *ctx;
     lua_State *L;
     dispatch_queue_t rendering_queue;
-    int width, height;
+    unsigned int width, height;
+    unsigned int flags;
 };
 #else /* VOXENGINE_SOURCE */
 
@@ -39,6 +40,11 @@ struct vox_engine {
 #endif /* VOXENGINE_SOURCE */
 
 /**
+   \brief Tells voxengine to start in debug mode.
+**/
+#define VOX_ENGINE_DEBUG 1
+
+/**
    \brief Create voxengine.
 
    This function creates a lua engine: initializes SDL, opens a window,
@@ -49,6 +55,8 @@ struct vox_engine {
 
    \param width Width of the window.
    \param height Height of the window.
+   \param flags Currently 0 for normal work or `VOX_ENGINE_DEBUG` for
+          debug mode.
    \param script Control script in lua
    \param nargs Number of arguments
    \param arguments An array of zero terminated strings which you want
@@ -57,7 +65,9 @@ struct vox_engine {
           needed by the engine.
    \return Pointer to created engine on success or NULL.
 **/
-struct vox_engine* vox_create_engine (int width, int height, const char *script,
+struct vox_engine* vox_create_engine (unsigned int width, unsigned int height,
+                                      unsigned int flags,
+                                      const char *script,
                                       int nargs, char * const arguments[]);
 
 /**

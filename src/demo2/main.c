@@ -10,15 +10,15 @@
 static void usage()
 {
     fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] "
-                     "[-q quality] [-m ray-merge-mode] -s script\n");
+                     "[-q quality] [-m ray-merge-mode] [-d] -s script\n");
     fprintf (stderr, "quality = fast | best | adaptive\n");
     fprintf (stderr, "ray-merge-mode = fast | accurate | no\n");
     exit (EXIT_FAILURE);
 }
 
-static unsigned int choose_quality (const char *quality_str)
+static int choose_quality (const char *quality_str)
 {
-    unsigned int quality;
+    int quality;
 
     if (strcmp (quality_str, "fast") == 0) quality = VOX_QUALITY_FAST;
     else if (strcmp (quality_str, "best") == 0) quality = VOX_QUALITY_BEST;
@@ -28,9 +28,9 @@ static unsigned int choose_quality (const char *quality_str)
     return quality;
 }
 
-static unsigned int choose_raymerge (const char *quality_str)
+static int choose_raymerge (const char *quality_str)
 {
-    unsigned int quality;
+    int quality;
 
     if (strcmp (quality_str, "fast") == 0) quality = VOX_QUALITY_RAY_MERGE;
     else if (strcmp (quality_str, "accurate") == 0) quality = VOX_QUALITY_RAY_MERGE_ACCURATE;
@@ -55,13 +55,15 @@ static void ensure_datadir_exists()
 
 int main (int argc, char *argv[])
 {
-    int ch, width = 800, height = 600, fps = -1;
+    int ch, fps = -1;
     const char *script = NULL;
     char *endptr;
-    unsigned int quality = VOX_QUALITY_ADAPTIVE;
-    unsigned int merge_rays = 0;
+    int quality = VOX_QUALITY_ADAPTIVE;
+    int merge_rays = 0;
+    unsigned int flags = 0;
+    int width = 800, height = 600;
 
-    while ((ch = getopt (argc, argv, "w:h:s:f:q:m:")) != -1)
+    while ((ch = getopt (argc, argv, "w:h:s:f:q:m:d")) != -1)
     {
         switch (ch)
         {
@@ -86,6 +88,9 @@ int main (int argc, char *argv[])
         case 'm':
             merge_rays = choose_raymerge (optarg);
             break;
+        case 'd':
+            flags |= VOX_ENGINE_DEBUG;
+            break;
         default:
             usage();
         }
@@ -101,25 +106,33 @@ int main (int argc, char *argv[])
         usage();
     }
 
+    if (width < 0 ||
+        height < 0) {
+        usage ();
+    }
+
     ensure_datadir_exists();
 
-    struct vox_engine *engine = vox_create_engine (width, height, script, argc,
-                                                   (argc)? argv: NULL);
+    struct vox_engine *engine = vox_create_engine (width, height, flags, script,
+                                                   argc, (argc)? argv: NULL);
     if (engine == NULL) {
         fprintf (stderr, "Cannot create engine\n");
         return 1;
     }
 
-    quality |= merge_rays;
-    if (!vox_context_set_quality (engine->ctx, quality))
-        fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
-
     vox_fps_controller_t fps_controller = NULL;
     if (fps >= 0) fps_controller = vox_make_fps_controller (fps);
-    SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
-    SDL_SetRelativeMouseMode (SDL_TRUE);
-    vox_engine_status status;
 
+    if (!(flags & VOX_ENGINE_DEBUG)) {
+        quality |= merge_rays;
+        if (!vox_context_set_quality (engine->ctx, quality))
+            fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
+
+        SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
+        SDL_SetRelativeMouseMode (SDL_TRUE);
+    }
+
+    vox_engine_status status;
     while (1)
     {
         status = vox_engine_tick (engine);

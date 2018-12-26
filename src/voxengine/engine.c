@@ -148,7 +148,7 @@ static void initialize_lua (struct vox_engine *engine)
     assert (lua_gettop (engine->L) == 0);
 }
 
-static int execute_init (struct vox_engine *engine)
+static void execute_init (struct vox_engine *engine)
 {
     lua_State *L = engine->L;
 
@@ -163,33 +163,27 @@ static int execute_init (struct vox_engine *engine)
 
     // Context is on top of the stack
     lua_pushvalue (L, 1);
-    if (lua_pcall (L, 1, 1, 0))
+    if (lua_pcall (L, 1, 0, 0))
         luaL_error (L, "Error executing init function: %s", lua_tostring (L, -1));
 
-    int status = lua_isnil (L, -1);
+    if (!(engine->flags & VOX_ENGINE_DEBUG)) {
+        /* Copy context group. */
+        struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
+        engine->rendering_queue = data->rendering_queue;
 
-    /* Copy context group. */
-    struct context_data *data = luaL_checkudata (L, 1, CONTEXT_META);
-    engine->rendering_queue = data->rendering_queue;
+        /* Check that we have the world properly set up */
+        lua_getfield (L, 1, "tree");
+        lua_getfield (L, 1, "camera");
 
-    /* Check that we have the world properly set up */
-    lua_getfield (L, 1, "tree");
-    lua_getfield (L, 1, "camera");
+        if (luaL_testudata (L, -2, SCENE_PROXY_META) == NULL ||
+            luaL_testudata (L, -1, CAMERA_META) == NULL)
+            luaL_error (L, "World is not properly set up");
 
-    if (luaL_testudata (L, -2, SCENE_PROXY_META) == NULL ||
-        luaL_testudata (L, -1, CAMERA_META) == NULL)
-        luaL_error (L, "World is not properly set up");
-
-    lua_pop (L, 3);
+        lua_pop (L, 2);
+    }
 
     // Check that we have only the context on the stack
     assert (lua_gettop (engine->L) == 1);
-
-    /*
-     * Did the engine was created only for debugging purposes?
-     * If the answer is yes, init() must return nil.
-     */
-    return status;
 }
 
 static void engine_load_script (struct vox_engine *engine, const char *script)
@@ -282,16 +276,23 @@ static void create_lua_context (struct vox_engine *engine)
 {
     lua_State *L = engine->L;
 
-    struct context_data *data = lua_newuserdata (L, sizeof (struct context_data));
-    luaL_getmetatable (L, CONTEXT_META);
-    lua_setmetatable (L, -2);
-    data->context = engine->ctx;
+    if (engine->flags & VOX_ENGINE_DEBUG) {
+        /* In debug mode we just create an empty table for context. */
+        lua_newtable (L);
+    } else {
+        struct context_data *data = lua_newuserdata (L, sizeof (struct context_data));
+        luaL_getmetatable (L, CONTEXT_META);
+        lua_setmetatable (L, -2);
+        data->context = engine->ctx;
 
-    data->rendering_group = dispatch_group_create ();
-    data->rendering_queue = dispatch_queue_create ("scene operations", 0);
+        data->rendering_group = dispatch_group_create ();
+        data->rendering_queue = dispatch_queue_create ("scene operations", 0);
+    }
 }
 
-struct vox_engine* vox_create_engine (int width, int height, const char *script,
+struct vox_engine* vox_create_engine (unsigned int width, unsigned int height,
+                                      unsigned int flags,
+                                      const char *script,
                                       int nargs, char * const arguments[])
 {
     struct vox_engine *engine;
@@ -306,32 +307,32 @@ struct vox_engine* vox_create_engine (int width, int height, const char *script,
     memset (engine, 0, sizeof (struct vox_engine));
     engine->width = width;
     engine->height = height;
+    engine->flags = flags;
 
     initialize_lua (engine);
     initialize_arguments (engine, nargs, arguments);
     engine_load_script (engine, script);
 
-    // Init SDL
-    if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
-    {
-        fprintf (stderr, "Cannot init SDL: %s\n", SDL_GetError());
-        goto bad;
-    }
+    /* Do not init SDL in debug mode! */
+    if (!(engine->flags & VOX_ENGINE_DEBUG)) {
+        // Init SDL
+        if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
+        {
+            fprintf (stderr, "Cannot init SDL: %s\n", SDL_GetError());
+            goto bad;
+        }
 
-    engine->ctx = vox_make_context_and_window (engine->width, engine->height);
-    if (engine->ctx == NULL)
-    {
-        fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
-        goto bad;
+        engine->ctx = vox_make_context_and_window (engine->width, engine->height);
+        if (engine->ctx == NULL)
+        {
+            fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
+            goto bad;
+        }
     }
 
     // Create context on top of lua stack
     create_lua_context (engine);
-
-    if (execute_init (engine)) {
-        // Was called only for debugging
-        goto bad;
-    }
+    execute_init (engine);
 
     return engine;
 
@@ -342,20 +343,26 @@ bad:
 
 vox_engine_status vox_engine_tick (struct vox_engine *engine)
 {
-    vox_engine_status res;
+    vox_engine_status res = 0;
     /*
-     * If we have a queue associated with the tree (this is so if we use
-     * thread-safe scene proxy in the world table), enqueue the rendering
-     * operation to that queue and wait for its completion. This will assure us
-     * that the tree is in consistent state while the rendering is performed.
+     * If we are in debug mode, do nothing and return 0, meaning that we want to
+     * quit.
      */
-    dispatch_sync (engine->rendering_queue, ^{
-            vox_render (engine->ctx);
-        });
-    vox_redraw (engine->ctx);
+    if (!(engine->flags & VOX_ENGINE_DEBUG)) {
+        /*
+         * If we have a queue associated with the tree (this is so if we use
+         * thread-safe scene proxy in the world table), enqueue the rendering
+         * operation to that queue and wait for its completion. This will assure us
+         * that the tree is in consistent state while the rendering is performed.
+         */
+        dispatch_sync (engine->rendering_queue, ^{
+                vox_render (engine->ctx);
+            });
+        vox_redraw (engine->ctx);
 
-    res = execute_tick (engine);
-    assert (lua_gettop (engine->L) == 1);
+        res = execute_tick (engine);
+        assert (lua_gettop (engine->L) == 1);
+    }
     return res;
 }
 

@@ -465,7 +465,7 @@ int main (int argc, char *argv[])
      * Creating an engine and a window with dimensions 800x600. The last two
      * arguments can be ignored now (they are explained in API documentation.
      */
-    struct vox_engine *engine = vox_create_engine (800, 600, script, 0, NULL);
+    struct vox_engine *engine = vox_create_engine (800, 600, 0, script, 0, NULL);
     if (engine == NULL) {
         // vox_create_engine reports an error.
         // Quit here
@@ -502,10 +502,9 @@ includes (but is not limited to):
 You can get the full list of available functions/tables/variables if you look at
 `src/voxengine/genenvironment.py` and `src/voxengine/engine.c` files.
 
-`init` function takes a *renderer context* as a single argument and must return
-true (if it returns nil, the engine will be stopped after returning from `init`,
-it's sometimes useful for debugging). The `init` function must set up your
-world, i.e. add at least a camera and a tree to it. Let's see an example:
+`init` function takes a *renderer context* as a single argument. The `init`
+function must set up your world, i.e. add at least a camera and a tree to
+it. Values returned by init() are ignored. Let's see an example:
 
 ~~~~~~~~~~~~~~~{.lua}
 vt = voxtrees
@@ -543,8 +542,6 @@ function init (ctx)
    -- Populate the context
    ctx.tree = t
    ctx.camera = camera
-
-   return true
 end
 
 function tick (world, time)
@@ -602,8 +599,6 @@ function init (ctx)
    ctx.camera = camera
    -- You need also to keep a reference to collision detector in the context.
    ctx.cd = cd
-
-   return true
 end
 
 function tick (world, time)
@@ -672,6 +667,13 @@ method, do NOT specify `-f` key to `voxvision-engine` program.
 data files, using `vox_read_raw_data()` from **voxtrees**. Please look at lua
 scripts in `example` directory. All memory required for such objects as trees,
 dotsets etc. is handeled by lua automatically.
+
+There is debug mode in **voxengine**. To run **voxengine** in debug mode pass
+`VOX_ENGINE_DEBUG` as the third argument to `vox_create_engine` (see API
+documentation). In this mode, no context is created and SDL is not
+initialized. The engine runs only `init()` function with simple table as an
+argument and exits. It's useful for debugging **voxtrees** library. Calling
+`vox_engine_tick()` in debug mode produce no effect.
 
 Demo application
 ----------------
