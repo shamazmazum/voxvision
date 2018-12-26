@@ -18,21 +18,18 @@ static int check_file (const char* filename)
 
 static int find_module (const char *name, char *fullpath)
 {
-    // Then as last resort try environment variable VOXVISION_MODULES
-    if (snprintf (fullpath, MAXPATHLEN,
-                  "%s/%s.so", getenv ("VOXVISION_MODULES"), name) >= MAXPATHLEN)
-        return 0;
-    if (check_file (fullpath)) return 1;
-
-    // At first, try to find data file in system-wide data directory.
+    /* At first, try to find data file in system-wide data directory. */
     if (snprintf (fullpath, MAXPATHLEN,
                   "%s%s.so", VOX_MODULE_PATH, name) >= MAXPATHLEN)
         return 0;
     if (check_file (fullpath)) return 1;
 
-    // Then check at ~/.voxvision
+    /*
+     * Then try at location specified by VOXVISION_MODULES environment variable.
+     * voxtrees library defaults VOXVISION_MODULES to ~/.voxvision directory.
+     */
     if (snprintf (fullpath, MAXPATHLEN,
-                  "%s/.voxvision/%s.so", getenv ("HOME"), name) >= MAXPATHLEN)
+                  "%s/%s.so", getenv ("VOXVISION_MODULES"), name) >= MAXPATHLEN)
         return 0;
     if (check_file (fullpath)) return 1;
 
