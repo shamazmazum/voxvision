@@ -29,7 +29,6 @@ function init (ctx)
 
    ctx.tree = tree
    ctx.camera = camera
-   return true
 end
 
 function tick (world, time)

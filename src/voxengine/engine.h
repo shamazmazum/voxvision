@@ -51,7 +51,7 @@ struct vox_engine {
    initializes lua environment, loads needed modules and lua control script and
    so on. See the main page of documentation for more informantion. If
    you wish to pass an array of strings to lua control script, they
-   will be visible in `arg` table having they indices starting by 1.
+   will be visible in `arg` table having they indices starting from 1.
 
    \param width Width of the window.
    \param height Height of the window.

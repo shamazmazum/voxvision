@@ -51,7 +51,6 @@ function init (ctx)
    -- You must add at leat two elements to the context: a tree and a camera.
    ctx.tree = t
    ctx.camera = camera
-   return true
 end
 
 function tick (world, time)

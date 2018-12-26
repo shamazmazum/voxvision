@@ -64,7 +64,6 @@ function init (ctx)
    ctx.cd = cd
    ctx.fps_controller = vr.fps_controller (30)
    ctx.fps_restricted = true
-   return true
 end
 
 function tick (world, time)

@@ -29,7 +29,6 @@ function init (ctx)
    -- This example creates FPS controller which limits frames per second amount by 60.
    ctx.fps_controller = vr.fps_controller (60)
    ctx.fps_restricted = true
-   return true
 end
 
 function tick (world, time)
