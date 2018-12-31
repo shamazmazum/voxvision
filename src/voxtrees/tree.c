@@ -219,8 +219,8 @@ static void* node_alloc (int flavor)
     size_t size = offsetof (struct vox_node, data);
     size_t addend;
 
-    if (flavor & DENSE_LEAF) addend = 0;
-    else if (flavor & LEAF) addend = sizeof (vox_dot*);
+    if (flavor & VOX_DENSE_LEAF) addend = 0;
+    else if (flavor & VOX_LEAF) addend = sizeof (vox_dot*);
     else addend = sizeof (vox_inner_data);
 
     return vox_alloc (size+addend);
@@ -228,11 +228,11 @@ static void* node_alloc (int flavor)
 
 struct vox_node* vox_make_dense_leaf (const struct vox_box *box)
 {
-    struct vox_node *res = node_alloc (DENSE_LEAF);
+    struct vox_node *res = node_alloc (VOX_DENSE_LEAF);
     size_t dim[3];
 
     vox_box_copy (&(res->bounding_box), box);
-    res->flags = DENSE_LEAF;
+    res->flags = VOX_DENSE_LEAF;
     get_dimensions (box, dim);
     res->dots_num = dim[0]*dim[1]*dim[2];
 
@@ -255,17 +255,17 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     {
         struct vox_box box;
         calc_bounding_box (set, n, &box);
-        densep = (dense_set_p (&box, n)) ? DENSE_LEAF : 0;
-        leafp = (n <= VOX_MAX_DOTS) ? LEAF : 0;
+        densep = (dense_set_p (&box, n)) ? VOX_DENSE_LEAF : 0;
+        leafp = (n <= VOX_MAX_DOTS) ? VOX_LEAF : 0;
         node = node_alloc (densep | leafp);
         node->dots_num = n;
         vox_box_copy (&(node->bounding_box), &box);
-        if (densep) node->flags = DENSE_LEAF;
+        if (densep) node->flags = VOX_DENSE_LEAF;
         else if (leafp)
         {
             node->data.dots = vox_alloc (VOX_MAX_DOTS*sizeof(vox_dot));
             memcpy (node->data.dots, set, n*sizeof(vox_dot));
-            node->flags = LEAF;
+            node->flags = VOX_LEAF;
         }
         else
         {
@@ -284,14 +284,14 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
                      * into two or more subspaces. We just create one overflowed
                      * leaf (meaning it has number of voxels > VOX_MAX_DOTS).
                      */
-                    struct vox_node *newnode = node_alloc (LEAF);
+                    struct vox_node *newnode = node_alloc (VOX_LEAF);
                     vox_box_copy (&(newnode->bounding_box), &(node->bounding_box));
                     /*
                      * I set OVERFLOW flag only for statistics and testing. In
                      * the renderer itself overflowed leafs are processed as
                      * usual leafs.
                      */
-                    newnode->flags = LEAF | OVERFLOW;
+                    newnode->flags = VOX_LEAF | VOX_OVERFLOW;
                     newnode->dots_num = n;
                     newnode->data.dots = vox_alloc (n*sizeof(vox_dot));
                     memcpy (newnode->data.dots, set, n*sizeof(vox_dot));
@@ -317,9 +317,9 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
     }
     else
     {
-        if (node->flags & LEAF_MASK)
+        if (node->flags & VOX_LEAF_MASK)
         {
-            if (node->flags & DENSE_LEAF)
+            if (node->flags & VOX_DENSE_LEAF)
             {
                 VOXTREES_DENSE_LEAF();
                 VOXTREES_DENSE_DOTS (n);
@@ -347,9 +347,9 @@ void vox_destroy_tree (struct vox_node *tree)
     int i;
     if (VOX_FULLP (tree))
     {
-        if (tree->flags & LEAF)
+        if (tree->flags & VOX_LEAF)
             free (tree->data.dots);
-        else if (!(tree->flags & LEAF_MASK))
+        else if (!(tree->flags & VOX_LEAF_MASK))
             for (i=0; i<VOX_NS; i++) vox_destroy_tree (tree->data.inner.children[i]);
         free (tree);
     }
@@ -368,12 +368,12 @@ static size_t flatten_tree (const struct vox_node *tree, vox_dot *set)
     size_t count = 0;
     if (VOX_FULLP (tree))
     {
-        if (tree->flags & LEAF)
+        if (tree->flags & VOX_LEAF)
         {
             memcpy (set, tree->data.dots, tree->dots_num * sizeof(vox_dot));
             count = tree->dots_num;
         }
-        else if (tree->flags & DENSE_LEAF)
+        else if (tree->flags & VOX_DENSE_LEAF)
         {
             int i,j,k;
             vox_dot current;
@@ -441,8 +441,8 @@ static int voxel_in_tree (const struct vox_node *tree, const vox_dot voxel)
     if (VOX_FULLP (tree) &&
         voxel_in_box (&(tree->bounding_box), voxel))
     {
-        if (tree->flags & DENSE_LEAF) return 1;
-        if (tree->flags & LEAF)
+        if (tree->flags & VOX_DENSE_LEAF) return 1;
+        if (tree->flags & VOX_LEAF)
         {
             for (i=0; i<tree->dots_num; i++)
                 if (vox_dot_equalp (voxel, tree->data.dots[i])) return 1;
@@ -525,7 +525,7 @@ again:
         update_bounding_box (&(tree->bounding_box), voxel);
         if (dense_set_p (&(tree->bounding_box), tree->dots_num+1))
         {
-            if (tree->flags & DENSE_LEAF) tree->dots_num++;
+            if (tree->flags & VOX_DENSE_LEAF) tree->dots_num++;
             else
             {
                 node = vox_make_dense_leaf (&(tree->bounding_box));
@@ -534,7 +534,7 @@ again:
             }
             goto done;
         }
-        if (tree->flags & DENSE_LEAF) vox_box_copy (&(tree->bounding_box), &bb);
+        if (tree->flags & VOX_DENSE_LEAF) vox_box_copy (&(tree->bounding_box), &bb);
     }
     else
     {
@@ -550,7 +550,7 @@ again:
         goto done;
     }
 
-    if (tree->flags & DENSE_LEAF)
+    if (tree->flags & VOX_DENSE_LEAF)
     {
         WITH_STAT (VOXTREES_DENSE_INSERTION());
         if (tree->dots_num < VOX_MAX_DOTS)
@@ -568,7 +568,7 @@ again:
         }
         else node = insert_in_big_dense (tree, voxel);
     }
-    else if (tree->flags & LEAF)
+    else if (tree->flags & VOX_LEAF)
     {
         WITH_STAT (VOXTREES_LEAF_INSERTION());
         // We have enough space to add a voxel
@@ -772,7 +772,7 @@ again:
 
     // XXX: update bounding box
 
-    if (tree->flags & LEAF)
+    if (tree->flags & VOX_LEAF)
     {
         WITH_STAT (VOXTREES_LEAF_DELETION());
         for (i=0; i<tree->dots_num; i++)
@@ -782,7 +782,7 @@ again:
         memmove (tree->data.dots + i, tree->data.dots + i + 1,
                  sizeof (vox_dot) * (tree->dots_num - i));
     }
-    else if (tree->flags & DENSE_LEAF)
+    else if (tree->flags & VOX_DENSE_LEAF)
     {
         WITH_STAT (VOXTREES_DENSE_DELETION());
         // Downgrade to an ordinary leaf
@@ -875,8 +875,8 @@ void vox_dump_tree (const struct vox_node *tree)
 
     if (VOX_FULLP (tree))
     {
-        if (tree->flags & LEAF) desc = leaf_str;
-        else if (tree->flags & DENSE_LEAF) desc = dense_str;
+        if (tree->flags & VOX_LEAF) desc = leaf_str;
+        else if (tree->flags & VOX_DENSE_LEAF) desc = dense_str;
         else desc = inner_str;
 
         printf ("Node %p %s\n", tree, desc);
@@ -890,7 +890,7 @@ void vox_dump_tree (const struct vox_node *tree)
                 tree->bounding_box.max[2]);
         printf ("Number of voxels %u\n", tree->dots_num);
 
-        if (tree->flags & LEAF)
+        if (tree->flags & VOX_LEAF)
         {
             printf ("Dots:\n");
             for (i=0; i<tree->dots_num; i++)
@@ -899,7 +899,7 @@ void vox_dump_tree (const struct vox_node *tree)
                         tree->data.dots[i][1],
                         tree->data.dots[i][2]);
         }
-        else if (!(tree->flags & LEAF_MASK))
+        else if (!(tree->flags & VOX_LEAF_MASK))
         {
             printf ("Center <%f, %f, %f>\n",
                     tree->data.inner.center[0],
@@ -909,7 +909,7 @@ void vox_dump_tree (const struct vox_node *tree)
             for (i=0; i<VOX_NS; i++) printf ("%p\n", tree->data.inner.children[i]);
         }
         printf ("------Node ends here------\n");
-        if (!(tree->flags & LEAF_MASK))
+        if (!(tree->flags & VOX_LEAF_MASK))
         {
             for (i=0; i<VOX_NS; i++) vox_dump_tree (tree->data.inner.children[i]);
             printf ("=======Node and children end here=======\n");

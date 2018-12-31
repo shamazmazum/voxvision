@@ -12,11 +12,11 @@
 
 #ifdef VOXTREES_SOURCE
 
-#define LEAF 1
-#define DENSE_LEAF 2
-#define LEAF_MASK 3
-#define OVERFLOW 4
-#define VOX_LEAFP(node) (!(node) || ((node)->flags & LEAF_MASK))
+#define VOX_LEAF 1
+#define VOX_DENSE_LEAF 2
+#define VOX_LEAF_MASK 3
+#define VOX_OVERFLOW 4
+#define VOX_LEAFP(node) (!(node) || ((node)->flags & VOX_LEAF_MASK))
 #define VOX_FULLP(node) ((node))
 
 typedef struct

@@ -28,7 +28,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     /*
      * If ray hits bounding box of a dense leaf, then it hits anything inside it.
      */
-    if (tree->flags & DENSE_LEAF)
+    if (tree->flags & VOX_DENSE_LEAF)
     {
         leaf = tree;
         vox_dot_copy (res, bb_inter);
@@ -36,7 +36,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         goto end;
     }
 
-    if (tree->flags & LEAF)
+    if (tree->flags & VOX_LEAF)
     {
         /*
          * If passed argument is a tree leaf, do O(tree->dots_num) search for intersections
@@ -158,8 +158,8 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
     if (!(VOX_FULLP (tree))) return 0;
     if (box_ball_interp (&(tree->bounding_box), center, radius))
     {
-        if (tree->flags & DENSE_LEAF) return 1;
-        if (tree->flags & LEAF)
+        if (tree->flags & VOX_DENSE_LEAF) return 1;
+        if (tree->flags & VOX_LEAF)
         {
             vox_dot *dots = tree->data.dots;
             struct vox_box *voxel = alloca (sizeof (struct vox_box));
