@@ -7,6 +7,10 @@
 #include "modules.h"
 #include "../voxvision.h"
 
+#ifdef __linux__
+#define dlfunc dlsym
+#endif
+
 /* Some of these are copied from voxtrees library */
 static int check_file (const char* filename)
 {
