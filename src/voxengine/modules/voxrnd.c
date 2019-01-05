@@ -292,6 +292,22 @@ static int l_scene_proxy_ray_intersection (lua_State *L)
     return 1;
 }
 
+static int l_scene_proxy_len (lua_State *L)
+{
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
+    __block size_t len;
+    /*
+     * To operate on a consistent state, enqueue search operation in sync
+     * queue.
+     */
+    dispatch_sync (data->scene_sync_queue, ^{
+            len = vox_voxels_in_tree (data->tree);
+        });
+
+    lua_pushinteger (L, len);
+    return 1;
+}
+
 /*
  * Unfortunately, this is not actually a proxy, as it does not translate all
  * method calls to underlying tree. It just overwrites some methods of the tree
@@ -299,6 +315,7 @@ static int l_scene_proxy_ray_intersection (lua_State *L)
  */
 static const struct luaL_Reg scene_proxy_methods [] = {
     {"__tostring", l_scene_proxy_tostring},
+    {"__len", l_scene_proxy_len},
     {"rebuild", l_scene_proxy_rebuild},
     {"insert", l_scene_proxy_insert},
     {"delete", l_scene_proxy_delete},
