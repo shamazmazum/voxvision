@@ -287,8 +287,8 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
                     struct vox_node *newnode = node_alloc (VOX_LEAF);
                     vox_box_copy (&(newnode->bounding_box), &(node->bounding_box));
                     /*
-                     * I set OVERFLOW flag only for statistics and testing. In
-                     * the renderer itself overflowed leafs are processed as
+                     * I set VOXOVERFLOW flag only for statistics and testing.
+                     * In the renderer itself overflowed leafs are processed as
                      * usual leafs.
                      */
                     newnode->flags = VOX_LEAF | VOX_OVERFLOW;
@@ -326,7 +326,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n)
             }
             else update_fill_ratio (&(node->bounding_box), n);
             VOXTREES_LEAF_NODE();
-            if (node->flags & OVERFLOW) {
+            if (node->flags & VOX_OVERFLOW) {
                 VOXTREES_LEAF_OVERFLOW();
                 VOXTREES_LEAF_OVERFLOW_VOXELS(node->dots_num);
             }
