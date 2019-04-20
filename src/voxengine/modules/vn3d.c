@@ -48,10 +48,8 @@ static const struct luaL_Reg noisegen_methods[] = {
 static int l_new_value_noise_gen (lua_State *L)
 {
     unsigned int octaves = luaL_checkinteger (L, 1);
-    unsigned int width = luaL_checkinteger (L, 2);
-    unsigned int height = luaL_checkinteger (L, 3);
-    unsigned int depth = luaL_checkinteger (L, 4);
-    struct vn_generator *generator = vn_value_generator (octaves, width, height, depth);
+    unsigned int grid_pow = luaL_checkinteger (L, 2);
+    struct vn_generator *generator = vn_value_generator (octaves, grid_pow);
     int res;
 
     if (generator == NULL) {
@@ -72,10 +70,8 @@ static int l_new_value_noise_gen (lua_State *L)
 static int l_new_worley_noise_gen (lua_State *L)
 {
     unsigned int ndots = luaL_checkinteger (L, 1);
-    unsigned int width = luaL_checkinteger (L, 2);
-    unsigned int height = luaL_checkinteger (L, 3);
-    unsigned int depth = luaL_checkinteger (L, 4);
-    struct vn_generator *generator = vn_worley_generator (ndots, width, height, depth);
+    unsigned int grid_pow = luaL_checkinteger (L, 2);
+    struct vn_generator *generator = vn_worley_generator (ndots, grid_pow);
     int res;
 
     if (generator == NULL) {
