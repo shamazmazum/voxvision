@@ -23,7 +23,7 @@ function init (ctx)
    print "You can rebuild the tree by pressing 'r'."
    print "Generation of the noise takes some time."
    vn3d.randomize ()
-   local gen = vn3d.value_noise_generator (4, 5, 5, 5)
+   local gen = vn3d.value_noise_generator (4, 5)
    local val, dist
 
    local i,j,k
