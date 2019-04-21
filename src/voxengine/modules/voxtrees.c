@@ -8,6 +8,9 @@
 #include "../modules.h"
 
 #include <stdlib.h>
+#ifdef __FreeBSD__
+#include <malloc_np.h>
+#endif
 
 static int newtree (lua_State *L)
 {
@@ -122,20 +125,65 @@ static const struct luaL_Reg tree_methods [] = {
     {NULL, NULL}
 };
 
+static void* dotset_alloc (unsigned int dots)
+{
+    void *res;
+    size_t size = sizeof (vox_dot) * dots;
+#ifdef __FreeBSD__
+    size = (size + 0xf) & ~(size_t)0xf;
+    res = mallocx (size, MALLOCX_ALIGN(16));
+#else
+    res = vox_alloc (size);
+#endif
+    return res;
+}
+
+static void* dotset_realloc (void *ptr, unsigned int dots)
+{
+    void *res = NULL;
+#ifdef __FreeBSD__
+    size_t size = sizeof (vox_dot) * dots;
+    size = (size + 0xf) & ~(size_t)0xf;
+    res = rallocx (ptr, size, MALLOCX_ALIGN(16));
+#endif
+    return res;
+}
+
+static void dotset_free (void *ptr)
+{
+#ifdef __FreeBSD__
+    dallocx (ptr, MALLOCX_ALIGN(16));
+#else
+    free (ptr);
+#endif
+}
+
 struct dotset {
     vox_dot *array;
     unsigned int length, max_length;
+    float incr_mul;
 };
 
 static int newdotset (lua_State *L)
 {
-    unsigned int len = luaL_checkinteger (L, 1);
+    unsigned int max_length = 100000;
+    float incr_mul = 1.5;
+
+    int args = lua_gettop (L);
+    if (args > 0) {
+        max_length = luaL_checkinteger (L, 1);
+    }
+    if (args > 1) {
+        incr_mul = luaL_checknumber (L, 2);
+    }
+
     struct dotset *set = lua_newuserdata (L, sizeof (struct dotset));
     luaL_getmetatable (L, DOTSET_META);
     lua_setmetatable (L, -2);
     set->length = 0;
-    set->max_length = len;
-    set->array = vox_alloc (sizeof (vox_dot)*len);
+    set->max_length = max_length;
+    set->incr_mul = incr_mul;
+    set->array = dotset_alloc (set->max_length);
 
     return 1;
 }
@@ -143,7 +191,7 @@ static int newdotset (lua_State *L)
 static int printdotset (lua_State *L)
 {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
-    lua_pushfstring (L, "<dot array, %d dots>", set->length);
+    lua_pushfstring (L, "<dot array, %d/%d dots>", set->length, set->max_length);
 
     return 1;
 }
@@ -151,7 +199,7 @@ static int printdotset (lua_State *L)
 static int destroydotset (lua_State *L)
 {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
-    free (set->array);
+    dotset_free (set->array);
 
     return 0;
 }
@@ -169,16 +217,22 @@ static int pushdotset (lua_State *L)
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     vox_dot dot;
     READ_DOT (dot, 2);
-    int argc = 0;
 
-    if (set->length == set->max_length)
-    {
-        lua_pushstring (L, "set is full");
-        argc = 1;
+    if (set->length == set->max_length) {
+        unsigned int newlen = (float)set->max_length * set->incr_mul;
+        void *newarray = dotset_realloc (set->array, newlen);
+        if (newarray != NULL) {
+            set->max_length = newlen;
+            set->array = newarray;
+        } else {
+            lua_pushstring (L, "the set is full and I cannot expand it.");
+            return 1;
+        }
     }
-    else memcpy (set->array[set->length++], dot, sizeof(vox_dot));
 
-    return argc;
+    vox_dot_copy (set->array[set->length], dot);
+    set->length++;
+    return 0;
 }
 
 static const struct luaL_Reg dotset_methods [] = {
