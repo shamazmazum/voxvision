@@ -172,9 +172,11 @@ static int newdotset (lua_State *L)
     int args = lua_gettop (L);
     if (args > 0) {
         max_length = luaL_checkinteger (L, 1);
+        max_length = (max_length > 100)? max_length: 100;
     }
     if (args > 1) {
         incr_mul = luaL_checknumber (L, 2);
+        incr_mul = (incr_mul > 1.1)? incr_mul: 1.1;
     }
 
     struct dotset *set = lua_newuserdata (L, sizeof (struct dotset));
