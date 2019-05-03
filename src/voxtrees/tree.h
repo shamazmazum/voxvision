@@ -139,4 +139,13 @@ void vox_dump_tree (const struct vox_node *tree);
 **/
 struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
 
+/**
+   \brief Set global voxel size.
+
+   This function sets global voxel size. You must rebuild all trees
+   after changing this value. Currently, you can set voxel size by
+   writing directly to `vox_voxel` dot.
+ **/
+void vox_set_voxel_size (float x, float y, float z);
+
 #endif
