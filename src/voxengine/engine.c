@@ -30,60 +30,12 @@ static int engine_panic (lua_State *L)
     exit(0);
 }
 
-// Load module, but do not add returned table to environment
-static void load_module_restricted (lua_State *L, const char *modname)
-{
-    char path[MAXPATHLEN];
-    char init[MAXPATHLEN];
-
-    if (snprintf (path, MAXPATHLEN, "%s%s.so", VOX_MODULE_PATH, modname) >= MAXPATHLEN)
-        luaL_error (L, "Module path name is too long");
-
-    void *handle = dlopen (path, RTLD_LAZY | RTLD_NODELETE);
-    if (handle == NULL) luaL_error (L, "Cannot open lua module %s", path);
-
-    if (snprintf (init, MAXPATHLEN, "luaopen_%s", modname) >= MAXPATHLEN)
-        luaL_error (L, "Module path name is too long");
-
-    void *init_func = dlsym (handle, init);
-    if (init_func == NULL) luaL_error (L, "Cannot cannot find init function %s", init);
-
-    luaL_requiref (L, modname, init_func, 0);
-}
-
-static void load_module (lua_State *L, const char *modname)
-{
-    load_module_restricted (L, modname);
-    // Copy table in our environment
-    lua_setfield (L, -2, modname);
-}
-
-static void load_lua_module (lua_State *L, const char *modname)
-{
-    char path[MAXPATHLEN];
-
-    if (snprintf (path, MAXPATHLEN, "%s%s.lua", VOX_MODULE_PATH, modname) >= MAXPATHLEN)
-        luaL_error (L, "Module path name is too long");
-
-    if (luaL_loadfile (L, path) || lua_pcall (L, 0, 1, 0))
-        luaL_error (L, "Cannot load module %s: %s", modname, lua_tostring (L, -1));
-
-    // Copy table in our environment
-    lua_setfield (L, -2, modname);
-}
-
 static void set_safe_environment (lua_State *L)
 {
     // Function to be executed is on top of the stack
     lua_getglobal (L, "voxvision");
     // FIXME: _ENV is upvalue #1
     lua_setupvalue (L, -2, 1);
-}
-
-static void prepare_safe_environment (lua_State *L)
-{
-    // Our environment is on top of the stack
-#include <safe_environment.h>
 }
 
 // FIXME: Only camera can be a vox_object now
@@ -122,6 +74,7 @@ static void initialize_lua (struct vox_engine *engine)
 
     // Place our safe environment is on top of the stack
     lua_newtable (L);
+
     // Copy environment in global variable
     lua_pushvalue (L, -1);
     lua_setglobal (L, "voxvision");
@@ -130,18 +83,11 @@ static void initialize_lua (struct vox_engine *engine)
     lua_pushcfunction (L, l_set_property);
     lua_setfield (L, -2, "set_property");
 
-    // Load C modules
-    load_module (L, "voxtrees");
-    load_module (L, "voxrnd");
-#ifdef WITH_VN3D
-    load_module (L, "vn3d");
-#endif
-
-    // Also add some safe functions
-    prepare_safe_environment (L);
-
-    // And load lua modules
-    load_lua_module (L, "voxutils");
+    char envpath[MAXPATHLEN];
+    sprintf (envpath, "%s/loadenvironment.lua", VOX_MODULE_PATH);
+    if (luaL_loadfile (L, envpath) || lua_pcall (L, 0, 0, 0)) {
+        luaL_error (L, "Cannot load environment script: %s", lua_tostring (L, -1));
+    }
 
     // Remove the environment from the stack, it is in "voxvision" global now
     lua_pop (L, 1);

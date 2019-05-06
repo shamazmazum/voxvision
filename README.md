@@ -68,7 +68,6 @@ Requirements
 * Doxygen for API documentation, optional
 * Lua >= 5.2, optional, but highly recommended for *voxengine* library.
 * Clang or other compiller with support for blocks. GCC will not do.
-* Python 2.7, only for building
 
 Building
 --------
