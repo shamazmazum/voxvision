@@ -141,7 +141,7 @@ struct vox_rnd_ctx
    NB: Surface width must be multiple of 16 and surface heigth must be multiple
    of 4. If this does not hold, function silently returns NULL.
 **/
-struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface);
+VOX_EXPORT struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface);
 
 /**
    \brief Create a window and attach context to it.
@@ -157,7 +157,7 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface);
    NB: width must be multiple of 16 and heigth must be multiple
    of 4. If this does not hold, function silently returns NULL.
 **/
-struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height);
+VOX_EXPORT struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height);
 
 /**
    \brief Redraw a window associated with this context.
@@ -165,22 +165,23 @@ struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned in
    This function will redraw window after call to vox_render() if context has a
    window.
 **/
-void vox_redraw (struct vox_rnd_ctx *ctx);
+VOX_EXPORT void vox_redraw (struct vox_rnd_ctx *ctx);
 
 /**
    \brief Scene setter for renderer context
 **/
-void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene);
+VOX_EXPORT void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene);
 
 /**
    \brief Camera setter for renderer context
 **/
-void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera);
+VOX_EXPORT void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera);
 
 /**
    \brief Light manager setter for renderer context
 **/
-void vox_context_set_light_manager (struct vox_rnd_ctx *ctx, struct vox_light_manager *camera);
+VOX_EXPORT void vox_context_set_light_manager (struct vox_rnd_ctx *ctx,
+                                               struct vox_light_manager *light_manager);
 
 /**
    \brief Set quality of the renderer
@@ -191,18 +192,18 @@ void vox_context_set_light_manager (struct vox_rnd_ctx *ctx, struct vox_light_ma
    \return 1 on success, 0 otherwise. Function call is unsuccessfull when
           `quality` parameter is wrong.
 **/
-int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality);
+VOX_EXPORT int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality);
 
 /**
    \brief Free context after use
 **/
-void vox_destroy_context (struct vox_rnd_ctx *ctx);
+VOX_EXPORT void vox_destroy_context (struct vox_rnd_ctx *ctx);
 
 /**
    \brief Render a scene on SDL surface.
 
    \param ctx a renderer context
 **/
-void vox_render (struct vox_rnd_ctx *ctx);
+VOX_EXPORT void vox_render (struct vox_rnd_ctx *ctx);
 
 #endif

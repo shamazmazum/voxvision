@@ -65,10 +65,11 @@ struct vox_engine {
           needed by the engine.
    \return Pointer to created engine on success or NULL.
 **/
-struct vox_engine* vox_create_engine (unsigned int width, unsigned int height,
-                                      unsigned int flags,
-                                      const char *script,
-                                      int nargs, char * const arguments[]);
+VOX_EXPORT struct vox_engine*
+vox_create_engine (unsigned int width, unsigned int height,
+                   unsigned int flags,
+                   const char *script,
+                   int nargs, char * const arguments[]);
 
 /**
    \brief Return type for `vox_engine_tick`
@@ -89,11 +90,11 @@ typedef int vox_engine_status;
 
    \return Engine status (e.g. quit requested).
 **/
-vox_engine_status vox_engine_tick (struct vox_engine *engine);
+VOX_EXPORT vox_engine_status vox_engine_tick (struct vox_engine *engine);
 
 /**
    \brief Destroy an engine.
 **/
-void vox_destroy_engine (struct vox_engine *engine);
+VOX_EXPORT void vox_destroy_engine (struct vox_engine *engine);
 
 #endif

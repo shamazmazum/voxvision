@@ -1,6 +1,0 @@
-VOXENGINE_@voxvision_VERSION@ {
-    global: vox_create_engine;
-            vox_destroy_engine;
-            vox_engine_tick;
-    local: *;
-};

@@ -17,6 +17,7 @@
 #define VOX_VERSION_MAJOR @voxvision_VERSION_MAJOR@
 #define VOX_VERSION_MINOR @voxvision_VERSION_MINOR@
 #define VOX_VERSION "@voxvision_VERSION@"
+#define VOX_EXPORT __attribute__((visibility ("default")))
 
 // Types
 /*

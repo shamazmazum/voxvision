@@ -19,6 +19,6 @@
           local voxvision data directory.
    \return 1 on success, 0 on error.
 **/
-int vox_screenshot (const struct vox_rnd_ctx *context, const char *dirname);
+VOX_EXPORT int vox_screenshot (const struct vox_rnd_ctx *context, const char *dirname);
 
 #endif

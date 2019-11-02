@@ -5,6 +5,7 @@
 #ifndef FRAME_COUNTER_H
 #define FRAME_COUNTER_H
 #include <SDL2/SDL.h>
+#include "../voxvision.h"
 
 /**
    \brief true if FPS controller status was updated.
@@ -58,11 +59,11 @@ typedef struct vox_fps_info (^vox_fps_controller_t)(void);
    a thread to sleep.
    \return FPS controller status.
 **/
-vox_fps_controller_t vox_make_fps_controller (unsigned int fps);
+VOX_EXPORT vox_fps_controller_t vox_make_fps_controller (unsigned int fps);
 
 /**
    \brief Destroy FPS controller created earlier.
 **/
-void vox_destroy_fps_controller (vox_fps_controller_t controller);
+VOX_EXPORT void vox_destroy_fps_controller (vox_fps_controller_t controller);
 
 #endif

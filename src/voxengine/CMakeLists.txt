@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/loadenvironment.lua.in ${CMAKE_CURRENT_BINARY_DIR}/loadenvironment.lua)
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxengine.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld)
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/loadenvironment.lua.in
+  ${CMAKE_CURRENT_BINARY_DIR}/loadenvironment.lua)
 include_directories (${LUA_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}/..
   ${CMAKE_CURRENT_BINARY_DIR})
@@ -16,8 +16,7 @@ add_definitions (-DVOXENGINE_SOURCE)
 add_library (voxengine SHARED engine.c)
 set_target_properties (voxengine PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
-  LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld
-  LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxengine.ld")
+  C_VISIBILITY_PRESET hidden)
 target_link_libraries (voxengine ${LUA_LIBRARIES} BlocksRuntime)
 if (GCD_FOUND)
 target_link_libraries (voxengine ${GCD_LIBRARY})

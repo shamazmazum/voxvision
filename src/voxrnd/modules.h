@@ -7,6 +7,7 @@
 **/
 #ifndef _MODULES_H_
 #define _MODULES_H_
+#include "../voxvision.h"
 
 /**
    \brief Camera module class.
@@ -50,6 +51,6 @@ struct vox_module {
 
    \return The module's methods on success or `NULL` otherwise.
 **/
-struct vox_module_methods* vox_load_module (const char *name, int type);
+VOX_EXPORT struct vox_module_methods* vox_load_module (const char *name, int type);
 
 #endif

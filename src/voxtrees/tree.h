@@ -57,24 +57,24 @@ struct vox_node;
    \param n number of voxels in the set
    \return a root node of the newly created tree
 **/
-struct vox_node* vox_make_tree (vox_dot set[], size_t n);
+VOX_EXPORT struct vox_node* vox_make_tree (vox_dot set[], size_t n);
 
 /**
    \brief Free resources used by a tree.
 
    Note, that you must free underlying set by yourself.
 **/
-void vox_destroy_tree (struct vox_node *tree);
+VOX_EXPORT void vox_destroy_tree (struct vox_node *tree);
 
 /**
    \brief Return number of voxels in the tree.
 **/
-size_t vox_voxels_in_tree (const struct vox_node *tree);
+VOX_EXPORT size_t vox_voxels_in_tree (const struct vox_node *tree);
 
 /**
    \brief Get the bounding box for voxels in the tree
 **/
-void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
+VOX_EXPORT void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
 
 /**
    \brief Rebuild a tree.
@@ -83,7 +83,7 @@ void vox_bounding_box (const struct vox_node *tree, struct vox_box *box);
    vox_destroy_tree(). The new tree can be more balanced. Use this
    after a big amount of insertions or deletions.
 **/
-struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
+VOX_EXPORT struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
 
 /**
    \brief Insert a voxel in the tree on the fly.
@@ -93,7 +93,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
 
    \return 1 on success, 0 if the voxel was already in the tree.
 **/
-int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+VOX_EXPORT int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 /**
    \brief Insert a voxel in the tree on the fly.
@@ -101,7 +101,7 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
    This is like vox_insert_voxel(), but voxel coordinates are given
    instead of vox_dot value.
 **/
-int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
+VOX_EXPORT int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 
 /**
    \brief Delete a voxel from the tree on the fly.
@@ -111,7 +111,7 @@ int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float 
 
    \return 1 on success, 0 if there was no such voxel in the tree.
 **/
-int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+VOX_EXPORT int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 /**
    \brief Delete a voxel from the tree on the fly.
@@ -119,7 +119,7 @@ int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
    This is like vox_delete_voxel(), but voxel coordinates are given
    instead of vox_dot value.
 **/
-int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
+VOX_EXPORT int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 
 /**
    \brief Dump a tree to standard output stream.
@@ -127,7 +127,7 @@ int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float 
    This is ment solely for debugging purposes and can produce
    very big output.
 **/
-void vox_dump_tree (const struct vox_node *tree);
+VOX_EXPORT void vox_dump_tree (const struct vox_node *tree);
 
 /**
    \brief Create a cuboid tree.
@@ -137,7 +137,7 @@ void vox_dump_tree (const struct vox_node *tree);
    special way for dealing with tree nodes which consist only from one
    big box. This function is a user interface to that mechanism.
 **/
-struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
+VOX_EXPORT struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
 
 /**
    \brief Set global voxel size.
@@ -146,6 +146,6 @@ struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
    after changing this value. Currently, you can set voxel size by
    writing directly to `vox_voxel` dot.
  **/
-void vox_set_voxel_size (float x, float y, float z);
+VOX_EXPORT void vox_set_voxel_size (float x, float y, float z);
 
 #endif

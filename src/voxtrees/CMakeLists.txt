@@ -1,6 +1,4 @@
 cmake_minimum_required (VERSION 2.6)
-
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxtrees.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld)
 add_definitions (-DVOXTREES_SOURCE)
 
 add_library (voxtrees SHARED
@@ -28,13 +26,13 @@ if (WITH_DTRACE)
     COMMAND rm -f voxtrees-dtrace.o
     COMMAND ${DTRACE_EXECUTABLE} -G -s voxtrees-dtrace.d ${DTRACE_SOURCES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set (ADDITIONAL_LINK_FLAGS "${CMAKE_CURRENT_BINARY_DIR}/voxtrees-dtrace.o")
+  set_target_properties (voxtrees PROPERTIES
+    LINK_FLAGS "${CMAKE_CURRENT_BINARY_DIR}/voxtrees-dtrace.o")
 endif (WITH_DTRACE)
 
 set_target_properties (voxtrees PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
-  LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld
-  LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxtrees.ld ${ADDITIONAL_LINK_FLAGS}")
+  C_VISIBILITY_PRESET hidden)
 
 target_link_libraries (voxtrees m BlocksRuntime)
 install (FILES params.h tree.h search.h geom.h datareader.h mtree.h

@@ -16,23 +16,23 @@
    \param vector a vector to rotate
    \param res a vector to store the result
 **/
-void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res);
+VOX_EXPORT void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res);
 
 /*
  * Same as `vox_rotate_vector()`, but expects and returns vector coordinates as
  * in quaternion data layout.
  */
-void vox_rotate_vector_q (const vox_quat base, const vox_quat vector, vox_quat res);
+VOX_EXPORT void vox_rotate_vector_q (const vox_quat base, const vox_quat vector, vox_quat res);
 
 /**
    \brief Return multiplication of 2 quaternions
 **/
-void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res);
+VOX_EXPORT void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res);
 
-void vox_dot_normalize (vox_dot dot);
-void vox_quat_normalize (vox_quat quat);
+VOX_EXPORT void vox_dot_normalize (vox_dot dot);
+VOX_EXPORT void vox_quat_normalize (vox_quat quat);
 
-void vox_quat_set_identity (vox_quat quat);
+VOX_EXPORT void vox_quat_set_identity (vox_quat quat);
 
 #endif
 #endif

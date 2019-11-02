@@ -32,9 +32,10 @@
    error will be set to an internal static string, describing the error.
 **/
 
-struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
-                                    unsigned int samplesize, int (^test)(unsigned int sample),
-                                    const char **error);
+VOX_EXPORT struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
+                                               unsigned int samplesize,
+                                               int (^test)(unsigned int sample),
+                                               const char **error);
 
 /**
    \brief Find a full path of a data file.
@@ -49,6 +50,6 @@ struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
    \param fullpath a string where result will be stored in case of success.
    \return 1 if the search was successful, 0 otherwise.
 **/
-int vox_find_data_file (const char *filename, char *fullpath);
+VOX_EXPORT int vox_find_data_file (const char *filename, char *fullpath);
 
 #endif

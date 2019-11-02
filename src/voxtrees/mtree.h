@@ -70,7 +70,7 @@ struct vox_mtree_node;
           the library, so you can reclaim space used by it (or allocate sphere on stack).
    \return 1 On success (sphere was not in a tree) or 0 otherwise.
 **/
-int vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
+VOX_EXPORT int vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
 
 /**
    \brief Remove sphere from a tree.
@@ -83,24 +83,24 @@ int vox_mtree_add_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphe
           the library, so you can reclaim space used by it (or allocate sphere on stack).
    \return 1 On success (sphere was in a tree) or 0 otherwise.
 **/
-int vox_mtree_remove_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
+VOX_EXPORT int vox_mtree_remove_sphere (struct vox_mtree_node **nodeptr, const struct vox_sphere *s);
 
 /**
    \brief Destroy a tree, freeing all used space.
 **/
-void vox_mtree_destroy (struct vox_mtree_node *node);
+VOX_EXPORT void vox_mtree_destroy (struct vox_mtree_node *node);
 
 /**
    \brief Dump a tree to stdout.
 
    Use carefully as it may produce very long output.
 **/
-void vox_mtree_dump (const struct vox_mtree_node *node);
+VOX_EXPORT void vox_mtree_dump (const struct vox_mtree_node *node);
 
 /**
    \brief Get a number of items (spheres) in M-tree.
 **/
-unsigned int vox_mtree_items (const struct vox_mtree_node *node);
+VOX_EXPORT unsigned int vox_mtree_items (const struct vox_mtree_node *node);
 
 /**
    \brief Check if a sphere is in a tree.
@@ -109,7 +109,7 @@ unsigned int vox_mtree_items (const struct vox_mtree_node *node);
 
    \return A leaf of the tree in which sphere is contained.
 **/
-const struct vox_mtree_node*
+VOX_EXPORT const struct vox_mtree_node*
 vox_mtree_contains_sphere (const struct vox_mtree_node *node,
                            const struct vox_sphere *s);
 
@@ -121,8 +121,9 @@ vox_mtree_contains_sphere (const struct vox_mtree_node *node,
    \param block A piece of work to do given as a C block. This block accepts a sphere to
    which the dot belongs to.
 **/
-void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_dot dot,
-                                   void (^block)(const struct vox_sphere *s));
+VOX_EXPORT void vox_mtree_spheres_containing (const struct vox_mtree_node *node,
+                                              const vox_dot dot,
+                                              void (^block)(const struct vox_sphere *s));
 
 /**
    \brief Callback-styled version of `vox_mtree_spheres_containing()`.
@@ -138,7 +139,8 @@ void vox_mtree_spheres_containing (const struct vox_mtree_node *node, const vox_
    \param thunk Some arbitrary userdata which is passed to the callback as the second
           argument, unchanged.
 **/
-void vox_mtree_spheres_containing_f (const struct vox_mtree_node *node, const vox_dot dot,
-                                     void (*callback)(const struct vox_sphere *s, void *arg),
-                                     void *thunk);
+VOX_EXPORT void
+vox_mtree_spheres_containing_f (const struct vox_mtree_node *node, const vox_dot dot,
+                                void (*callback)(const struct vox_sphere *s, void *arg),
+                                void *thunk);
 #endif

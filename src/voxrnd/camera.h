@@ -143,7 +143,8 @@ struct vox_camera
    from interface `iface` if they are defined (that means they hold non-NULL
    value).
 **/
-void vox_use_camera_methods (struct vox_camera *camera, const struct vox_camera_interface *iface);
+VOX_EXPORT void vox_use_camera_methods (struct vox_camera *camera,
+                                        const struct vox_camera_interface *iface);
 
 /**
    \brief Initialize camera.
@@ -156,7 +157,7 @@ void vox_use_camera_methods (struct vox_camera *camera, const struct vox_camera_
    Also, dummy interface implements `destroy_camera` method that calls `free` on
    the caller's `iface` field and the caller itself.
 **/
-void vox_init_camera (struct vox_camera *camera);
+VOX_EXPORT void vox_init_camera (struct vox_camera *camera);
 
 /**
    \brief Get camera methods.
@@ -171,5 +172,5 @@ void vox_init_camera (struct vox_camera *camera);
    \return A pointer to the camera's methods or NULL if no camera module was
            found.
 **/
-struct vox_camera_interface* vox_camera_methods (const char *name);
+VOX_EXPORT struct vox_camera_interface* vox_camera_methods (const char *name);
 #endif

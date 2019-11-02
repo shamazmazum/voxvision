@@ -32,9 +32,9 @@ struct vox_light_manager;
    \return 1 on success (there was no such light in this place before), 0
    otherwise.
 **/
-int vox_insert_shadowless_light (struct vox_light_manager *light_manager,
-                                 const vox_dot center, float radius,
-                                 const vox_dot color);
+VOX_EXPORT int vox_insert_shadowless_light (struct vox_light_manager *light_manager,
+                                            const vox_dot center, float radius,
+                                            const vox_dot color);
 
 /**
    \brief Delete a shadowless light with given specifications.
@@ -42,18 +42,18 @@ int vox_insert_shadowless_light (struct vox_light_manager *light_manager,
    The specifications must match exactly to the specifications of the light you
    wish to be removed (with exception of color, which may be any).
 **/
-int vox_delete_shadowless_light (struct vox_light_manager *light_manager,
-                                 const vox_dot center, float radius);
+VOX_EXPORT int vox_delete_shadowless_light (struct vox_light_manager *light_manager,
+                                            const vox_dot center, float radius);
 
 /**
    \brief Delete all shadowless lights.
 **/
-void vox_delete_shadowless_lights (struct vox_light_manager *light_manager);
+VOX_EXPORT void vox_delete_shadowless_lights (struct vox_light_manager *light_manager);
 
 /**
    \brief Return a number of shadowless lights.
 **/
-int vox_shadowless_lights_number (const struct vox_light_manager *light_manager);
+VOX_EXPORT int vox_shadowless_lights_number (const struct vox_light_manager *light_manager);
 
 /**
    \brief Set an ambient light.
@@ -61,18 +61,18 @@ int vox_shadowless_lights_number (const struct vox_light_manager *light_manager)
    The ambient light is added to all visible voxels on the screen.
    \return 1 on success, 0 otherwise.
 **/
-int vox_set_ambient_light (struct vox_light_manager *light_manager,
-                           const vox_dot color);
+VOX_EXPORT int vox_set_ambient_light (struct vox_light_manager *light_manager,
+                                      const vox_dot color);
 
 /**
    \brief Create a new light manager with no lights.
 **/
-struct vox_light_manager* vox_make_light_manager ();
+VOX_EXPORT struct vox_light_manager* vox_make_light_manager ();
 
 /**
    \brief Destroy a light manager.
 **/
-void vox_destroy_light_manager (struct vox_light_manager *light_manager);
+VOX_EXPORT void vox_destroy_light_manager (struct vox_light_manager *light_manager);
 
 #ifdef VOXRND_SOURCE
 void vox_get_light (const struct vox_light_manager *light_manager,

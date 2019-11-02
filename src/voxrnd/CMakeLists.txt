@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
 
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/voxrnd.ld.in ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld)
 include_directories (${SDL2_INCLUDE_DIR}/..)
 add_definitions (-DVOXRND_SOURCE)
 
@@ -40,12 +39,12 @@ if (WITH_DTRACE)
     COMMAND rm -f voxrnd-dtrace.o
     COMMAND ${DTRACE_EXECUTABLE} -G -s voxrnd-dtrace.d CMakeFiles/voxrnd.dir/renderer.c.o
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set (ADDITIONAL_LINK_FLAGS "${CMAKE_CURRENT_BINARY_DIR}/voxrnd-dtrace.o")
+  set_target_properties (voxrnd PROPERTIES
+    LINK_FLAGS "${CMAKE_CURRENT_BINARY_DIR}/voxrnd-dtrace.o")
 endif (WITH_DTRACE)
 set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}
-                                         LINK_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld
-                                         LINK_FLAGS "-Wl,--version-script ${CMAKE_CURRENT_BINARY_DIR}/voxrnd.ld ${ADDITIONAL_LINK_FLAGS}")
+                                         C_VISIBILITY_PRESET hidden)
 
 target_link_libraries (voxrnd ${SDL2_LIBRARY} m BlocksRuntime)
 if (GCD_FOUND)

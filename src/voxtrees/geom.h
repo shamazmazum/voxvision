@@ -56,21 +56,21 @@
    This is a fast metric on R^3 calculacted as sum of absolute values of
    by-coordinate differences between two dots.
 **/
-float vox_abs_metric (const vox_dot dot1, const vox_dot dot2);
+VOX_EXPORT float vox_abs_metric (const vox_dot dot1, const vox_dot dot2);
 
 /**
    \brief Calculate metric between two dots.
    
    This is a square of standard Euclidian metric on R^3
 **/
-float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2);
+VOX_EXPORT float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2);
 
 /**
    \brief Calculate norm of a vector.
 
    This is a square of standard Euclidian norm on R^3
 **/
-float vox_sqr_norm (const vox_dot dot);
+VOX_EXPORT float vox_sqr_norm (const vox_dot dot);
 
 #ifdef VOXTREES_SOURCE
 
@@ -84,7 +84,7 @@ float vox_sqr_norm (const vox_dot dot);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
-int get_subspace_idx (const vox_dot center, const vox_dot dot);
+VOX_EXPORT int get_subspace_idx (const vox_dot center, const vox_dot dot); // KLUDGE: needed for tests
 
 /*
  * Generally this works like get_subspace_idx () but corrects subspace
