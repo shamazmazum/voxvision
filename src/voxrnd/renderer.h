@@ -13,13 +13,14 @@
 #ifdef VOXRND_SOURCE
 typedef Uint32 square[16] __attribute__((aligned(16)));
 
+#define VOX_TEXTURE_SIZE (32*32*32) /* VOX_TEXTURE_SIDE ^ 3 */
+#define VOX_TEXTURE_SIDE 32 /* Power of 2 */
+
 enum vox_context_type
 {
     VOX_CTX_WO_WINDOW,
     VOX_CTX_W_WINDOW
 };
-
-struct vox_draw;
 
 struct vox_rnd_ctx
 {
@@ -29,7 +30,7 @@ struct vox_rnd_ctx
     struct vox_camera *camera;
 
     struct vox_light_manager *light_manager;
-    struct vox_draw *draw; // Things needed to draw a voxel
+    Uint8 *texture;
     square *square_output;
     unsigned int squares_num, ws;
 

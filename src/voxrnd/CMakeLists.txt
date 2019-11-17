@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 
-include_directories (${SDL2_INCLUDE_DIR}/..)
+include_directories (${SDL2_INCLUDE_DIR}/.. ${VN3D_INCLUDE_DIR})
 add_definitions (-DVOXRND_SOURCE)
 
 if (GCD_FOUND)
@@ -46,7 +46,7 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}
                                          C_VISIBILITY_PRESET hidden)
 
-target_link_libraries (voxrnd ${SDL2_LIBRARY} m BlocksRuntime)
+target_link_libraries (voxrnd ${SDL2_LIBRARY} ${VN3D_LIBRARY} m BlocksRuntime)
 if (GCD_FOUND)
 target_link_libraries (voxrnd ${GCD_LIBRARY})
 endif (GCD_FOUND)

@@ -5,16 +5,13 @@
 #endif
 #include <stdlib.h>
 #include <assert.h>
+#include <vn3d/vn3d.h>
+
 #include "renderer.h"
 #include "copy-helper.h"
 #include "probes.h"
 #include "../voxtrees/search.h"
 #include "../voxtrees/geom.h"
-
-struct vox_draw {
-    vox_dot mul;
-    vox_dot add;
-};
 
 /*
  * Pixels on the screen are rendered by 4x4 blocks. In case you use GCD, each
@@ -27,95 +24,60 @@ static int rendering_order[] = {
     0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15
 };
 
-#ifdef SSE_INTRIN
-static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
+static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    struct vox_box bb;
+    int x, y, z;
+    Uint32 res;
+    x = abs((int)(inter[0] / vox_voxel[0])) & (VOX_TEXTURE_SIDE - 1);
+    y = abs((int)(inter[1] / vox_voxel[1])) & (VOX_TEXTURE_SIDE - 1);
+    z = abs((int)(inter[2] / vox_voxel[2])) & (VOX_TEXTURE_SIDE - 1);
 
-    if (tree != NULL) {
-        vox_bounding_box (tree, &bb);
-        __v4sf min = _mm_load_ps (bb.min);
-        __v4sf max = _mm_load_ps (bb.max);
-        __v4sf m = _mm_rcp_ps (max - min);
-        __v4sf a = min / (min - max);
-        _mm_store_ps (draw->mul, m);
-        _mm_store_ps (draw->add, a);
+    int idx = x*VOX_TEXTURE_SIDE*VOX_TEXTURE_SIDE + y*VOX_TEXTURE_SIDE + z;
+    Uint8 color = context->texture[idx];
+
+    if (context->light_manager == NULL) {
+        res = SDL_MapRGB (context->surface->format, color, color, color);
     } else {
-        _mm_store_ps (draw->mul, _mm_set1_ps (0));
-        _mm_store_ps (draw->add, _mm_set1_ps (0));
-    }
-}
-
-static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
-{
-    __v4sf m = _mm_load_ps (context->draw->mul);
-    __v4sf a = _mm_load_ps (context->draw->add);
-    __v4sf i = _mm_load_ps (inter);
-
-    __v4sf color1 = i * m + a;
-    __v4sf color2 = color1 + _mm_set_ps1 (0.05);
-    __v4sf voxel = _mm_load_ps (vox_voxel);
-    __v4sf aligned = voxel * _mm_floor_ps (i / voxel);
-    __v4sf color = _mm_blendv_ps (color1, color2, i == aligned);
-
-    if (context->light_manager != NULL) {
         vox_dot light;
+        Uint8 r, g, b;
         vox_get_light (context->light_manager, inter, light);
-        color *= _mm_load_ps (light);
+        r = light[0]*color;
+        r = (r < 255)? r: 255;
+        g = light[1]*color;
+        g = (g < 255)? g: 255;
+        b = light[2]*color;
+        b = (b < 255)? b: 255;
+
+        res = SDL_MapRGB (context->surface->format, color*light[0], color*light[1], color*light[2]);
     }
-    color = _mm_set1_ps (255) * _mm_min_ps (color, _mm_set1_ps (1.0));
 
-    __m128i icol = _mm_cvtps_epi32 (color);
-    __m128i mask = _mm_set_epi8 (0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
-                                 0x80, 0x80, 0x80, 0x80, 0x80,    0,    4,    8);
-    icol = _mm_shuffle_epi8 (icol, mask);
-
-    return icol[0];
+    return res;
 }
 
-#else
-static void color_coeff (const struct vox_node *tree, struct vox_draw *draw)
+static Uint8* initialize_texture ()
 {
-    int i;
-    struct vox_box bb;
+    int i,j,k,p = 0;
+    struct vn_generator *gen = vn_value_generator (3, 4);
+    Uint8 *texture = malloc (VOX_TEXTURE_SIZE);
 
-    if (tree != NULL)
-    {
-        vox_bounding_box (tree, &bb);
-        for (i=0; i<3; i++)
-        {
-            draw->mul[i] = 255 / (bb.max[i] - bb.min[i]);
-            draw->add[i] = -255 * bb.min[i] / (bb.max[i] - bb.min[i]);
+    for (i=0; i<VOX_TEXTURE_SIDE; i++) {
+        for (j=0; j<VOX_TEXTURE_SIDE; j++) {
+            for (k=0; k<VOX_TEXTURE_SIDE; k++) {
+                texture[p] = vn_noise_3d (gen, i, j, k) >> 24;
+                p++;
+            }
         }
-    } else memset (draw, 0, sizeof (struct vox_draw));
-}
-
-static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
-{
-    const struct vox_draw *draw = context->draw;
-
-    Uint8 r = draw->mul[0] * inter[0] + draw->add[0];
-    Uint8 g = draw->mul[1] * inter[1] + draw->add[1];
-    Uint8 b = draw->mul[2] * inter[2] + draw->add[2];
-
-    if (context->light_manager != NULL) {
-        vox_dot light;
-        vox_get_light (context->light_manager, inter, light);
-        r *= light[0];
-        g *= light[1];
-        b *= light[2];
     }
+    vn_destroy_generator (gen);
 
-    Uint32 color = SDL_MapRGB (context->surface->format, r, g, b);
-    return color;
+    return texture;
 }
-#endif
 
 static struct vox_rnd_ctx* allocate_context ()
 {
     struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
-    ctx->draw = aligned_alloc (16, sizeof (struct vox_draw));
+    ctx->texture = initialize_texture();
     ctx->quality = VOX_QUALITY_ADAPTIVE;
 
     return ctx;
@@ -194,7 +156,7 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
     }
     if (ctx->surface != NULL) SDL_FreeSurface(ctx->surface);
     free (ctx->square_output);
-    free (ctx->draw);
+    free (ctx->texture);
     free (ctx);
 }
 
@@ -207,9 +169,6 @@ void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
 void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
 {
     ctx->scene = scene;
-    // FIXME: calculate colors in runtime
-    // Only a temporary solution to get a colorful output
-    color_coeff (scene, ctx->draw);
 }
 
 void vox_context_set_light_manager (struct vox_rnd_ctx *ctx, struct vox_light_manager *light_manager)

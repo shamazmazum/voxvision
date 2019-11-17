@@ -11,12 +11,9 @@ set_target_properties (voxtrees-wrapper PROPERTIES OUTPUT_NAME voxtrees PREFIX "
 add_library (voxrnd-wrapper SHARED voxrnd.c)
 set_target_properties (voxrnd-wrapper PROPERTIES OUTPUT_NAME voxrnd PREFIX "")
 
-if (VN3D_FOUND)
-  add_library (vn3d-wrapper SHARED vn3d.c)
-  set_target_properties (vn3d-wrapper PROPERTIES OUTPUT_NAME vn3d PREFIX "")
-  target_include_directories (vn3d-wrapper PRIVATE ${VN3D_INCLUDE_DIR})
-  target_link_libraries (vn3d-wrapper ${VN3D_LIBRARY})
-endif (VN3D_FOUND)
+add_library (vn3d-wrapper SHARED vn3d.c)
+set_target_properties (vn3d-wrapper PROPERTIES OUTPUT_NAME vn3d PREFIX "")
+target_include_directories (vn3d-wrapper PRIVATE ${VN3D_INCLUDE_DIR})
 
 add_subdirectory (luasdl2)
 

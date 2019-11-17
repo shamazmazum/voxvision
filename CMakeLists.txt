@@ -38,7 +38,7 @@ if (WITH_GCD)
   message (STATUS "Compiling with GCD. If configuration is unsuccessful, try -DWITH_GCD=OFF")
   find_package (GCD REQUIRED)
 endif (WITH_GCD)
-find_package (VN3D)
+find_package (VN3D REQUIRED)
 
 if (SSE_INTRIN)
   add_definitions (-msse3 -msse4.1)
