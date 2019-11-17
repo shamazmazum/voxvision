@@ -1,5 +1,6 @@
 Voxvision
 =========
+[![Build Status](https://travis-ci.com/shamazmazum/voxvision.svg?branch=master)](https://travis-ci.com/shamazmazum/voxvision)
 
 What is Voxvision?
 -----------------
@@ -35,6 +36,9 @@ You can try to execute `make doc` from building directory (see below) to
 generate an API documentation. But API changes too fast and unpredictable, so no
 guarantees. Also this documentation contains a basic tutorial for these
 libraries.
+
+If you do not want to install doxygen, you can just visit
+[voxvision](http://shamazmazum.github.io/voxvision) site on Github Pages.
 
 What are understandable formats of datasets used in the library?
 ----------------------------------------------------------------
