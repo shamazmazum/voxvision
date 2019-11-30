@@ -89,6 +89,10 @@ function tick (world, time)
          elseif event.keysym.sym == vs.key.r then
             print "Rebuilding tree"
             tree:rebuild()
+
+         elseif event.keysym.sym == vs.key.m then
+            local mode = vs.getRelativeMouseMode()
+            vs.setRelativeMouseMode (not mode)
          end
 
       elseif event.type == vs.event.Quit then

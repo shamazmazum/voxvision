@@ -66,6 +66,8 @@ voxvision.voxsdl.pushEvent = voxsdl.pushEvent
 voxvision.voxsdl.event = voxsdl.event
 voxvision.voxsdl.key = voxsdl.key
 voxvision.voxsdl.getRelativeMouseState = voxsdl.getRelativeMouseState
+voxvision.voxsdl.getRelativeMouseMode = voxsdl.getRelativeMouseMode
+voxvision.voxsdl.setRelativeMouseMode = voxsdl.setRelativeMouseMode
 voxvision.voxsdl.mouseButton = voxsdl.mouseButton
 
 voxvision.voxutils = require 'voxutils'
