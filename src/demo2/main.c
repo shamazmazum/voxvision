@@ -113,6 +113,16 @@ int main (int argc, char *argv[])
 
     ensure_datadir_exists();
 
+    if (!(flags & VOX_ENGINE_DEBUG)) {
+        if (SDL_Init (SDL_INIT_VIDEO) != 0) {
+            fprintf (stderr, "Cannot init SDL: %s\n", SDL_GetError());
+            return 1;
+        }
+
+        SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
+        SDL_SetRelativeMouseMode (SDL_TRUE);
+    }
+
     struct vox_engine *engine = vox_create_engine (width, height, flags, script,
                                                    argc, (argc)? argv: NULL);
     if (engine == NULL) {
@@ -120,17 +130,15 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    vox_fps_controller_t fps_controller = NULL;
-    if (fps >= 0) fps_controller = vox_make_fps_controller (fps);
-
-    if (!(flags & VOX_ENGINE_DEBUG)) {
+    /* The context is not created in debugging mode. */
+    if (engine->ctx != NULL) {
         quality |= merge_rays;
         if (!vox_context_set_quality (engine->ctx, quality))
             fprintf (stderr, "Error setting quality. Falling back to adaptive mode\n");
-
-        SDL_EventState (SDL_MOUSEMOTION, SDL_DISABLE);
-        SDL_SetRelativeMouseMode (SDL_TRUE);
     }
+
+    vox_fps_controller_t fps_controller = NULL;
+    if (fps >= 0) fps_controller = vox_make_fps_controller (fps);
 
     vox_engine_status status;
     while (1)
@@ -143,8 +151,10 @@ int main (int argc, char *argv[])
         }
         if (vox_engine_quit_requested (status)) goto end;
     }
+
 end:
-    if (fps_controller != NULL) vox_destroy_engine (engine);
+    if (fps_controller != NULL) vox_destroy_fps_controller (fps_controller);
+    vox_destroy_engine (engine);
     
     return 0;
 }
