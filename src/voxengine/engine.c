@@ -262,9 +262,17 @@ struct vox_engine* vox_create_engine (unsigned int width, unsigned int height,
     /* Do not init SDL in debug mode! */
     if (!(engine->flags & VOX_ENGINE_DEBUG)) {
         // Init SDL
-        if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
-        {
-            fprintf (stderr, "Cannot init SDL: %s\n", SDL_GetError());
+        if (!SDL_WasInit (SDL_INIT_VIDEO) &&
+            SDL_Init (SDL_INIT_VIDEO) != 0) {
+
+            fprintf (stderr, "Cannot init SDL video subsystem: %s\n", SDL_GetError());
+            goto bad;
+        }
+
+        if (!SDL_WasInit (SDL_INIT_TIMER) &&
+            SDL_Init (SDL_INIT_TIMER) != 0) {
+
+            fprintf (stderr, "Cannot init SDL timer: %s\n", SDL_GetError());
             goto bad;
         }
 
