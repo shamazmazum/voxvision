@@ -261,7 +261,7 @@ static void check_tree (struct vox_node *tree)
                 size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
             float bb_volume = size[0]*size[1]*size[2];
             bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == (int)bb_volume);
+            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == (size_t)bb_volume);
         }
         else if (tree->flags & VOX_LEAF)
         {
@@ -811,8 +811,7 @@ void test_mtree ()
 {
     struct vox_mtree_node *mtree = NULL;
     struct vox_sphere s;
-    int i;
-    int n = 140;
+    unsigned int i, n = 140;
     unsigned int seed = rand();
 
     srand (seed);
