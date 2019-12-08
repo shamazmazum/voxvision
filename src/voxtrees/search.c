@@ -10,7 +10,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                            const vox_dot dir, vox_dot res)
 {
     vox_dot bb_inter;
-    int i;
+    unsigned int i;
     vox_dot *plane_inter;
     int *plane_inter_idx, tmp2;
     const struct vox_node *leaf = NULL;
@@ -104,7 +104,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
      */
     plane_inter = alloca (sizeof (vox_dot) * VOX_N);
     plane_inter_idx = alloca (sizeof (vox_dot) * VOX_N);
-    int plane_counter = 0;
+    unsigned int plane_counter = 0;
     for (i=0; i<VOX_N; i++)
     {
         plane_inter_idx[plane_counter] = i;
@@ -118,7 +118,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
           We want the closest intersection to be found,
           so find closest remaining intersection with dividing planes.
         */
-        int j;
+        unsigned int j;
         vox_dot tmp;
         for (j=i+1; j<plane_counter; j++)
         {
@@ -154,7 +154,7 @@ end:
 
 int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, float radius)
 {
-    int i;
+    unsigned int i;
     if (!(VOX_FULLP (tree))) return 0;
     if (box_ball_interp (&(tree->bounding_box), center, radius))
     {

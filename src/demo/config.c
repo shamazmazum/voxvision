@@ -1,4 +1,3 @@
-#include <SDL2/SDL.h>
 #include <iniparser.h>
 #include <string.h>
 #include <stdio.h>
@@ -33,7 +32,7 @@ struct settings global_settings =
     .yspeed        = 0.01,
 };
 
-static void set_control (dictionary *dict, const char *control, int *place)
+static void set_control (dictionary *dict, const char *control, SDL_Scancode *place)
 {
     const char *name = iniparser_getstring (dict, control, NULL);
     if (name != NULL) *place = SDL_GetScancodeFromName (name);

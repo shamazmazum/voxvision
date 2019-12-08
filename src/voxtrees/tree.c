@@ -15,7 +15,7 @@ static void update_fill_ratio (const struct vox_box *box, size_t n)
 {
     float bb_volume, vox_volume;
     vox_dot size;
-    int i;
+    unsigned int i;
 
     for (i=0; i<VOX_N; i++) size[i] = box->max[i] - box->min[i];
     bb_volume = size[0]*size[1]*size[2];
@@ -184,7 +184,7 @@ static size_t sort_set (vox_dot set[], size_t n, size_t offset, int subspace, co
 
 static void vox_align (vox_dot dot)
 {
-    int i;
+    unsigned int i;
     float tmp;
 
     for (i=0; i<VOX_N; i++)
@@ -197,7 +197,7 @@ static void vox_align (vox_dot dot)
 static void update_bounding_box (struct vox_box *box, const vox_dot dot)
 {
     vox_dot dot_max;
-    int i;
+    unsigned int i;
     vox_dot_add (dot, vox_voxel, dot_max);
 
     for (i=0; i<VOX_N; i++)
@@ -344,7 +344,7 @@ size_t vox_voxels_in_tree (const struct vox_node *tree)
 
 void vox_destroy_tree (struct vox_node *tree)
 {
-    int i;
+    unsigned int i;
     if (VOX_FULLP (tree))
     {
         if (tree->flags & VOX_LEAF)
@@ -375,7 +375,7 @@ static size_t flatten_tree (const struct vox_node *tree, vox_dot *set)
         }
         else if (tree->flags & VOX_DENSE_LEAF)
         {
-            int i,j,k;
+            size_t i,j,k;
             vox_dot current;
             size_t dim[VOX_N];
             /*
@@ -409,7 +409,7 @@ static size_t flatten_tree (const struct vox_node *tree, vox_dot *set)
         }
         else
         {
-            int i;
+            unsigned int i;
             for (i=0; i<VOX_NS; i++)
             {
                 size_t subcount = flatten_tree (tree->data.inner.children[i], set);
@@ -436,7 +436,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree)
 
 static int voxel_in_tree (const struct vox_node *tree, const vox_dot voxel)
 {
-    int i;
+    unsigned int i;
 
     if (VOX_FULLP (tree) &&
         voxel_in_box (&(tree->bounding_box), voxel))
@@ -487,7 +487,7 @@ static struct vox_node* __attribute__((noinline)) // always inserts
     idx1 = get_subspace_idx_simd (center, inner_vector);
     idx2 = get_subspace_idx_simd (center, _mm_load_ps(voxel));
 #else
-    int i;
+    unsigned int i;
     vox_dot inner_dot;
     for (i=0; i<VOX_N; i++)
         inner_dot[i] = (tree->bounding_box.min[i]+tree->bounding_box.max[i]) / 2;
@@ -759,7 +759,7 @@ static struct vox_node* __attribute__((noinline))
 static void vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
     struct vox_node *tree, *node;
-    int i;
+    unsigned int i;
 
 again:
     tree = *tree_ptr;
@@ -871,7 +871,7 @@ void vox_dump_tree (const struct vox_node *tree)
     const char *dense_str = "DENSE LEAF";
     const char *inner_str = "INNER";
     const char *desc;
-    int i;
+    unsigned int i;
 
     if (VOX_FULLP (tree))
     {

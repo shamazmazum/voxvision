@@ -4,10 +4,10 @@
 // Copy rendered 4x4 squares into flat output array
 void copy_squares (square *src, uint32_t *dist, unsigned int ws, unsigned int hs)
 {
-    int i,j, k;
-    int pos = 0, pos_square = 0;
-    int w = ws << 2;
-    int diff = (w << 2) - w;
+    unsigned int i,j, k;
+    unsigned int pos = 0, pos_square = 0;
+    unsigned int w = ws << 2;
+    unsigned int diff = (w << 2) - w;
 
     // It's better to handle this properly
     assert (!((size_t)dist & 0xf));

@@ -28,8 +28,8 @@ struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
     ssize_t end = 0;
     ssize_t pos = 0;
 
-    int i,j,k,l,n = dim[0]*dim[1]*dim[2];
-    int counter = 0;
+    unsigned int i,j,k,l,n = dim[0]*dim[1]*dim[2];
+    size_t counter = 0;
     unsigned int value;
 
     struct stat sb;

@@ -1,22 +1,23 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 #include <iniparser.h>
+#include <SDL2/SDL.h>
 
 struct controls
 {
     // Head movement
-    int tilt_left;
-    int tilt_right;
+    SDL_Scancode tilt_left;
+    SDL_Scancode tilt_right;
 
-    int walk_left;
-    int walk_right;
-    int walk_forwards;
-    int walk_backwards;
-    int fly_up;
-    int fly_down;
+    SDL_Scancode walk_left;
+    SDL_Scancode walk_right;
+    SDL_Scancode walk_forwards;
+    SDL_Scancode walk_backwards;
+    SDL_Scancode fly_up;
+    SDL_Scancode fly_down;
 
-    int insert;
-    int delete;
+    SDL_Scancode insert;
+    SDL_Scancode delete;
 };
 extern struct controls global_controls;
 

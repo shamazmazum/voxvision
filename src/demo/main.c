@@ -165,7 +165,8 @@ int main (int argc, char *argv[])
     printf ("Reading raw data\n");
     const char *errorstr;
     tree = vox_read_raw_data (dataset_path, (unsigned int*)dim, samplesize,
-                              ^(unsigned int sample){return sample > threshold;}, &errorstr);
+                              ^(unsigned int sample){return sample > (unsigned int) threshold;},
+                              &errorstr);
     if (tree == NULL)
     {
         fprintf (stderr, "Cannot read dataset: %s\n", errorstr);
