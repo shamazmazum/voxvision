@@ -10,7 +10,7 @@ set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
 set (CMAKE_C_FLAGS_RELEASE "-O3 -march=native")
 set (CMAKE_C_FLAGS_DEBUG "-O0 -g")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-unused-parameter")
 
 # Dances with linux
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
