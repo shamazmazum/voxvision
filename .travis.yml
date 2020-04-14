@@ -8,7 +8,7 @@ compiler: clang
 before_install:
   - sudo apt-get update
   - sudo apt-get -y install cmake liblua5.3-dev libiniparser-dev libsdl2-dev
-  - sudo apt-get -y install libcunit1-dev libblocksruntime-dev doxygen
+  - sudo apt-get -y install libcunit1-dev libblocksruntime-dev doxygen libdispatch-dev
 
 install:
   - git clone git://github.com/shamazmazum/vn3d.git vn3d
@@ -18,7 +18,7 @@ install:
 
 before_script:
   - mkdir build && cd build
-  - cmake -DCMAKE_BUILD_TYPE=RELEASE -DWITH_GCD=OFF -DCMAKE_INSTALL_PREFIX:PATH=$TRAVIS_BUILD_DIR/build/install $TRAVIS_BUILD_DIR
+  - cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX:PATH=$TRAVIS_BUILD_DIR/build/install $TRAVIS_BUILD_DIR
 
 script:
   - make
