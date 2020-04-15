@@ -13,20 +13,9 @@
 #include <voxtrees.h>
 #include <voxtrees/geom.h>
 
-#define PROC_SUIT_ERROR do {res = CU_get_error (); \
-        printf ("Failed to add a suite\n");        \
-        goto regcleanup;}                          \
-    while (0)
-
-#define PROC_TEST_ERROR do {res = CU_get_error (); \
-        printf ("Failed to add a test\n");         \
-        goto regcleanup;}                          \
-    while (0)
-
 #define PRECISE 0.0001
 #define APPROX  0.5
 
-static struct vox_node *working_tree;
 static vox_dot half_voxel;
 static vox_dot neg_half_voxel;
 
@@ -219,28 +208,29 @@ static void rot_saves_norm ()
     CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PRECISE);
 }
 
-static struct vox_node* prepare_rnd_set_and_tree ()
+static struct vox_node* prepare_tree ()
 {
     int i,j,k;
     size_t counter = 0;
-    vox_dot *set = malloc (sizeof (vox_dot) * 1000000);
+    vox_dot *set = aligned_alloc (16, sizeof (vox_dot) * 1000000);
+    struct vox_node *tree;
+
     // Make a ball with radius 50 and center (0, 0, 0)
-    for (i=-50; i<50; i++)
-    {
-        for (j=-50; j<50; j++)
-        {
-            for (k=-50; k<50; k++)
-            {
+    for (i=-50; i<50; i++) {
+        for (j=-50; j<50; j++) {
+            for (k=-50; k<50; k++) {
                 int dist = i*i + j*j + k*k;
-                if (dist < 2500)
-                {
+                if (dist < 2500) {
                     vox_dot_set (set[counter], i, j, k);
                     counter++;
                 }
             }
         }
     }
-    return  vox_make_tree (set, counter);
+
+    tree = vox_make_tree (set, counter);
+    free (set);
+    return tree;
 }
 
 static void check_tree (struct vox_node *tree)
@@ -364,7 +354,12 @@ static void quat_mul ()
     CU_ASSERT (quat_eq (res, e, PRECISE));
 }
 
-static void test_tree_cons () {check_tree (working_tree);}
+static void test_tree_cons ()
+{
+    struct vox_node *working_tree = prepare_tree ();
+    check_tree (working_tree);
+    vox_destroy_tree (working_tree);
+}
 
 static void test_tree_ins()
 {
@@ -599,7 +594,7 @@ static void test_tree_del_trans()
     CU_ASSERT (!(VOX_FULLP (tree)));
 }
 
-static void test_tree_C676d50c2 ()
+static void test_tree_g676d50c ()
 {
     struct vox_node *tree = NULL;
     vox_dot dot;
@@ -880,101 +875,68 @@ void test_mtree_search ()
     CU_ASSERT (testcount == count);
 }
 
+/* Vector operations */
+static CU_TestInfo vectops_tests[] = {
+    { "identity operator", test_identity },
+    { "rotate around itself", test_rotation_around_itself },
+    { "change axis", test_change_axis },
+    { "anticommutativity of some rotations", test_anticommut },
+    { "composition of rotations", rot_composition },
+    { "rotation isometry", rot_saves_norm },
+    { "quaterion multiplication", quat_mul },
+    CU_TEST_INFO_NULL
+};
+
+/* Tree construction and search (voxtrees) */
+static CU_TestInfo voxtrees_tests[] = {
+    { "tree construction", test_tree_cons },
+    { "insertion", test_tree_ins },
+    { "deletion (case 1)", test_tree_del1 },
+    { "deletion (case 2)", test_tree_del2 },
+    { "deletion (case 3)", test_tree_del3 },
+    { "deletion (case 4)", test_tree_del4 },
+    { "deletion (case 5)", test_tree_del5 },
+    { "insertion type transitions", test_tree_ins_trans },
+    { "deletion type transitions", test_tree_del_trans },
+    { "search (commit 676d50c)", test_tree_g676d50c },
+    { "test M-trees", test_mtree },
+    { "test M-tree search", test_mtree_search },
+    CU_TEST_INFO_NULL
+};
+
+/* Rendering (voxrnd) */
+static CU_TestInfo voxrnd_tests[] = {
+    { "camera generic test", test_cameras },
+    { "camera look_at() test", test_cameras_look_at },
+    { "simple camera look_at() bug (issue 1)" , test_camera_look_at_bug },
+    { "camera class construction", test_camera_class_construction },
+    CU_TEST_INFO_NULL
+};
+
+static CU_SuiteInfo suites[] = {
+    { "vectops",  NULL, NULL, NULL, NULL, vectops_tests },
+    { "voxtrees", NULL, NULL, NULL, NULL, voxtrees_tests },
+    { "voxrnd",   NULL, NULL, NULL, NULL, voxrnd_tests },
+    CU_SUITE_INFO_NULL
+};
+
 int main ()
 {
-    CU_pTest test;
-    
-    CU_ErrorCode res = CU_initialize_registry();
-    if (res != CUE_SUCCESS)
-    {
-        printf ("Failed to initialize registry\n");
-        goto exit_;
+    int i, code;
+
+    if (CU_initialize_registry() != CUE_SUCCESS) {
+        fprintf (stderr, "Failed to initialize registry: %s\n",
+                 CU_get_error_msg ());
+        return EXIT_FAILURE;
     }
 
-    // Working with vectors
-    CU_pSuite vect_suite = CU_add_suite ("vect-ops", NULL, NULL);
-    if (vect_suite == NULL) PROC_SUIT_ERROR;
+    if (CU_register_suites (suites) != CUE_SUCCESS) {
+        fprintf (stderr, "Failed to add suites: %s\n",
+                 CU_get_error_msg ());
+        CU_cleanup_registry ();
+        return EXIT_FAILURE;
+    }
 
-    test = CU_add_test (vect_suite, "identity operator", test_identity);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vect_suite, "rotate around itself", test_rotation_around_itself);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vect_suite, "change axis", test_change_axis);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vect_suite, "anticommutativity of some rotations", test_anticommut);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vect_suite, "composition of rotations", rot_composition);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vect_suite, "Rotation saves norm", rot_saves_norm);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vect_suite, "Quaternion multiplication", quat_mul);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    // Tree construction and searching
-    CU_pSuite vox_suite = CU_add_suite ("voxtrees", NULL, NULL);
-    if (vox_suite == NULL) PROC_SUIT_ERROR;
-
-    test = CU_add_test (vox_suite, "Tree construction", test_tree_cons);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Insertion", test_tree_ins);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Deletion (case 1)", test_tree_del1);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Deletion (case 2)", test_tree_del2);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Deletion (case 3)", test_tree_del3);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Deletion (case 4)", test_tree_del4);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Deletion (case 5)", test_tree_del5);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Insertion type transitions", test_tree_ins_trans);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Deletion type transitions", test_tree_del_trans);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (vox_suite, "Search (commit 676d50c2)", test_tree_C676d50c2);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    // Renderer library
-    CU_pSuite rnd_suite = CU_add_suite ("voxrnd", NULL, NULL);
-    if (vox_suite == NULL) PROC_SUIT_ERROR;
-
-    test = CU_add_test (rnd_suite, "Cameras generic tests", test_cameras);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (rnd_suite, "Cameras look_at test", test_cameras_look_at);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (rnd_suite, "Simple camera look_at bug (issue 1)", test_camera_look_at_bug);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (rnd_suite, "Camera class construction", test_camera_class_construction);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (rnd_suite, "Test M-trees", test_mtree);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    test = CU_add_test (rnd_suite, "Test M-tree search", test_mtree_search);
-    if (test == NULL) PROC_TEST_ERROR;
-
-    printf ("Creating working set and working tree\n");
-    working_tree = prepare_rnd_set_and_tree ();
-    int i;
     for (i=0; i<VOX_N; i++)
     {
         half_voxel[i] = vox_voxel[i]/2;
@@ -983,7 +945,8 @@ int main ()
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
-    
-regcleanup: CU_cleanup_registry();
-exit_:    return res;
+    code = (CU_get_number_of_tests_failed() == 0)? 0: EXIT_FAILURE;
+    CU_cleanup_registry();
+
+    return code;
 }
