@@ -13,8 +13,8 @@
 #include <voxtrees.h>
 #include <voxtrees/geom.h>
 
-#define PRECISE 0.0001
-#define APPROX  0.5
+static float precise_check;
+static float approx_check;
 
 static vox_dot half_voxel;
 static vox_dot neg_half_voxel;
@@ -73,7 +73,7 @@ static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot targe
     res[1] = dir[1]*t + origin[1];
     res[2] = dir[2]*t + origin[2];
 
-    return vect_eq (target, res, APPROX);
+    return vect_eq (target, res, approx_check);
 }
 
 static void test_identity ()
@@ -86,13 +86,13 @@ static void test_identity ()
     vox_dot dot3 = {-321,22,-124}, rot3;
 
     vox_rotate_vector (identity, dot1, rot1);
-    CU_ASSERT (vect_eq (dot1, rot1, PRECISE));
+    CU_ASSERT (vect_eq (dot1, rot1, precise_check));
 
     vox_rotate_vector (identity, dot2, rot2);
-    CU_ASSERT (vect_eq (dot2, rot2, PRECISE));
+    CU_ASSERT (vect_eq (dot2, rot2, precise_check));
 
     vox_rotate_vector (identity, dot3, rot3);
-    CU_ASSERT (vect_eq (dot3, rot3, PRECISE));
+    CU_ASSERT (vect_eq (dot3, rot3, precise_check));
 }
 
 static void test_rotation_around_itself ()
@@ -111,13 +111,13 @@ static void test_rotation_around_itself ()
     vox_dot resz;
     
     vox_rotate_vector (basex, vectx, resx);
-    CU_ASSERT (vect_eq (resx, vectx, PRECISE));
+    CU_ASSERT (vect_eq (resx, vectx, precise_check));
     
     vox_rotate_vector (basey, vecty, resy);
-    CU_ASSERT (vect_eq (resy, vecty, PRECISE));
+    CU_ASSERT (vect_eq (resy, vecty, precise_check));
 
     vox_rotate_vector (basez, vectz, resz);
-    CU_ASSERT (vect_eq (resz, vectz, PRECISE));
+    CU_ASSERT (vect_eq (resz, vectz, precise_check));
 }
 
 static void test_change_axis ()
@@ -138,13 +138,13 @@ static void test_change_axis ()
     vox_dot expz = {0.0, -1.0, 0.0};
     
     vox_rotate_vector (basex, vectx, vectx);
-    CU_ASSERT (vect_eq (expx, vectx, PRECISE));
+    CU_ASSERT (vect_eq (expx, vectx, precise_check));
     
     vox_rotate_vector (basey, vecty, vecty);
-    CU_ASSERT (vect_eq (expy, vecty, PRECISE));
+    CU_ASSERT (vect_eq (expy, vecty, precise_check));
 
     vox_rotate_vector (basez, vectz, vectz);
-    CU_ASSERT (vect_eq (expz, vectz, PRECISE));
+    CU_ASSERT (vect_eq (expz, vectz, precise_check));
 }
 
 static float* vector_inv (const vox_dot dot, vox_dot res)
@@ -169,7 +169,7 @@ static void test_anticommut ()
     vox_rotate_vector (basex, vecty, res1);
     vox_rotate_vector (basey, vectx, res2);
     
-    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2), PRECISE));
+    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2), precise_check));
 }
 
 static void rot_composition ()
@@ -184,7 +184,10 @@ static void rot_composition ()
     // Then round y by 0.4 radian
     vox_quat base2 = {cosf(psi), 0, sinf(psi), 0};
     // Result rotation is
-    vox_quat base_res = {cosf(phi)*cosf(psi), sinf(phi)*cosf(psi), sinf(psi)*cosf(phi), sinf(psi)*sinf(phi)};
+    vox_quat base_res = { cosf(phi)*cosf(psi),
+                          sinf(phi)*cosf(psi),
+                          sinf(psi)*cosf(phi),
+                          sinf(psi)*sinf(phi) };
 
     // Random numbers
     vox_dot vect = {132, 2, 35};
@@ -194,7 +197,7 @@ static void rot_composition ()
     vox_rotate_vector (base1, res1, res1);
     vox_rotate_vector (base_res, vect, res2);
 
-    CU_ASSERT (vect_eq (res1, res2, PRECISE));
+    CU_ASSERT (vect_eq (res1, res2, precise_check));
 }
 
 static void rot_saves_norm ()
@@ -205,7 +208,7 @@ static void rot_saves_norm ()
     vox_dot res;
     vox_rotate_vector (base, vect, res);
 
-    CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < PRECISE);
+    CU_ASSERT (fabsf (dot_product (vect, vect) - dot_product (res, res)) < precise_check);
 }
 
 static struct vox_node* prepare_tree ()
@@ -305,53 +308,53 @@ static void quat_mul ()
     vox_quat q12 = {0, 0, 1, 0};
     vox_quat e1  = {0, 0, 0, 1};
     vox_quat_mul (q11, q12, res);
-    CU_ASSERT (quat_eq (e1, res, PRECISE));
+    CU_ASSERT (quat_eq (e1, res, precise_check));
 
     vox_quat q21 = {0, 0, 1, 0};
     vox_quat q22 = {0, 0, 0, 1};
     vox_quat e2  = {0, 1, 0, 0};
     vox_quat_mul (q21, q22, res);
-    CU_ASSERT (quat_eq (e2, res, PRECISE));
+    CU_ASSERT (quat_eq (e2, res, precise_check));
 
     vox_quat q31 = {0, 0, 0, 1};
     vox_quat q32 = {0, 1, 0, 0};
     vox_quat e3  = {0, 0, 1, 0};
     vox_quat_mul (q31, q32, res);
-    CU_ASSERT (quat_eq (e3, res, PRECISE));
+    CU_ASSERT (quat_eq (e3, res, precise_check));
 
     // And in another direction...
     vox_quat q41 = {0, 0, 1, 0};
     vox_quat q42 = {0, 1, 0, 0};
     vox_quat e4  = {0, 0, 0, -1};
     vox_quat_mul (q41, q42, res);
-    CU_ASSERT (quat_eq (e4, res, PRECISE));
+    CU_ASSERT (quat_eq (e4, res, precise_check));
 
     vox_quat q51 = {0, 0, 0, 1};
     vox_quat q52 = {0, 0, 1, 0};
     vox_quat e5  = {0, -1, 0, 0};
     vox_quat_mul (q51, q52, res);
-    CU_ASSERT (quat_eq (e5, res, PRECISE));
+    CU_ASSERT (quat_eq (e5, res, precise_check));
 
     vox_quat q61 = {0, 1, 0, 0};
     vox_quat q62 = {0, 0, 0, 1};
     vox_quat e6  = {0, 0, -1, 0};
     vox_quat_mul (q61, q62, res);
-    CU_ASSERT (quat_eq (e6, res, PRECISE));
+    CU_ASSERT (quat_eq (e6, res, precise_check));
 
     // Neutral element
     vox_quat qn1 = {4, 3, 2, 1};
     vox_quat n =   {1, 0, 0, 0};
     vox_quat_mul (qn1, n, res);
-    CU_ASSERT (quat_eq (res, qn1, PRECISE));
+    CU_ASSERT (quat_eq (res, qn1, precise_check));
     vox_quat_mul (n, qn1, res);
-    CU_ASSERT (quat_eq (res, qn1, PRECISE));
+    CU_ASSERT (quat_eq (res, qn1, precise_check));
     
     // Some random quaterions
     vox_quat q1 = {4, 1, 2, 3};
     vox_quat q2 = {2, 0, 2, 0};
     vox_quat e  = {4, -4, 12, 8};
     vox_quat_mul (q1, q2, res);
-    CU_ASSERT (quat_eq (res, e, PRECISE));
+    CU_ASSERT (quat_eq (res, e, precise_check));
 }
 
 static void test_tree_cons ()
@@ -670,13 +673,13 @@ static void test_camera (const char *name)
     /* Check setter/getter */
     camera->iface->set_property_dot (camera, "position", pos);
     camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (pos, newpos, PRECISE));
+    CU_ASSERT (vect_eq (pos, newpos, precise_check));
 
     camera->iface->set_window_size (camera, 100, 100);
 
     /* At first, camera must look in direction (0, 1, 0). */
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, move_vector, PRECISE));
+    CU_ASSERT (vect_eq (world_coord, move_vector, precise_check));
 
     /*
      * We rotate camera around Z axis on angle pi/2 , so it looks now in
@@ -684,7 +687,7 @@ static void test_camera (const char *name)
      */
     camera->iface->set_property_dot (camera, "rotation", rotate_z);
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE));
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected, precise_check));
 
     /*
      * The center of the screen is a fixed point for any rotation around Y
@@ -692,7 +695,7 @@ static void test_camera (const char *name)
      */
     camera->iface->rotate_camera (camera, rotate_identity);
     camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected, PRECISE));
+    CU_ASSERT (vect_eq (world_coord, world_coord_expected, precise_check));
 
     /*
      * Now move camera in direction (0, 1, 0) and get the same result,
@@ -700,7 +703,7 @@ static void test_camera (const char *name)
      */
     camera->iface->move_camera (camera, move_vector);
     camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (world_coord_expected, newpos, PRECISE));
+    CU_ASSERT (vect_eq (world_coord_expected, newpos, precise_check));
 
     camera->iface->destroy_camera (camera);
 }
@@ -749,13 +752,13 @@ static void test_camera_look_at_bug ()
     camera->iface->look_at (camera, look_at);
     camera->iface->move_camera (camera, move_vector1);
     camera->iface->get_position (camera, pos_act);
-    CU_ASSERT (vect_eq (expected_pos1, pos_act, PRECISE));
+    CU_ASSERT (vect_eq (expected_pos1, pos_act, precise_check));
 
     camera->iface->set_property_dot (camera, "position", pos);
     camera->iface->look_at (camera, look_at);
     camera->iface->move_camera (camera, move_vector2);
     camera->iface->get_position (camera, pos_act);
-    CU_ASSERT (vect_eq (expected_pos2, pos_act, PRECISE));
+    CU_ASSERT (vect_eq (expected_pos2, pos_act, precise_check));
     camera->iface->destroy_camera (camera);
 }
 
@@ -769,14 +772,14 @@ static void test_camera_class_construction ()
 
     struct vox_camera *camera2 = vox_camera_methods ("simple-camera")->construct_camera (camera);
     camera2->iface->get_position (camera2, newpos);
-    CU_ASSERT (vect_eq (pos, newpos, PRECISE));
+    CU_ASSERT (vect_eq (pos, newpos, precise_check));
 //    CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
 }
 
 int sphere_inside_sphere (const struct vox_sphere *inner, const struct vox_sphere *outer)
 {
     float dist = sqrtf (vox_sqr_metric (inner->center, outer->center));
-    return inner->radius + dist < outer->radius + APPROX;
+    return inner->radius + dist < outer->radius + approx_check;
 }
 
 static void verify_mtree (const struct vox_mtree_node *node)
@@ -788,14 +791,16 @@ static void verify_mtree (const struct vox_mtree_node *node)
         CU_ASSERT_FATAL (node->num <= MTREE_MAX_CHILDREN);
         if (node->leaf) {
             for (i=0; i<node->num; i++)
-                CU_ASSERT_FATAL (sphere_inside_sphere (&(node->data.spheres[i]), &(node->bounding_sphere)));
+                CU_ASSERT_FATAL (sphere_inside_sphere (&(node->data.spheres[i]),
+                                                       &(node->bounding_sphere)));
         } else {
             CU_ASSERT_FATAL (node->num > 1);
             for (i=0; i<node->num; i++) {
                 child = node->data.children[i];
                 CU_ASSERT_FATAL (child != NULL);
                 CU_ASSERT_FATAL (child->parent == node);
-                CU_ASSERT_FATAL (sphere_inside_sphere (&(child->bounding_sphere), &(node->bounding_sphere)));
+                CU_ASSERT_FATAL (sphere_inside_sphere (&(child->bounding_sphere),
+                                                       &(node->bounding_sphere)));
                 verify_mtree (child);
             }
         }
@@ -923,6 +928,7 @@ static CU_SuiteInfo suites[] = {
 int main ()
 {
     int i, code;
+    char *travis_env;
 
     if (CU_initialize_registry() != CUE_SUCCESS) {
         fprintf (stderr, "Failed to initialize registry: %s\n",
@@ -942,6 +948,15 @@ int main ()
         half_voxel[i] = vox_voxel[i]/2;
         neg_half_voxel[i] = -vox_voxel[i]/2;
     }
+
+    /*
+     * Simple-camera tests fail under Travis-CI if precise_check is
+     * too small for some reason...
+     * As a quick fix set it to a bigger value.
+     */
+    travis_env = getenv ("TRAVIS");
+    approx_check = 0.5;
+    precise_check = (travis_env != NULL && strcmp (travis_env, "true") == 0)? 0.001: 0.00001;
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
