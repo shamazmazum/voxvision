@@ -1,6 +1,6 @@
 Voxvision
 =========
-[![Build Status](https://travis-ci.com/shamazmazum/voxvision.svg?branch=master)](https://travis-ci.com/shamazmazum/voxvision)
+![CI](https://github.com/shamazmazum/voxvision/workflows/CI/badge.svg)
 
 What is Voxvision?
 -----------------
