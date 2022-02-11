@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.6)
-
 include_directories (${SDL2_INCLUDE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_executable (voxvision-engine main.c)

@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.6)
-
 include_directories (${SDL2_INCLUDE_DIR}/.. ${VN3D_INCLUDE_DIR})
 add_definitions (-DVOXRND_SOURCE)
 

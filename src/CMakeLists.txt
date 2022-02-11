@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 2.6)
-
 set (voxengine_module_path ${CMAKE_INSTALL_PREFIX}/share/voxvision/modules)
 set (voxengine_data_path ${CMAKE_INSTALL_PREFIX}/share/voxvision/data)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/voxvision.h.in ${CMAKE_CURRENT_BINARY_DIR}/voxvision.h)
