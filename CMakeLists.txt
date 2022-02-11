@@ -42,6 +42,14 @@ find_package (VN3D REQUIRED)
 if (SSE_INTRIN)
   add_definitions (-msse3 -msse4.1)
 endif (SSE_INTRIN)
+
+# Fix for fucking Ubuntu which github action uses for CI
+# See here: https://stackoverflow.com/questions/64187963
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  include_directories("/usr/include/SDL2")
+endif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+
+
 add_definitions (-DVOXVISION_BUILDING)
 add_subdirectory (src)
 add_subdirectory (benchmarks)
