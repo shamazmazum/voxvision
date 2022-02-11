@@ -1,73 +1,74 @@
 print "Loading environment"
 -- Path to voxvision modules
 package.cpath = package.cpath .. ";@voxengine_module_path@/?.so"
-package.path = package.path .. ";@voxengine_module_path@/?.lua"
+package.path  = package.path .. ";@voxengine_module_path@/?.lua"
 print (string.format ("C modules path %s", package.cpath))
 print (string.format ("Lua modules path %s", package.path))
 
-voxvision.pairs = pairs
-voxvision.ipairs = ipairs
-voxvision.print = print
-voxvision.next = next
+voxvision.pairs    = pairs
+voxvision.ipairs   = ipairs
+voxvision.print    = print
+voxvision.next     = next
 voxvision.tostring = tostring
 voxvision.tonumber = tonumber
+voxvision.arg      = arg
 
 voxvision.table = {}
 voxvision.table.insert = table.insert
-voxvision.table.maxn = table.maxn
+voxvision.table.maxn   = table.maxn
 voxvision.table.remove = table.remove
-voxvision.table.sort = table.sort
+voxvision.table.sort   = table.sort
 voxvision.table.unpack = table.unpack
 
 voxvision.math = {}
-voxvision.math.sin = math.sin
-voxvision.math.cos = math.cos
-voxvision.math.tan = math.tan
-voxvision.math.asin = math.asin
-voxvision.math.acos = math.acos
-voxvision.math.atan = math.atan
-voxvision.math.atan2 = math.atan2
-voxvision.math.abs = math.abs
-voxvision.math.exp = math.exp
-voxvision.math.floor = math.floor
-voxvision.math.ceil = math.ceil
-voxvision.math.huge = math.huge
-voxvision.math.log = math.log
-voxvision.math.log10 = math.log10
-voxvision.math.sqrt = math.sqrt
-voxvision.math.max = math.max
-voxvision.math.min = math.min
-voxvision.math.pi = math.pi
-voxvision.math.pow = math.pow
-voxvision.math.random = math.random
+voxvision.math.sin        = math.sin
+voxvision.math.cos        = math.cos
+voxvision.math.tan        = math.tan
+voxvision.math.asin       = math.asin
+voxvision.math.acos       = math.acos
+voxvision.math.atan       = math.atan
+voxvision.math.atan2      = math.atan2
+voxvision.math.abs        = math.abs
+voxvision.math.exp        = math.exp
+voxvision.math.floor      = math.floor
+voxvision.math.ceil       = math.ceil
+voxvision.math.huge       = math.huge
+voxvision.math.log        = math.log
+voxvision.math.log10      = math.log10
+voxvision.math.sqrt       = math.sqrt
+voxvision.math.max        = math.max
+voxvision.math.min        = math.min
+voxvision.math.pi         = math.pi
+voxvision.math.pow        = math.pow
+voxvision.math.random     = math.random
 voxvision.math.randomseed = math.randomseed
 
 voxvision.os = {}
-voxvision.os.clock = os.clock
+voxvision.os.clock    = os.clock
 voxvision.os.difftime = os.difftime
-voxvision.os.time = os.time
-voxvision.os.getenv = os.getenv
+voxvision.os.time     = os.time
+voxvision.os.getenv   = os.getenv
 
 voxvision.string = {}
 voxvision.string.format = string.format
 
 voxvision.voxtrees = require 'voxtrees'
-voxvision.voxrnd = require 'voxrnd'
-voxvision.vn3d = require 'vn3d'
+voxvision.voxrnd   = require 'voxrnd'
+voxvision.vn3d     = require 'vn3d'
 
 local voxsdl = require 'voxsdl'
 voxvision.voxsdl = {}
-voxvision.voxsdl.getKeyboardState = voxsdl.getKeyboardState
-voxvision.voxsdl.scancode = voxsdl.scancode
-voxvision.voxsdl.pumpEvent = voxsdl.pumpEvent
-voxvision.voxsdl.pollEvent = voxsdl.pollEvent
-voxvision.voxsdl.waitEvent = voxsdl.waitEvent
-voxvision.voxsdl.pushEvent = voxsdl.pushEvent
-voxvision.voxsdl.event = voxsdl.event
-voxvision.voxsdl.key = voxsdl.key
+voxvision.voxsdl.getKeyboardState      = voxsdl.getKeyboardState
+voxvision.voxsdl.scancode              = voxsdl.scancode
+voxvision.voxsdl.pumpEvent             = voxsdl.pumpEvent
+voxvision.voxsdl.pollEvent             = voxsdl.pollEvent
+voxvision.voxsdl.waitEvent             = voxsdl.waitEvent
+voxvision.voxsdl.pushEvent             = voxsdl.pushEvent
+voxvision.voxsdl.event                 = voxsdl.event
+voxvision.voxsdl.key                   = voxsdl.key
 voxvision.voxsdl.getRelativeMouseState = voxsdl.getRelativeMouseState
-voxvision.voxsdl.getRelativeMouseMode = voxsdl.getRelativeMouseMode
-voxvision.voxsdl.setRelativeMouseMode = voxsdl.setRelativeMouseMode
-voxvision.voxsdl.mouseButton = voxsdl.mouseButton
+voxvision.voxsdl.getRelativeMouseMode  = voxsdl.getRelativeMouseMode
+voxvision.voxsdl.setRelativeMouseMode  = voxsdl.setRelativeMouseMode
+voxvision.voxsdl.mouseButton           = voxsdl.mouseButton
 
 voxvision.voxutils = require 'voxutils'
