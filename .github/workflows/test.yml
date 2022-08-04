@@ -10,13 +10,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Checkout vn3d
         uses: actions/checkout@v2
         with:
           repository: shamazmazum/vn3d
           path: vn3d
-      - name: Initialize submodules
-        uses: snickerbockers/submodules-init@v4
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
