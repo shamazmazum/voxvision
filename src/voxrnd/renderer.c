@@ -45,7 +45,7 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
         g = fminf (light[1], 1.0) * color;
         b = fminf (light[2], 1.0) * color;
 
-        res = SDL_MapRGB (context->surface->format, color*light[0], color*light[1], color*light[2]);
+        res = SDL_MapRGB (context->surface->format, r, g, b);
     }
 
     return res;
