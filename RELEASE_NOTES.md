@@ -1,5 +1,13 @@
 Release notes to voxvision.
 
+Release 0.37
+  * Fix window creation on Wayland
+
+Release 0.36
+  * Fix build with modern cmake.
+  * Update luasdl2 and add ability to control relative mouse mode.
+  * Fix color mapping in the renderer.
+
 Release 0.35. This is mostly a maintenance release. New in this version:
   * Fixed compilation on linux.
   * vn3d calls use the new API (works with the most recent version).
