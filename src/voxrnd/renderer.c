@@ -138,6 +138,9 @@ struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned in
     /* Sorry, only native pixel format by now */
     assert (ctx->surface->format->BitsPerPixel == 32);
     allocate_squares (ctx);
+
+    /* This is required on Wayland to forbid the window to be resizable. */
+    SDL_SetWindowMinimumSize(ctx->window, width, height);
     return ctx;
 
 failure:
