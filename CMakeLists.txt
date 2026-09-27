@@ -59,10 +59,11 @@ if(DOXYGEN_FOUND)
   add_subdirectory (doc)
 endif(DOXYGEN_FOUND)
 
-find_package (CUnit)
-if(CUNIT_FOUND)
+find_package (PkgConfig REQUIRED)
+pkg_check_modules (CUnit IMPORTED_TARGET cunit)
+if(CUnit_FOUND)
   add_subdirectory (tests)
-endif(CUNIT_FOUND)
+endif(CUnit_FOUND)
 
 install (DIRECTORY data/ DESTINATION share/voxvision/data
   FILES_MATCHING PATTERN "*.dat")
