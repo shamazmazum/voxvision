@@ -2,7 +2,6 @@ include_directories (${SDL2_INCLUDE_DIR}/..)
 add_definitions (-DVOXRND_SOURCE)
 
 if (GCD_FOUND)
-include_directories (${GCD_INCLUDE_DIR})
 add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 
@@ -45,7 +44,7 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
 
 target_link_libraries (voxrnd ${SDL2_LIBRARY} m BlocksRuntime)
 if (GCD_FOUND)
-target_link_libraries (voxrnd ${GCD_LIBRARY})
+target_link_libraries (voxrnd PkgConfig::GCD)
 endif (GCD_FOUND)
 
 add_library (simple-camera-module SHARED simple-camera.c)

@@ -1,6 +1,6 @@
 include_directories (${SDL2_INCLUDE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/..)
 if (GCD_FOUND)
-include_directories (${GCD_INCLUDE_DIR})
+include_directories (${GCD_INCLUDE_DIRS})
 add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 add_definitions (-fblocks)
