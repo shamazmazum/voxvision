@@ -39,24 +39,7 @@ void copy_squares (square *src, uint32_t *dist, unsigned int ws, unsigned int hs
     }
 }
 
-// Write zeros to squares bypassing the cache (if possible)
-#ifdef SSE_INTRIN
-void zero_squares (square *ptr, size_t len)
-{
-    size_t i;
-    __m128i zero = _mm_setzero_si128 ();
-
-    for (i=0; i<len; i++)
-    {
-        _mm_stream_si128 ((void*)&(ptr[i][0]), zero);
-        _mm_stream_si128 ((void*)&(ptr[i][4]),  zero);
-        _mm_stream_si128 ((void*)&(ptr[i][8]),  zero);
-        _mm_stream_si128 ((void*)&(ptr[i][12]), zero);
-    }
-}
-#else
 void zero_squares (square *ptr, size_t len)
 {
     memset (ptr, 0, len*sizeof(square));
 }
-#endif

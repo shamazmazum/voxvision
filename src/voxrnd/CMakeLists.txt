@@ -11,7 +11,6 @@ set (VOXRND_SOURCES
   camera.c
   renderer.c
   vect-ops.c
-  vect-ops-sse.c
   fps-control.c
   cd.c
   copy-helper.c

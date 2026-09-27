@@ -1,7 +1,6 @@
 #include <math.h>
 #include "geom.h"
 
-#ifndef SSE_INTRIN
 int voxel_in_box (const struct vox_box *box, const vox_dot dot)
 {
     int i;
@@ -152,7 +151,6 @@ int box_ball_interp (const struct vox_box *box, const vox_dot center, float radi
     fit_into_box (box, center, fitted);
     return vox_sqr_metric (fitted, center) < (radius*radius);
 }
-#endif /* SSE_INTRIN */
 
 int dense_set_p (const struct vox_box *box, size_t n)
 {

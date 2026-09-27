@@ -75,16 +75,11 @@ static void simple_rotate_camera (struct vox_camera *cam, const vox_dot delta)
         float sinang = sinf(delta[i]/2);
         float cosang = cosf(delta[i]/2);
 
-#ifdef SSE_INTRIN
-        __v4sf tmp = _mm_set1_ps (sinang) * _mm_load_ps (ort_rotated);
-        tmp = _mm_blend_ps (tmp, _mm_set1_ps (cosang), 1);
-        _mm_store_ps (ort_rotated, tmp);
-#else
         int j;
-        for (j=0; j<3; j++)
+        for (j=0; j<3; j++) {
             ort_rotated[j+1] = sinang*ort_rotated[j+1];
+        }
         ort_rotated[0] = cosang;
-#endif
         /*
          * Now, ort_rotated is a rotation around camera's i-th axis in the world
          * coordinate system. Apply this rotation by multiplying tmp and

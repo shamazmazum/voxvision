@@ -1,6 +1,5 @@
 #include <math.h>
 #include "vect-ops.h"
-#ifndef SSE_INTRIN
 
 #define VOX_N 3
 
@@ -56,15 +55,15 @@ void vox_quat_normalize (vox_quat quat)
     for (i=0; i<4; i++) quat[i] /= norm;
 }
 
-void vox_dot_normalize (vox_quat quat)
+void vox_dot_normalize (vox_dot dot)
 {
     int i;
     float norm, sum = 0;
 
-    for (i=0; i<3; i++) sum += quat[i]*quat[i];
+    for (i=0; i<3; i++) sum += dot[i]*dot[i];
     norm = sqrtf (sum);
 
-    for (i=0; i<3; i++) quat[i] /= norm;
+    for (i=0; i<3; i++) dot[i] /= norm;
 }
 
 void vox_quat_set_identity (vox_quat quat)
@@ -72,4 +71,3 @@ void vox_quat_set_identity (vox_quat quat)
     memset (quat, 0, sizeof (vox_quat));
     quat[0] = 1;
 }
-#endif

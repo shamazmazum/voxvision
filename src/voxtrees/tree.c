@@ -27,101 +27,6 @@ static void update_fill_ratio (const struct vox_box *box, size_t n)
 }
 #endif
 
-#ifdef SSE_INTRIN
-static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot res)
-{
-    size_t i;
-    __v4sf len = _mm_set_ps1 (n);
-    __v4sf sum = _mm_set_ps1 (0.0);
-    __v4sf voxel = _mm_load_ps (vox_voxel);
-    __v4sf min = _mm_load_ps (box->min);
-
-    /*
-     * Subtract bounding box minimal value from voxel coordinates to reduce
-     * computational error. I add it again after division by len.
-     */
-    for (i=0; i<n; i++) sum += (_mm_load_ps (set[i]) - min);
-    sum /= len;
-    sum += min;
-
-    /*
-     * Align the center of division, so any voxel belongs to only one subspace
-     * entirely. Faces of voxels may be the exception though
-     */
-    __v4sf resv = sum / voxel;
-    resv = _mm_ceil_ps (resv) * voxel;
-
-    _mm_store_ps (res, resv);
-}
-
-static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *box)
-{
-    size_t i;
-    __v4sf min = _mm_load_ps (set[0]);
-    __v4sf max = min;
-
-    for (i=1; i<n; i++)
-    {
-        min = _mm_min_ps (min, _mm_load_ps (set[i]));
-        max = _mm_max_ps (max, _mm_load_ps (set[i]));
-    }
-    max += _mm_load_ps (vox_voxel);
-
-    _mm_store_ps (box->min, min);
-    _mm_store_ps (box->max, max);
-}
-
-/*
-  SIMD version of this function. For use in SIMD code.
-*/
-static int get_subspace_idx_simd (__v4sf center, __v4sf dot)
-{
-    __v4sf sub = dot - center;
-    return (_mm_movemask_ps (sub) & 0x07);
-}
-
-static size_t sort_set (vox_dot set[], size_t n, size_t offset, int subspace, const vox_dot center)
-{
-    size_t i, counter = offset;
-    __v4sf center_, boundary_dot, dot;
-    center_ = _mm_load_ps (center);
-    boundary_dot = _mm_load_ps (set[offset]);
-
-    for (i=offset; i<n; i++)
-    {
-        dot = _mm_load_ps (set[i]);
-        if (get_subspace_idx_simd (center_, dot) == subspace)
-        {
-            _mm_store_ps (set[counter], dot);
-            _mm_store_ps (set[i], boundary_dot);
-            boundary_dot = _mm_load_ps (set[++counter]);
-        }
-    }
-
-    return counter;
-}
-
-static void vox_align (vox_dot dot)
-{
-    __v4sf d = _mm_load_ps (dot);
-    __v4sf voxel = _mm_load_ps (vox_voxel);
-    __v4sf tmp = _mm_floor_ps (d / voxel);
-    _mm_store_ps (dot, tmp*voxel);
-}
-
-static void update_bounding_box (struct vox_box *box, const vox_dot dot)
-{
-    __v4sf d = _mm_load_ps (dot);
-    __v4sf d_max = d + _mm_load_ps (vox_voxel);
-
-    __v4sf box_min = _mm_min_ps (d, _mm_load_ps (box->min));
-    __v4sf box_max = _mm_max_ps (d_max, _mm_load_ps (box->max));
-
-    _mm_store_ps (box->min, box_min);
-    _mm_store_ps (box->max, box_max);
-}
-
-#else /* SSE_INTRIN */
 static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot res)
 {
     size_t i;
@@ -206,8 +111,6 @@ static void update_bounding_box (struct vox_box *box, const vox_dot dot)
         box->max[i] = (dot_max[i] > box->max[i]) ? dot_max[i] : box->max[i];
     }
 }
-
-#endif /* SSE_INTRIN */
 
 static void* node_alloc (int flavor)
 {
@@ -479,21 +382,12 @@ static struct vox_node* __attribute__((noinline)) // always inserts
     node->dots_num = tree->dots_num + 1;
     // Can we find another center of division easily?
     closest_vertex (&(tree->bounding_box), voxel, inner->center);
-#ifdef SSE_INTRIN
-    __v4sf inner_vector = _mm_load_ps (tree->bounding_box.min) +
-        _mm_load_ps (tree->bounding_box.max);
-    inner_vector /= _mm_set_ps1 (2.0);
-    __v4sf center = _mm_load_ps (inner->center);
-    idx1 = get_subspace_idx_simd (center, inner_vector);
-    idx2 = get_subspace_idx_simd (center, _mm_load_ps(voxel));
-#else
     unsigned int i;
     vox_dot inner_dot;
     for (i=0; i<VOX_N; i++)
         inner_dot[i] = (tree->bounding_box.min[i]+tree->bounding_box.max[i]) / 2;
     idx1 = get_subspace_idx (inner->center, inner_dot);
     idx2 = get_subspace_idx (inner->center, voxel);
-#endif
     assert (idx1 != idx2);
     inner->children[idx1] = tree;
     // Insert voxel in an empty leaf
@@ -596,11 +490,7 @@ again:
           propagate changes further.
         */
         vox_inner_data *inner = &(tree->data.inner);
-#ifdef SSE_INTRIN
-        int idx = get_subspace_idx_simd (_mm_load_ps(inner->center), _mm_load_ps(voxel));
-#else
         int idx = get_subspace_idx (inner->center, voxel);
-#endif
         tree->dots_num++;
         tree_ptr = &(inner->children[idx]);
         goto again; // Force tail call optimization.
@@ -623,11 +513,7 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z)
 {
     vox_dot dot;
-#ifdef SSE_INTRIN
-    _mm_store_ps (dot, _mm_set_ps (0, z, y, x));
-#else
     dot[0] = x; dot[1] = y; dot[2] = z;
-#endif
     return vox_insert_voxel (tree_ptr, dot);
 }
 
@@ -821,11 +707,7 @@ again:
     {
         // Inner node
         vox_inner_data *inner = &(tree->data.inner);
-#ifdef SSE_INTRIN
-        int idx = get_subspace_idx_simd (_mm_load_ps(inner->center), _mm_load_ps(voxel));
-#else
         int idx = get_subspace_idx (inner->center, voxel);
-#endif
         node = inner->children[idx];
         if (node->dots_num == tree->dots_num)
         {
@@ -857,11 +739,7 @@ int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel)
 int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z)
 {
     vox_dot dot;
-#ifdef SSE_INTRIN
-    _mm_store_ps (dot, _mm_set_ps (0, z, y, x));
-#else
     dot[0] = x; dot[1] = y; dot[2] = z;
-#endif
     return vox_delete_voxel (tree_ptr, dot);
 }
 

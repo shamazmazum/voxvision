@@ -2,7 +2,6 @@ add_definitions (-DVOXTREES_SOURCE)
 
 add_library (voxtrees SHARED
   geom.c
-  geom-sse.c
   search.c
   tree.c
   datareader.c

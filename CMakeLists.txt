@@ -16,7 +16,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-option (SSE_INTRIN "Enable SSE intrinsic" ON)
 option (WITH_GCD "Enable GCD" ON)
 option (WITH_DTRACE "Enable Dtrace" OFF)
 
@@ -39,10 +38,6 @@ if (WITH_GCD)
   pkg_check_modules (GCD REQUIRED IMPORTED_TARGET libdispatch)
 endif (WITH_GCD)
 find_package (VN3D REQUIRED)
-
-if (SSE_INTRIN)
-  add_definitions (-msse3 -msse4.1)
-endif (SSE_INTRIN)
 
 # Fix for fucking Ubuntu which github action uses for CI
 # See here: https://stackoverflow.com/questions/64187963
