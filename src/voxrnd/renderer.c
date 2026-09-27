@@ -35,18 +35,7 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
     int idx = x*VOX_TEXTURE_SIDE*VOX_TEXTURE_SIDE + y*VOX_TEXTURE_SIDE + z;
     Uint8 color = context->texture[idx];
 
-    if (context->light_manager == NULL) {
-        res = SDL_MapRGB (context->surface->format, color, color, color);
-    } else {
-        vox_dot light;
-        Uint8 r, g, b;
-        vox_get_light (context->light_manager, inter, light);
-        r = fminf (light[0], 1.0) * color;
-        g = fminf (light[1], 1.0) * color;
-        b = fminf (light[2], 1.0) * color;
-
-        res = SDL_MapRGB (context->surface->format, r, g, b);
-    }
+    res = SDL_MapRGB (context->surface->format, color, color, color);
 
     return res;
 }
@@ -169,11 +158,6 @@ void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
 void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
 {
     ctx->scene = scene;
-}
-
-void vox_context_set_light_manager (struct vox_rnd_ctx *ctx, struct vox_light_manager *light_manager)
-{
-    ctx->light_manager = light_manager;
 }
 
 int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)

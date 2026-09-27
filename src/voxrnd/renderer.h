@@ -8,7 +8,6 @@
 #include <SDL2/SDL.h>
 #include "../voxtrees/tree.h"
 #include "camera.h"
-#include "lights.h"
 
 #ifdef VOXRND_SOURCE
 typedef Uint32 square[16] __attribute__((aligned(16)));
@@ -29,7 +28,6 @@ struct vox_rnd_ctx
     struct vox_node *scene;
     struct vox_camera *camera;
 
-    struct vox_light_manager *light_manager;
     Uint8 *texture;
     square *square_output;
     unsigned int squares_num, ws;
@@ -60,13 +58,6 @@ struct vox_rnd_ctx
     /**< \brief A camera associated with the context.
 
        To set this value, use vox_context_set_camera() rather than writing to
-       this field directly.
-    **/
-
-    struct vox_light_manager *light_manager;
-    /**< \brief A light manager associated with the context.
-
-       To set this value, use vox_context_set_light_manager() rather than writing to
        this field directly.
     **/
 };
@@ -177,12 +168,6 @@ VOX_EXPORT void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node 
    \brief Camera setter for renderer context
 **/
 VOX_EXPORT void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera);
-
-/**
-   \brief Light manager setter for renderer context
-**/
-VOX_EXPORT void vox_context_set_light_manager (struct vox_rnd_ctx *ctx,
-                                               struct vox_light_manager *light_manager);
 
 /**
    \brief Set quality of the renderer

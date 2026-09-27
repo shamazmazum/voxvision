@@ -776,110 +776,6 @@ static void test_camera_class_construction ()
 //    CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
 }
 
-int sphere_inside_sphere (const struct vox_sphere *inner, const struct vox_sphere *outer)
-{
-    float dist = sqrtf (vox_sqr_metric (inner->center, outer->center));
-    return inner->radius + dist < outer->radius + approx_check;
-}
-
-static void verify_mtree (const struct vox_mtree_node *node)
-{
-    unsigned int i;
-    const struct vox_mtree_node *child;
-
-    if (node != NULL) {
-        CU_ASSERT_FATAL (node->num <= MTREE_MAX_CHILDREN);
-        if (node->leaf) {
-            for (i=0; i<node->num; i++)
-                CU_ASSERT_FATAL (sphere_inside_sphere (&(node->data.spheres[i]),
-                                                       &(node->bounding_sphere)));
-        } else {
-            CU_ASSERT_FATAL (node->num > 1);
-            for (i=0; i<node->num; i++) {
-                child = node->data.children[i];
-                CU_ASSERT_FATAL (child != NULL);
-                CU_ASSERT_FATAL (child->parent == node);
-                CU_ASSERT_FATAL (sphere_inside_sphere (&(child->bounding_sphere),
-                                                       &(node->bounding_sphere)));
-                verify_mtree (child);
-            }
-        }
-    }
-}
-
-void test_mtree ()
-{
-    struct vox_mtree_node *mtree = NULL;
-    struct vox_sphere s;
-    unsigned int i, n = 140;
-    unsigned int seed = rand();
-
-    srand (seed);
-    for (i=0; i<n; i++) {
-        vox_dot_set (s.center,
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX));
-        s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
-        CU_ASSERT (vox_mtree_add_sphere (&mtree, &s));
-        verify_mtree (mtree);
-        CU_ASSERT (vox_mtree_items (mtree) == i+1);
-    }
-    // Try to add the last sphere
-    CU_ASSERT (!vox_mtree_add_sphere (&mtree, &s));
-
-    srand (seed);
-    for (i=0; i<n; i++) {
-        vox_dot_set (s.center,
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX));
-        s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
-        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) != NULL);
-    }
-
-    srand (seed);
-    for (i=0; i<n; i++) {
-        vox_dot_set (s.center,
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX));
-        s.radius = 1 + floorf (15.0 * rand() / RAND_MAX);
-        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) != NULL);
-        CU_ASSERT (vox_mtree_remove_sphere (&mtree, &s));
-        CU_ASSERT (vox_mtree_contains_sphere (mtree, &s) == NULL);
-        verify_mtree (mtree);
-        CU_ASSERT (vox_mtree_items (mtree) == n-i-1);
-    }
-}
-
-void test_mtree_search ()
-{
-    struct vox_mtree_node *mtree = NULL;
-    struct vox_sphere s;
-    int i, n = 500;
-
-    unsigned int count = 0;
-    __block unsigned int testcount = 0;
-    vox_dot center;
-    vox_dot_set (center, 0, 0, 0);
-
-    for (i=0; i<n; i++) {
-        vox_dot_set (s.center,
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX),
-                     floorf (100.0 * rand() / RAND_MAX));
-        s.radius = 70 + floorf (30.0 * rand() / RAND_MAX);
-
-        if (vox_mtree_add_sphere (&mtree, &s) &&
-            sqrtf (vox_sqr_metric (center, s.center)) < s.radius) count++;
-    }
-
-    vox_mtree_spheres_containing (mtree, center, ^(const struct vox_sphere *s) {
-            testcount++;});
-    CU_ASSERT (testcount == count);
-}
-
 /* Vector operations */
 static CU_TestInfo vectops_tests[] = {
     { "identity operator", test_identity },
@@ -904,8 +800,6 @@ static CU_TestInfo voxtrees_tests[] = {
     { "insertion type transitions", test_tree_ins_trans },
     { "deletion type transitions", test_tree_del_trans },
     { "search (commit 676d50c)", test_tree_g676d50c },
-    { "test M-trees", test_mtree },
-    { "test M-tree search", test_mtree_search },
     CU_TEST_INFO_NULL
 };
 
