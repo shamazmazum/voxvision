@@ -31,7 +31,7 @@ if (WITH_DTRACE)
 endif (WITH_DTRACE)
 
 find_package (SDL2 REQUIRED)
-find_package (IniParser)
+find_package (IniParser CONFIG REQUIRED)
 find_package (Lua 5.3)
 if (WITH_GCD)
   message (STATUS "Compiling with GCD. If configuration is unsuccessful, try -DWITH_GCD=OFF")
