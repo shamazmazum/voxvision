@@ -26,44 +26,15 @@ static int rendering_order[] = {
 
 static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
 {
-    int x, y, z;
-    Uint32 res;
-    x = abs((int)(inter[0] / vox_voxel[0])) & (VOX_TEXTURE_SIDE - 1);
-    y = abs((int)(inter[1] / vox_voxel[1])) & (VOX_TEXTURE_SIDE - 1);
-    z = abs((int)(inter[2] / vox_voxel[2])) & (VOX_TEXTURE_SIDE - 1);
-
-    int idx = x*VOX_TEXTURE_SIDE*VOX_TEXTURE_SIDE + y*VOX_TEXTURE_SIDE + z;
-    Uint8 color = context->texture[idx];
-
-    res = SDL_MapRGB (context->surface->format, color, color, color);
+    Uint32 res = SDL_MapRGB (context->surface->format, 255, 0, 0);
 
     return res;
-}
-
-static Uint8* initialize_texture ()
-{
-    int i,j,k,p = 0;
-    struct vn_generator *gen = vn_value_generator (3, 4);
-    Uint8 *texture = malloc (VOX_TEXTURE_SIZE);
-
-    for (i=0; i<VOX_TEXTURE_SIDE; i++) {
-        for (j=0; j<VOX_TEXTURE_SIDE; j++) {
-            for (k=0; k<VOX_TEXTURE_SIDE; k++) {
-                texture[p] = vn_noise_3d (gen, i, j, k) >> 24;
-                p++;
-            }
-        }
-    }
-    vn_destroy_generator (gen);
-
-    return texture;
 }
 
 static struct vox_rnd_ctx* allocate_context ()
 {
     struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
-    ctx->texture = initialize_texture();
     ctx->quality = VOX_QUALITY_ADAPTIVE;
 
     return ctx;
@@ -145,7 +116,6 @@ void vox_destroy_context (struct vox_rnd_ctx *ctx)
     }
     if (ctx->surface != NULL) SDL_FreeSurface(ctx->surface);
     free (ctx->square_output);
-    free (ctx->texture);
     free (ctx);
 }
 
