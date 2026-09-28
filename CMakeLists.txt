@@ -41,7 +41,7 @@ find_package (VN3D REQUIRED)
 
 add_definitions (-DVOXVISION_BUILDING)
 add_subdirectory (src)
-add_subdirectory (benchmarks)
+#add_subdirectory (benchmarks)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
