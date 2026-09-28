@@ -1,4 +1,3 @@
-include_directories (${SDL2_INCLUDE_DIR}/..)
 add_definitions (-DVOXRND_SOURCE)
 
 if (GCD_FOUND)
@@ -41,7 +40,7 @@ set_target_properties (voxrnd PROPERTIES VERSION ${voxvision_VERSION}
                                          SOVERSION ${voxvision_VERSION_MAJOR}
                                          C_VISIBILITY_PRESET hidden)
 
-target_link_libraries (voxrnd ${SDL2_LIBRARY} m BlocksRuntime)
+target_link_libraries (voxrnd SDL2::SDL2 m BlocksRuntime)
 if (GCD_FOUND)
 target_link_libraries (voxrnd PkgConfig::GCD)
 endif (GCD_FOUND)

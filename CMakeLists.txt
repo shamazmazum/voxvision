@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.10)
 
 project (voxvision)
 
@@ -30,7 +30,7 @@ if (WITH_DTRACE)
 endif (WITH_DTRACE)
 
 find_package (PkgConfig REQUIRED)
-find_package (SDL2 REQUIRED)
+find_package (SDL2 CONFIG REQUIRED)
 find_package (IniParser CONFIG REQUIRED)
 find_package (Lua 5.3)
 if (WITH_GCD)
@@ -38,13 +38,6 @@ if (WITH_GCD)
   pkg_check_modules (GCD REQUIRED IMPORTED_TARGET libdispatch)
 endif (WITH_GCD)
 find_package (VN3D REQUIRED)
-
-# Fix for fucking Ubuntu which github action uses for CI
-# See here: https://stackoverflow.com/questions/64187963
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  include_directories("/usr/include/SDL2")
-endif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-
 
 add_definitions (-DVOXVISION_BUILDING)
 add_subdirectory (src)

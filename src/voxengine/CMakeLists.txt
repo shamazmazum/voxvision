@@ -1,8 +1,12 @@
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/loadenvironment.lua.in
-  ${CMAKE_CURRENT_BINARY_DIR}/loadenvironment.lua)
-include_directories (${LUA_INCLUDE_DIR}
-  ${SDL2_INCLUDE_DIR}/..
-  ${CMAKE_CURRENT_BINARY_DIR})
+configure_file (
+  ${CMAKE_CURRENT_SOURCE_DIR}/loadenvironment.lua.in
+  ${CMAKE_CURRENT_BINARY_DIR}/loadenvironment.lua
+)
+
+include_directories (
+  ${LUA_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 if (GCD_FOUND)
 add_definitions (-DUSE_GCD)

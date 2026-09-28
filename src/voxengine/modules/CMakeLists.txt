@@ -1,7 +1,11 @@
-include_directories (${LUA_INCLUDE_DIR}
+include_directories (
+  ${LUA_INCLUDE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../..
   ${CMAKE_CURRENT_BINARY_DIR}/..
-  ${CMAKE_CURRENT_BINARY_DIR})
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+include_directories(${GCD_INCLUDE_DIRS})
 
 add_library (voxtrees-wrapper SHARED voxtrees.c)
 set_target_properties (voxtrees-wrapper PROPERTIES OUTPUT_NAME voxtrees PREFIX "")
