@@ -1,99 +1,99 @@
 #include <math.h>
 #include "geom.h"
 
-int voxel_in_box (const struct vox_box *box, const vox_dot dot)
-{
-    int i;
-
-    for (i=0; i<VOX_N; i++) {if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) return 0;}
-    return 1;
+static int dotall (cmpmask m) {
+    return m.x && m.y && m.z && m.w;
 }
 
-static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    int i, the_same = 1;
-    for (i=0; i<VOX_N; i++)
-    {
-        if (dot[i] < box->min[i])
-        {
-            res[i] = box->min[i];
-            the_same = 0;
-        }
-        else if (dot[i] > box->max[i])
-        {
-            res[i] = box->max[i];
-            the_same = 0;
-        }
-        else res[i] = dot[i];
-    }
-    return the_same;
+static int dotsome (cmpmask m) {
+    return m.x || m.y || m.z || m.w;
 }
 
-void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res)
-{
-    int i;
-    for (i=0; i<VOX_N; i++)
-    {
-        float d1 = fabsf (box->min[i] - dot[i]);
-        float d2 = fabsf (box->max[i] - dot[i]);
-        res[i] = (d1 < d2) ? box->min[i] : box->max[i];
-    }
+int voxel_in_box (const struct vox_box *box, const vox_dot dot) {
+    cmpmask m1 = dot >= box->min;
+    cmpmask m2 = dot <  box->max;
+
+    // TODO: Check if we can replace < and >= with -. Will clang
+    // recognize this pattern?
+    return dotall(m1) && dotall(m2);
 }
 
-int get_subspace_idx (const vox_dot center, const vox_dot dot)
-{
-    int res, i;
-    res = 0;
-
-    for (i=0; i<VOX_N; i++) res |= (center[i] > dot[i]) << i;
-    return res;
+static vox_dot fit_into_box (const struct vox_box *box, const vox_dot dot) {
+    vox_dot t1 = vmin (dot, box->max);
+    vox_dot t2 = vmax (t1,  box->min);
+    return t2;
 }
 
-int get_corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction)
-{
-    int res, a, i;
-    res = 0;
+vox_dot closest_vertex (const struct vox_box *box, const vox_dot dot) {
+    vox_dot d1 = vabs(box->min - dot);
+    vox_dot d2 = vabs(box->max - dot);
+    cmpmask m = d1 < d2;
+    return m ? box->min : box->max;
+}
 
-    for (i=0; i<VOX_N; i++) {
-        if (center[i] == dot[i]) a = direction[i] < 0;
-        else a = center[i] > dot[i];
-        res |= a << i;
-    }
+static int dot_mask_idx (const vox_dot x) {
+    int b0 = x[0] < 0;
+    int b1 = x[1] < 0;
+    int b2 = x[2] < 0;
+    int b3 = x[3] < 0;
 
-    return res;
+    return (b0 << 0) | (b1 << 1) | (b2 << 2) | (b3 << 3);
+}
+
+int get_subspace_idx (const vox_dot center, const vox_dot dot) {
+    return dot_mask_idx (dot - center);
+}
+
+int get_corrected_subspace_idx (const vox_dot center,
+                                const vox_dot dot,
+                                const vox_dot direction) {
+    vox_dot diff = dot - center;
+    cmpmask c = center == dot;
+    vox_dot x = c ? direction : diff;
+    return dot_mask_idx (x);
 }
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation
-int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir, vox_dot res)
-{
-    float max_dist, tmp;
-    int i, plane_num;
-    if (fit_into_box (box, origin, res)) return 1;
+int hit_box (const struct vox_box *box,
+             const vox_dot         origin,
+             const vox_dot         dir,
+             vox_dot              *res) {
+    vox_dot fit = fit_into_box (box, origin);
+    vox_dot sub = fit - origin;
+    vox_dot zero = (vox_dot){0, 0, 0, 0};
 
-    plane_num = 0;
-    max_dist = -1;
-    for (i=0; i<VOX_N; i++)
-    {
-        tmp = (res[i] - origin[i])/dir[i];
-        if (tmp > max_dist)
-        {
-            plane_num = i;
-            max_dist = tmp;
-        }
+    if (dotall(sub == zero)) {
+        *res = origin;
+        return 1;
     }
-    if (max_dist <= 0) return 0;
 
-    for (i=0; i<VOX_N; i++)
-    {
-        if (i != plane_num)
-        {
-            tmp = origin[i] + max_dist*dir[i];
-            if ((tmp < box->min[i]) || (tmp > box->max[i])) return 0;
-            res[i] = tmp;
-        }
+    // Replace infinities (they can appear if d == 0) with zeros
+    cmpmask mask = dir == zero;
+    vox_dot dist = mask ? zero : sub / dir;
+
+    vox_dot max1 = dist.zxyw;
+    vox_dot max2 = dist.yzxw;
+    max1 = vmax (dist, max1);
+    max2 = vmax (dist, max2);
+    max1 = vmax (max1, max2);
+
+    if (max1.x <= 0) {
+        return 0;
     }
-    
+
+    vox_dot hit = (max1 == dist) ? fit : (max1 * dir + origin);
+
+    cmpmask lt = hit < box->min;
+    cmpmask gt = hit > box->max;
+
+    // TODO: Check if we can replace < and > with -. Will clang
+    // recognize this pattern?
+    if (dotsome (lt) || dotsome (gt)) {
+        return 0;
+    }
+
+    *res = hit;
     return 1;
 }
 
@@ -145,12 +145,14 @@ float vox_sqr_norm (const vox_dot dot)
     return res;
 }
 
+#if 0
 int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius)
 {
     vox_dot fitted;
     fit_into_box (box, center, fitted);
     return vox_sqr_metric (fitted, center) < (radius*radius);
 }
+#endif
 
 int dense_set_p (const struct vox_box *box, size_t n)
 {
