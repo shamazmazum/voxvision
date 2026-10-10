@@ -388,19 +388,6 @@ static void test_tree_ins()
     check_tree (tree);
     vox_destroy_tree (tree);
 
-    // Make a fake tree with dense leaf as root
-    tree = vox_alloc (sizeof (struct vox_node));
-    vox_dot_set (tree->bounding_box.min, 5, 5, 5);
-    vox_dot_set (tree->bounding_box.max, 10, 10,10);
-    tree->dots_num = 125;
-    tree->flags = VOX_DENSE_LEAF;
-    res = vox_insert_voxel (&tree, dot2);
-    CU_ASSERT (!res);
-    res = vox_insert_voxel (&tree, dot1);
-    CU_ASSERT (res && vox_voxels_in_tree (tree) == 126);
-    check_tree (tree);
-    vox_destroy_tree (tree);
-
     tree = NULL;
     int i, j, k;
     for (i=0; i<3; i++)
@@ -410,24 +397,6 @@ static void test_tree_ins()
             for (k=0; k<3; k++)
             {
                 vox_dot_set (dot1, 2*i, 2*j, 2*k);
-                res = vox_insert_voxel (&tree, dot1);
-                CU_ASSERT (res);
-            }
-        }
-    }
-    CU_ASSERT (vox_voxels_in_tree (tree) == 27);
-    check_tree (tree);
-    vox_destroy_tree (tree);
-
-    // Check dense node creation
-    tree = NULL;
-    for (i=0; i<3; i++)
-    {
-        for (j=0; j<3; j++)
-        {
-            for (k=0; k<3; k++)
-            {
-                vox_dot_set (dot1, i, j, k);
                 res = vox_insert_voxel (&tree, dot1);
                 CU_ASSERT (res);
             }
@@ -449,14 +418,12 @@ static void test_tree_del1()
         vox_insert_voxel (&tree, dot);
         dot[1]++;
     }
-    CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
 
     dot[1] = 0;
     for (i=0; i<10; i++)
     {
         vox_delete_voxel (&tree, dot);
         dot[1]++;
-        CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
         check_tree (tree);
     }
     vox_destroy_tree (tree);
@@ -472,14 +439,12 @@ static void test_tree_del2()
         vox_insert_voxel (&tree, dot);
         dot[2]++;
     }
-    CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
 
     dot[2] = VOX_MAX_DOTS+9;
     for (i=0; i<10; i++)
     {
         vox_delete_voxel (&tree, dot);
         dot[2]--;
-        CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
         check_tree (tree);
     }
     vox_destroy_tree (tree);
@@ -495,7 +460,6 @@ static void test_tree_del3()
         vox_insert_voxel (&tree, dot);
         dot[0]++;
     }
-    CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
 
     dot[0] = 1;
     for (i=0; i<10; i++)
@@ -526,7 +490,6 @@ static void test_tree_del4()
         }
     }
 
-    CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
     vox_dot_set (dot, 0, 0, 0);
     vox_delete_voxel (&tree, dot);
     CU_ASSERT (!(tree->flags & VOX_LEAF_MASK));
@@ -552,7 +515,6 @@ static void test_tree_del5()
         }
     }
 
-    CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
     vox_dot_set (dot, 1, 1, 1);
     vox_delete_voxel (&tree, dot);
     CU_ASSERT (!(tree->flags & VOX_LEAF_MASK));
@@ -570,7 +532,6 @@ static void test_tree_ins_trans()
     {
         dot[0]++;
         vox_insert_voxel (&tree, dot);
-        CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
     }
     vox_destroy_tree (tree);
 }
@@ -590,7 +551,6 @@ static void test_tree_del_trans()
     dot[0] = 0;
     for (i=0; i<VOX_MAX_DOTS+4; i++)
     {
-        CU_ASSERT (tree->flags & VOX_DENSE_LEAF);
         dot[0]++;
         vox_delete_voxel (&tree, dot);
     }

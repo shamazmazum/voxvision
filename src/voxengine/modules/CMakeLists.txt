@@ -7,6 +7,8 @@ include_directories (
 
 include_directories(${GCD_INCLUDE_DIRS})
 
+find_package (VN3D REQUIRED)
+
 add_library (voxtrees-wrapper SHARED voxtrees.c)
 set_target_properties (voxtrees-wrapper PROPERTIES OUTPUT_NAME voxtrees PREFIX "")
 
@@ -16,6 +18,7 @@ set_target_properties (voxrnd-wrapper PROPERTIES OUTPUT_NAME voxrnd PREFIX "")
 add_library (vn3d-wrapper SHARED vn3d.c)
 set_target_properties (vn3d-wrapper PROPERTIES OUTPUT_NAME vn3d PREFIX "")
 target_include_directories (vn3d-wrapper PRIVATE ${VN3D_INCLUDE_DIR})
+target_link_libraries (vn3d-wrapper PRIVATE ${VN3D_LIBRARY})
 
 add_subdirectory (luasdl2)
 
@@ -25,7 +28,5 @@ install (TARGETS voxtrees-wrapper voxrnd-wrapper LIBRARY
 install (FILES voxutils.lua
   DESTINATION share/voxvision/modules)
 
-if (VN3D_FOUND)
-  install (TARGETS vn3d-wrapper LIBRARY
-    DESTINATION share/voxvision/modules)
-endif (VN3D_FOUND)
+install (TARGETS vn3d-wrapper LIBRARY
+  DESTINATION share/voxvision/modules)
