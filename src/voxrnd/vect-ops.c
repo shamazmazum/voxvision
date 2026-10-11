@@ -3,14 +3,12 @@
 
 #define VOX_N 3
 
-static void vox_cross_product (const vox_dot v1, const vox_dot v2, vox_dot res)
+static void vox_quat_conjugate (const vox_quat q, vox_quat res)
 {
-    float i1 = v1[0], j1 = v1[1], k1 = v1[2];
-    float i2 = v2[0], j2 = v2[1], k2 = v2[2];
-
-    res[0] =  j1*k2 - k1*j2;
-    res[1] = -i1*k2 + k1*i2;
-    res[2] =  i1*j2 - j1*i2;
+    res[0] = +q[0];
+    res[1] = -q[1];
+    res[2] = -q[2];
+    res[3] = -q[3];
 }
 
 void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
@@ -26,22 +24,27 @@ void vox_quat_mul (const vox_quat q1, const vox_quat q2, vox_quat res)
 
 void vox_rotate_vector (const vox_quat base, const vox_dot vector, vox_dot res)
 {
-    vox_dot tmp, tmp2;
-    int i;
-    vox_cross_product ((float*)(base+1), vector, tmp);
-    for (i=0; i<VOX_N; i++) tmp[i] *= 2.0;
-    vox_cross_product ((float*)(base+1), tmp, tmp2);
-    for (i=0; i<VOX_N; i++) res[i] = vector[i] + base[0]*tmp[i] + tmp2[i];
+    vox_quat q, tmp;
+    q[0] = 0;
+    q[1] = vector[0];
+    q[2] = vector[1];
+    q[3] = vector[2];
+
+    vox_quat_conjugate (base, tmp);
+    vox_quat_mul (base, q, q);
+    vox_quat_mul (q, tmp, q);
+
+    res[0] = q[1];
+    res[1] = q[2];
+    res[2] = q[3];
 }
 
 void vox_rotate_vector_q (const vox_quat base, const vox_quat vector, vox_quat res)
 {
-    vox_dot tmp, tmp2;
-    int i;
-    vox_cross_product ((float*)(base+1), (float*)(vector+1), tmp);
-    for (i=0; i<VOX_N; i++) tmp[i] *= 2.0;
-    vox_cross_product ((float*)(base+1), tmp, tmp2);
-    for (i=0; i<VOX_N; i++) res[i+1] = vector[i+1] + base[0]*tmp[i] + tmp2[i];
+    vox_quat q, tmp;
+    vox_quat_conjugate (base, tmp);
+    vox_quat_mul (base, vector, q);
+    vox_quat_mul (q, tmp, res);
 }
 
 void vox_quat_normalize (vox_quat quat)
