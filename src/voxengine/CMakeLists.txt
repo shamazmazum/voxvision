@@ -18,7 +18,7 @@ add_library (voxengine SHARED engine.c)
 set_target_properties (voxengine PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
   C_VISIBILITY_PRESET hidden)
-target_link_libraries (voxengine ${LUA_LIBRARIES} BlocksRuntime)
+target_link_libraries (voxengine ${LUA_LIBRARIES} BlocksRuntime SDL2::SDL2)
 if (GCD_FOUND)
 target_link_libraries (voxengine PkgConfig::GCD)
 endif (GCD_FOUND)

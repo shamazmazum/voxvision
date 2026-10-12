@@ -14,6 +14,7 @@ set_target_properties (voxtrees-wrapper PROPERTIES OUTPUT_NAME voxtrees PREFIX "
 
 add_library (voxrnd-wrapper SHARED voxrnd.c)
 set_target_properties (voxrnd-wrapper PROPERTIES OUTPUT_NAME voxrnd PREFIX "")
+target_link_libraries (voxrnd-wrapper PRIVATE SDL2::SDL2)
 
 add_library (vn3d-wrapper SHARED vn3d.c)
 set_target_properties (vn3d-wrapper PROPERTIES OUTPUT_NAME vn3d PREFIX "")
