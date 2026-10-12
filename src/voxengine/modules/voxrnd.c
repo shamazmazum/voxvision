@@ -267,6 +267,35 @@ static int l_scene_proxy_rebuild (lua_State *L)
     return 0;
 }
 
+static int l_scene_proxy_freeze (lua_State *L)
+{
+    struct vox_node **ndata;
+    struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
+
+    lua_getfield (L, 1, "__tree");
+    ndata = luaL_checkudata (L, -1, TREE_META);
+
+    /*
+     * Asynchronously freeze the tree and then enqueue the new tree for
+     * replacement.
+     */
+    dispatch_group_async (data->scene_group,
+                          dispatch_get_global_queue
+                          (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+                              struct vox_node *new_tree = vox_freeze_tree (data->tree);
+                              if (new_tree != NULL) {
+                                  dispatch_sync (data->scene_sync_queue, ^{
+                                          vox_destroy_tree (data->tree);
+                                          data->tree = new_tree;
+                                          /* Update lua reference */
+                                          *ndata = new_tree;
+                                          vox_context_set_scene (data->context, new_tree);
+                                      });
+                              }
+                          });
+    return 0;
+}
+
 static int l_scene_proxy_ray_intersection (lua_State *L)
 {
     struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
@@ -319,6 +348,7 @@ static const struct luaL_Reg scene_proxy_methods [] = {
     {"__tostring", l_scene_proxy_tostring},
     {"__len", l_scene_proxy_len},
     {"rebuild", l_scene_proxy_rebuild},
+    {"freeze", l_scene_proxy_freeze},
     {"insert", l_scene_proxy_insert},
     {"delete", l_scene_proxy_delete},
     {"ray_intersection", l_scene_proxy_ray_intersection},

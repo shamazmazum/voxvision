@@ -70,6 +70,17 @@ static int rebuildtree (lua_State *L)
     return 0;
 }
 
+static int freezetree (lua_State *L)
+{
+    struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
+    struct vox_node *newtree = vox_freeze_tree (*data);
+    if (newtree != NULL) {
+        vox_destroy_tree (*data);
+        *data = newtree;
+    }
+    return 0;
+}
+
 static int deletetree (lua_State *L)
 {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
@@ -122,6 +133,7 @@ static const struct luaL_Reg tree_methods [] = {
     {"insert", inserttree},
     {"delete", deletetree},
     {"rebuild", rebuildtree},
+    {"freeze", freezetree},
     {"bounding_box", bbtree},
     {"ray_intersection", l_tree_ray_intersection},
     {NULL, NULL}
