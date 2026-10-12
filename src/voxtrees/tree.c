@@ -272,8 +272,7 @@ struct vox_node* vox_rebuild_tree (const struct vox_node *tree) {
     return new_tree;
 }
 
-// TODO: Check the tree is not frozen
-static int voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
+int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
     unsigned int i;
 
     if (VOX_FULLP (tree) && voxel_in_box (&(tree->bounding_box), voxel)) {
@@ -286,7 +285,7 @@ static int voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
         } else {
             const vox_inner_data *inner = &(tree->data.inner);
             i = get_subspace_idx (inner->center, voxel);
-            return voxel_in_tree (inner->children[i], voxel);
+            return vox_voxel_in_tree (inner->children[i], voxel);
         }
     }
     return 0;
@@ -358,7 +357,7 @@ int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
     int res;
 
     vox_align (voxel);
-    res = !(voxel_in_tree (*tree_ptr, voxel));
+    res = !(vox_voxel_in_tree (*tree_ptr, voxel));
     if (res) {
         vox_insert_voxel_ (tree_ptr, voxel);
     }
@@ -424,7 +423,7 @@ int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
     int res;
 
     vox_align (voxel);
-    res = voxel_in_tree (*tree_ptr, voxel);
+    res = vox_voxel_in_tree (*tree_ptr, voxel);
     if (res) {
         vox_delete_voxel_ (tree_ptr, voxel);
     }

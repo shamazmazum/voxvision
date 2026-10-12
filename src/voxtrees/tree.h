@@ -86,6 +86,13 @@ VOX_EXPORT void vox_bounding_box (const struct vox_node *tree, struct vox_box *b
 VOX_EXPORT struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
 
 /**
+   \brief Check if voxel is in the tree.
+
+   \return 1 if yes, 0 otherwise.
+ **/
+VOX_EXPORT int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel);
+
+/**
    \brief Insert a voxel in the tree on the fly.
 
    Many applications of this function will result in unbalanced tree.
