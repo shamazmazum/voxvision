@@ -260,7 +260,7 @@ static uint32_t random_set (vox_dot **setptr, uint32_t n) {
 
 static void check_tree (struct vox_node *tree) {
     vox_dot tmp;
-    int i;
+    unsigned int i;
 
     if (VOX_FULLP (tree)) {
         if (tree->flags & VOX_DENSE_LEAF) {

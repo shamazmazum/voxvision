@@ -72,14 +72,17 @@ VOX_EXPORT float vox_sqr_norm (const vox_dot dot);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
-VOX_EXPORT int get_subspace_idx (const vox_dot center, const vox_dot dot); // KLUDGE: needed for tests
+ // KLUDGE: needed for tests
+VOX_EXPORT unsigned int get_subspace_idx (const vox_dot center, const vox_dot dot);
 
 /*
  * Generally this works like get_subspace_idx () but corrects subspace
  * index if center[i] == dot[i]. In this case, direction[i] is used to
  * choose the index at i-th coordinate.
  */
-int get_corrected_subspace_idx (const vox_dot center, const vox_dot dot, const vox_dot direction);
+unsigned int get_corrected_subspace_idx (const vox_dot center,
+                                         const vox_dot dot,
+                                         const vox_dot direction);
 
 
 /**

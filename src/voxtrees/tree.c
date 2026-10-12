@@ -69,7 +69,8 @@ static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *bo
    \param center the center of subdivision
    \return offset + how many dots were moved
 **/
-static size_t sort_set (vox_dot set[], size_t n, size_t offset, int subspace, const vox_dot center) {
+static size_t sort_set (vox_dot set[], size_t n, size_t offset, unsigned int subspace,
+                        const vox_dot center) {
     size_t i, counter = offset;
     vox_dot tmp;
 
