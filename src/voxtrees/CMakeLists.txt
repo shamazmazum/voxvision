@@ -2,9 +2,9 @@ add_definitions (-DVOXTREES_SOURCE)
 
 add_library (voxtrees SHARED
   geom.c
-#  search.c
+  search.c
   tree.c
-#  datareader.c
+  datareader.c
 )
 if (WITH_DTRACE)
   include_directories (${CMAKE_CURRENT_BINARY_DIR})

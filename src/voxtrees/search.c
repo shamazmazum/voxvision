@@ -7,11 +7,12 @@
 
 const struct vox_node*
 vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
-                           const vox_dot dir, vox_dot res) {
+                           const vox_dot dir, vox_dot *resptr) {
     vox_dot bb_inter;
     unsigned int i;
     vox_dot *plane_inter;
     int *plane_inter_idx, tmp2;
+    vox_dot res;
     const struct vox_node *leaf = NULL;
 
     /*
@@ -19,7 +20,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
      * This will help us with little optimization technik.
      */
     if (!(VOX_FULLP (tree)) ||
-        !(hit_box (&(tree->bounding_box), origin, dir, bb_inter))) {
+        !(hit_box (&(tree->bounding_box), origin, dir, &bb_inter))) {
         WITH_STAT (VOXTREES_RTI_EARLY_EXIT());
         goto end;
     }
@@ -28,7 +29,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
      */
     if (tree->flags & VOX_DENSE_LEAF) {
         leaf = tree;
-        vox_dot_copy (res, bb_inter);
+        res = bb_inter;
         WITH_STAT (VOXTREES_RTI_EARLY_EXIT());
         goto end;
     }
@@ -47,7 +48,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         for (i=0; i<tree->dots_num; i++) {
             vox_dot_copy (voxel->min, dots[i]);
             vox_dot_add (voxel->min, vox_voxel, voxel->max);
-            if (hit_box (voxel, bb_inter, dir, far_inter)) {
+            if (hit_box (voxel, bb_inter, dir, &far_inter)) {
                 dist_far = vox_abs_metric (bb_inter, far_inter);
                 /*
                  * This is the optimization I mentioned earlier.
@@ -57,13 +58,13 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                  * in certain conditions. The branch should be predictible.
                  */
                 if (dist_far == 0) {
-                    vox_dot_copy (res, far_inter);
+                    res = far_inter;
                     leaf = tree;
                     WITH_STAT (VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1));
                     goto end;
                 } if (dist_far < dist_closest) {
                     dist_closest = dist_far;
-                    vox_dot_copy (res, far_inter);
+                    res = far_inter;
                     leaf = tree;
                 }
             }
@@ -80,7 +81,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
      * Look if we are lucky and the ray hits any box before it traverses the dividing
      * planes (in other words it hits a box close enough to the entry point).
      */
-    if ((leaf = vox_ray_tree_intersection (inner->children[subspace], bb_inter, dir, res))) {
+    if ((leaf = vox_ray_tree_intersection (inner->children[subspace], bb_inter, dir, &res))) {
         WITH_STAT (VOXTREES_RTI_FIRST_SUBSPACE());
         goto end;
     }
@@ -97,7 +98,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
     for (i=0; i<VOX_N; i++) {
         plane_inter_idx[plane_counter] = i;
         if (hit_plane_within_box (bb_inter, dir, inner->center, i,
-                                  plane_inter[plane_counter],
+                                  &plane_inter[plane_counter],
                                   &(tree->bounding_box))) {
             plane_counter++;
         }
@@ -131,13 +132,16 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
          * ray origin.
          */
         if ((leaf = vox_ray_tree_intersection (inner->children[subspace], plane_inter[i],
-                                               dir, res))) {
+                                               dir, &res))) {
             goto end;
         }
     }
     WITH_STAT (VOXTREES_RTI_WORST_CASE());
 
 end:
+    if (leaf != NULL) {
+        *resptr = res;
+    }
     return leaf;
 }
 

@@ -447,65 +447,65 @@ static void test_tree_delete () {
     }
 }
 
-/* static void test_tree_g676d50c () { */
-/*     struct vox_node *tree = NULL; */
-/*     vox_dot dot; */
+static void test_tree_g676d50c () {
+    struct vox_node *tree = NULL;
+    vox_dot dot;
 
-/*     dot[0] = 0; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
+    dot[0] = 0; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
 
-/*     dot[0] = 0; dot[1] = 0; dot[2] = -1; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = 0; dot[2] = -2; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = 0; dot[2] = 1; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = 0; dot[2] = 2; */
-/*     vox_insert_voxel (&tree, dot); */
+    dot[0] = 0; dot[1] = 0; dot[2] = -1;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 0; dot[2] = -2;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 0; dot[2] = 1;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 0; dot[2] = 2;
+    vox_insert_voxel (&tree, dot);
 
-/*     dot[0] = -1; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = -2; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = -3; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = -4; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
+    dot[0] = -1; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = -2; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = -3; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = -4; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
 
-/*     dot[0] = 1; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 2; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 3; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 4; dot[1] = 0; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
+    dot[0] = 1; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 2; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 3; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 4; dot[1] = 0; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
 
-/*     dot[0] = 0; dot[1] = -1; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = -2; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = -3; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = -4; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
+    dot[0] = 0; dot[1] = -1; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = -2; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = -3; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = -4; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
 
-/*     dot[0] = 0; dot[1] = 1; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = 2; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = 3; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
-/*     dot[0] = 0; dot[1] = 4; dot[2] = 0; */
-/*     vox_insert_voxel (&tree, dot); */
+    dot[0] = 0; dot[1] = 1; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 2; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 3; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
+    dot[0] = 0; dot[1] = 4; dot[2] = 0;
+    vox_insert_voxel (&tree, dot);
 
-/*     vox_dot origin = {-2, -2, 0}; */
-/*     vox_dot dir = {1, 1, -1}; */
-/*     vox_dot res; */
+    vox_dot origin = {-2, -2, 0};
+    vox_dot dir = {1, 1, -1};
+    vox_dot res;
 
-/*     const struct vox_node *leaf = vox_ray_tree_intersection (tree, origin, dir, res); */
-/*     CU_ASSERT (leaf != NULL); */
-/* } */
+    const struct vox_node *leaf = vox_ray_tree_intersection (tree, origin, dir, &res);
+    CU_ASSERT (leaf != NULL);
+}
 
 /* static void test_camera (const char *name) { */
 /*     printf (" %s...", name); */
@@ -638,7 +638,7 @@ static CU_TestInfo voxtrees_tests[] = {
     { "double insertion", test_tree_double_insert },
     { "insertion", test_tree_insert },
     { "deletion", test_tree_delete },
-    //{ "search (commit 676d50c)", test_tree_g676d50c },
+    { "search (commit 676d50c)", test_tree_g676d50c },
     CU_TEST_INFO_NULL
 };
 
