@@ -27,41 +27,33 @@ static void update_fill_ratio (const struct vox_box *box, size_t n) {
 }
 #endif
 
-static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot *resptr) {
-    vox_dot res;
+static vox_dot find_center (const vox_dot set[], size_t n, const struct vox_box *box) {
+    vox_dot res = (vox_dot){0, 0, 0, 0};
     size_t i;
-    memset (&res, 0, sizeof(vox_dot));
-    vox_dot tmp;
 
     for (i=0; i<n; i++) {
-        vox_dot_sub (set[i], box->min, tmp);
-        vox_dot_add (tmp, res, res);
+        res += set[i] - box->min;
     }
 
-    for (i=0; i<VOX_N; i++) {
-        res[i] = ceilf ((res[i]/n + box->min[i])/vox_voxel[i])*vox_voxel[i];
-    }
-
-    *resptr = res;
+    // FIXME: Should it be aligned to the voxel size?
+    res = vox_voxel * __builtin_elementwise_ceil ((res/n + box->min) / vox_voxel);
+    return res;
 }
 
 static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *box) {
     size_t i;
-    int j;
-    
-    vox_dot_copy (box->min, set[0]);
-    vox_dot_copy (box->max, set[0]);
+    vox_dot min, max;
+    assert (n != 0);
+    max = min = set[0];
 
     for (i=0; i<n; i++) {
-        for (j=0; j<VOX_N; j++) {
-            if (set[i][j] < box->min[j]) {
-                box->min[j] = set[i][j];
-            } else if (set[i][j] > box->max[j]) {
-                box->max[j] = set[i][j];
-            }
-        }
+        min = __builtin_elementwise_min (min, set[i]);
+        max = __builtin_elementwise_max (max, set[i]);
     }
-    vox_dot_add (box->max, vox_voxel, box->max);
+    max += vox_voxel;
+
+    box->min = min;
+    box->max = max;
 }
 
 /**
@@ -80,9 +72,9 @@ static size_t sort_set (vox_dot set[], size_t n, size_t offset, unsigned int sub
 
     for (i=offset; i<n; i++) {
         if (get_subspace_idx (center, set[i]) == subspace) {
-            vox_dot_copy (tmp, set[counter]);
-            vox_dot_copy (set[counter], set[i]);
-            vox_dot_copy (set[i], tmp);
+            tmp = set[counter];
+            set[counter] = set[i];
+            set[i] = tmp;
             counter++;
         }
     }
@@ -90,25 +82,16 @@ static size_t sort_set (vox_dot set[], size_t n, size_t offset, unsigned int sub
     return counter;
 }
 
-static void vox_align (vox_dot dot) {
-    unsigned int i;
-    float tmp;
-
-    for (i=0; i<VOX_N; i++) {
-        tmp = floorf (dot[i] / vox_voxel[i]);
-        dot[i] = vox_voxel[i] * tmp;
-    }
+static vox_dot vox_align (vox_dot dot) {
+    vox_dot tmp = __builtin_elementwise_floor (dot / vox_voxel);
+    return vox_voxel * tmp;
 }
 
 static void update_bounding_box (struct vox_box *box, const vox_dot dot) {
-    vox_dot dot_max;
-    unsigned int i;
-    vox_dot_add (dot, vox_voxel, dot_max);
+    vox_dot dot_max = dot + vox_voxel;
 
-    for (i=0; i<VOX_N; i++) {
-        box->min[i] = (dot[i] < box->min[i]) ? dot[i] : box->min[i];
-        box->max[i] = (dot_max[i] > box->max[i]) ? dot_max[i] : box->max[i];
-    }
+    box->min = __builtin_elementwise_min (box->min, dot);
+    box->max = __builtin_elementwise_max (box->max, dot_max);
 }
 
 static void* node_alloc (int flavor) {
@@ -159,7 +142,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n) {
             size_t new_offset, offset = 0;
 
             node->flags = 0;
-            find_center (set, n, &(node->bounding_box), &inner->center);
+            inner->center = find_center (set, n, &(node->bounding_box));
             for (idx=0; idx<VOX_NS; idx++) {
                 new_offset = sort_set (set, n, offset, idx, inner->center);
                 if (offset == 0 && new_offset == n) {
@@ -180,7 +163,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n) {
                     newnode->data.dots = vox_alloc (n*sizeof(vox_dot));
                     memcpy (newnode->data.dots, set, n*sizeof(vox_dot));
                     /*
-                     * We can free() the old node, since it has not any
+                     * We can free() the old node, since it has no
                      * allocated children.
                      */
                     free (node);
@@ -235,10 +218,7 @@ void vox_bounding_box (const struct vox_node* tree, struct vox_box *box) {
     vox_box_copy (box, &(tree->bounding_box));
 }
 
-/*
-  Turn a tree back to plain array.
-  TODO: Check the tree is not frozen.
-*/
+// Turn a tree back to plain array.
 static size_t flatten_tree (const struct vox_node *tree, vox_dot *set) {
     size_t count = 0;
     if (VOX_FULLP (tree)) {
@@ -354,7 +334,7 @@ again:
         WITH_STAT (VOXTREES_LEAF_INSERTION());
         if (tree->dots_num < VOX_MAX_DOTS) {
             // We have enough space to add a voxel
-            vox_dot_copy (tree->data.dots[tree->dots_num], voxel);
+            tree->data.dots[tree->dots_num] = voxel;
             tree->dots_num++;
         } else {
             // If not, create a new subtree with vox_make_tree()
@@ -362,7 +342,7 @@ again:
             dots = alloca (sizeof (vox_dot)*(VOX_MAX_DOTS+1) + 16);
             dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
             memcpy (dots, tree->data.dots, sizeof(vox_dot)*tree->dots_num);
-            vox_dot_copy (dots[tree->dots_num], voxel);
+            dots[tree->dots_num] = voxel;
             node = vox_make_tree (dots, tree->dots_num+1);
             vox_destroy_tree (tree);
         }
@@ -389,7 +369,7 @@ vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
     if (VOX_FROZENP (*tree_ptr)) {
         res = VOX_MOD_FROZEN;
     } else {
-        vox_align (voxel);
+        voxel = vox_align (voxel);
         if (vox_voxel_in_tree (*tree_ptr, voxel)) {
             res = VOX_MOD_NOOP;
         } else {
@@ -463,7 +443,7 @@ vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
     if (VOX_FROZENP(*tree_ptr)) {
         res = VOX_MOD_FROZEN;
     } else {
-        vox_align (voxel);
+        voxel = vox_align (voxel);
         if (vox_voxel_in_tree (*tree_ptr, voxel)) {
             vox_delete_voxel_ (tree_ptr, voxel);
             res = VOX_MOD_OK;
