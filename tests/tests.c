@@ -244,74 +244,6 @@ static void rot_saves_norm () {
     }
 }
 
-static uint32_t random_set (vox_dot **setptr, uint32_t n) {
-    vox_dot *set = aligned_alloc (16, sizeof (vox_dot) * n);
-
-    for (uint32_t i = 0; i < n; i++) {
-        vox_dot_set(set[i],
-                    arc4random_uniform(1000),
-                    arc4random_uniform(1000),
-                    arc4random_uniform(1000));
-    }
-
-    *setptr = set;
-    return n;
-}
-
-static void check_tree (struct vox_node *tree) {
-    vox_dot tmp;
-    unsigned int i;
-
-    if (VOX_FULLP (tree)) {
-        if (tree->flags & VOX_DENSE_LEAF) {
-            /*
-              Dense leafs contain an exact number of dots depending on
-              volume of their bounding boxes
-            */
-            vox_dot size;
-            for (i=0; i<VOX_N; i++) {
-                size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
-            }
-            float bb_volume = size[0]*size[1]*size[2];
-            bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
-            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == (size_t)bb_volume);
-        } else if (tree->flags & VOX_LEAF) {
-            vox_dot *dots = tree->data.dots;
-            // Check that all voxels are covered by bounding box
-            for (i=0; i<tree->dots_num; i++) {
-                vox_dot_add (dots[i], vox_voxel, tmp);
-                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), dots[i]));
-                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), tmp));
-            }
-        } else {
-            vox_inner_data inner = tree->data.inner;
-            size_t number_sum = 0;
-            for (i=0; i<VOX_NS; i++) {
-                struct vox_node *child = inner.children[i];
-                number_sum += vox_voxels_in_tree (child);
-                if (VOX_FULLP (child)) {
-                    // Check if child's bounding box is inside parent's
-                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.min));
-                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.max));
-
-                    /*
-                      Check subspace. We add/subtract a small value (half size of a voxel)
-                      to bounding box corners because faces of bounding box may belong to
-                      another subspace. What is inside may not.
-                    */
-                    vox_dot_add (child->bounding_box.min, half_voxel, tmp);
-                    CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
-                    vox_dot_add (child->bounding_box.max, neg_half_voxel, tmp);
-                    CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
-                }
-                // Test a child recursively
-                check_tree (child);
-            }
-            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == number_sum);
-        }
-    }
-}
-
 static void quat_mul () {
     vox_quat res;
     
@@ -369,6 +301,76 @@ static void quat_mul () {
     CU_ASSERT (quat_eq (res, e, precise_check));
 }
 
+static uint32_t random_set (vox_dot **setptr, uint32_t n) {
+    vox_dot *set = aligned_alloc (16, sizeof (vox_dot) * n);
+
+    for (uint32_t i = 0; i < n; i++) {
+        vox_dot_set(set[i],
+                    arc4random_uniform(1000),
+                    arc4random_uniform(1000),
+                    arc4random_uniform(1000));
+    }
+
+    *setptr = set;
+    return n;
+}
+
+static void check_tree (struct vox_node *tree) {
+    vox_dot tmp;
+    unsigned int i;
+
+    if (VOX_FULLP (tree)) {
+        CU_ASSERT_FATAL (!(tree->flags & VOX_DENSE_LEAF) || (tree->flags & VOX_FROZEN));
+
+        if (tree->flags & VOX_DENSE_LEAF) {
+            /*
+              Dense leafs contain an exact number of dots depending on
+              volume of their bounding boxes
+            */
+            vox_dot size;
+            for (i=0; i<VOX_N; i++) {
+                size[i] = tree->bounding_box.max[i] - tree->bounding_box.min[i];
+            }
+            float bb_volume = size[0]*size[1]*size[2];
+            bb_volume /= vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
+            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == (size_t)bb_volume);
+        } else if (tree->flags & VOX_LEAF) {
+            vox_dot *dots = tree->data.dots;
+            // Check that all voxels are covered by bounding box
+            for (i=0; i<tree->dots_num; i++) {
+                vox_dot_add (dots[i], vox_voxel, tmp);
+                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), dots[i]));
+                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), tmp));
+            }
+        } else {
+            vox_inner_data inner = tree->data.inner;
+            size_t number_sum = 0;
+            for (i=0; i<VOX_NS; i++) {
+                struct vox_node *child = inner.children[i];
+                number_sum += vox_voxels_in_tree (child);
+                if (VOX_FULLP (child)) {
+                    // Check if child's bounding box is inside parent's
+                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.min));
+                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.max));
+
+                    /*
+                      Check subspace. We add/subtract a small value (half size of a voxel)
+                      to bounding box corners because faces of bounding box may belong to
+                      another subspace. What is inside may not.
+                    */
+                    vox_dot_add (child->bounding_box.min, half_voxel, tmp);
+                    CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
+                    vox_dot_add (child->bounding_box.max, neg_half_voxel, tmp);
+                    CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
+                }
+                // Test a child recursively
+                check_tree (child);
+            }
+            CU_ASSERT_FATAL (vox_voxels_in_tree (tree) == number_sum);
+        }
+    }
+}
+
 static void test_tree_cons () {
     for (int i = 0; i < 100; i++) {
         vox_dot *set;
@@ -380,6 +382,19 @@ static void test_tree_cons () {
     }
 }
 
+static void test_tree_freeze () {
+    for (int i = 0; i < 100; i++) {
+        vox_dot *set;
+        uint32_t n = random_set (&set, 10000);
+        struct vox_node *tree = vox_make_tree (set, n);
+        free (set);
+        struct vox_node *frozen = vox_freeze_tree (tree);
+        vox_destroy_tree (tree);
+        check_tree (frozen);
+        vox_destroy_tree (frozen);
+    }
+}
+
 static void test_tree_double_insert () {
     for (int i = 0; i < 100; i++) {
         vox_dot *set;
@@ -387,7 +402,7 @@ static void test_tree_double_insert () {
         struct vox_node *tree = vox_make_tree (set, n);
 
         for (uint32_t j = 0; j < n; j++) {
-            CU_ASSERT (!vox_insert_voxel (&tree, set[j]));
+            CU_ASSERT (vox_insert_voxel (&tree, set[j]) == VOX_MOD_NOOP);
         }
 
         free (set);
@@ -423,7 +438,7 @@ static void test_tree_delete () {
         struct vox_node *tree = vox_make_tree (set, n);
 
         for (uint32_t j = 0; j < n; j++) {
-            CU_ASSERT (vox_delete_voxel (&tree, set[j]));
+            CU_ASSERT (vox_delete_voxel (&tree, set[j]) == VOX_MOD_OK);
             check_tree (tree);
         }
 
@@ -619,6 +634,7 @@ static CU_TestInfo vectops_tests[] = {
 /* Tree construction and search (voxtrees) */
 static CU_TestInfo voxtrees_tests[] = {
     { "tree construction", test_tree_cons },
+    { "frozen trees", test_tree_freeze },
     { "double insertion", test_tree_double_insert },
     { "insertion", test_tree_insert },
     { "deletion", test_tree_delete },

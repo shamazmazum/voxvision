@@ -275,12 +275,14 @@ int main (int argc, char *argv[])
                                           dispatch_get_global_queue
                                           (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                                               struct vox_node *new_tree = vox_rebuild_tree (tree);
-                                              dispatch_sync (tree_queue, ^{
-                                                      vox_destroy_tree (tree);
-                                                      tree = new_tree;
-                                                      vox_context_set_scene (ctx, tree);
-                                                      printf ("Tree rebuilt\n");
-                                                  });
+                                              if (new_tree != NULL) {
+                                                  dispatch_sync (tree_queue, ^{
+                                                          vox_destroy_tree (tree);
+                                                          tree = new_tree;
+                                                          vox_context_set_scene (ctx, tree);
+                                                          printf ("Tree rebuilt\n");
+                                                      });
+                                              }
                                           });
                 }
                 else if (event.key.keysym.scancode == SDL_SCANCODE_F11)

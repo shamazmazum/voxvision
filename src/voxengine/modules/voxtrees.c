@@ -63,8 +63,10 @@ static int rebuildtree (lua_State *L)
 {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     struct vox_node *newtree = vox_rebuild_tree (*data);
-    vox_destroy_tree (*data);
-    *data = newtree;
+    if (newtree != NULL) {
+        vox_destroy_tree (*data);
+        *data = newtree;
+    }
     return 0;
 }
 

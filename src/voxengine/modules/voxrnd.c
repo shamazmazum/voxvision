@@ -254,13 +254,15 @@ static int l_scene_proxy_rebuild (lua_State *L)
                           dispatch_get_global_queue
                           (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                               struct vox_node *new_tree = vox_rebuild_tree (data->tree);
-                              dispatch_sync (data->scene_sync_queue, ^{
-                                      vox_destroy_tree (data->tree);
-                                      data->tree = new_tree;
-                                      /* Update lua reference */
-                                      *ndata = new_tree;
-                                      vox_context_set_scene (data->context, new_tree);
-                                  });
+                              if (new_tree != NULL) {
+                                  dispatch_sync (data->scene_sync_queue, ^{
+                                          vox_destroy_tree (data->tree);
+                                          data->tree = new_tree;
+                                          /* Update lua reference */
+                                          *ndata = new_tree;
+                                          vox_context_set_scene (data->context, new_tree);
+                                      });
+                              }
                           });
     return 0;
 }

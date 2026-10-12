@@ -116,9 +116,13 @@ static void* node_alloc (int flavor) {
     size_t size = offsetof (struct vox_node, data);
     size_t addend;
 
-    if (flavor & VOX_DENSE_LEAF) addend = 0;
-    else if (flavor & VOX_LEAF) addend = sizeof (vox_dot*);
-    else addend = sizeof (vox_inner_data);
+    if (flavor & VOX_DENSE_LEAF) {
+        addend = 0;
+    } else if (flavor & VOX_LEAF) {
+        addend = sizeof (vox_dot*);
+    } else {
+        addend = sizeof (vox_inner_data);
+    }
 
     return vox_alloc (size+addend);
 }
@@ -263,13 +267,48 @@ static size_t flatten_tree (const struct vox_node *tree, vox_dot *set) {
 
 struct vox_node* vox_rebuild_tree (const struct vox_node *tree) {
     struct vox_node *new_tree = NULL;
-    if (VOX_FULLP (tree)) {
+    if (VOX_FULLP (tree) && !VOX_FROZENP(tree)) {
         vox_dot *dots = vox_alloc (sizeof(vox_dot) * tree->dots_num);
         flatten_tree (tree, dots);
         new_tree = vox_make_tree (dots, tree->dots_num);
         free (dots);
     }
     return new_tree;
+}
+
+struct vox_node* vox_freeze_tree (const struct vox_node *tree) {
+    struct vox_node *newnode = NULL;
+    int densep;
+    unsigned int flags;
+    vox_inner_data *newinner;
+    const vox_inner_data *oldinner;
+
+    if (VOX_FULLP (tree) && !VOX_FROZENP (tree)) {
+        densep = dense_set_p (&tree->bounding_box, tree->dots_num);
+        flags = (densep) ? VOX_DENSE_LEAF : tree->flags;
+        flags |= VOX_FROZEN;
+        newnode = node_alloc (flags);
+        vox_box_copy (&newnode->bounding_box, &tree->bounding_box);
+        newnode->flags = flags;
+        newnode->dots_num = tree->dots_num;
+
+        if (densep) {
+            // We are done
+        } else if (VOX_LEAFP (tree)) {
+            newnode->data.dots = vox_alloc (VOX_MAX_DOTS * sizeof(vox_dot));
+            memcpy (newnode->data.dots, tree->data.dots, tree->dots_num * sizeof(vox_dot));
+        } else {
+            newinner = &newnode->data.inner;
+            oldinner = &tree->data.inner;
+            memcpy (newinner->center, oldinner->center, sizeof (vox_dot));
+
+            for (unsigned int i = 0; i < VOX_NS; i++) {
+                newinner->children[i] = vox_freeze_tree (oldinner->children[i]);
+            }
+        }
+    }
+
+    return newnode;
 }
 
 int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
@@ -292,7 +331,6 @@ int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
 }
 
 // always inserts
-// TODO: Check that a tree is not frozen
 static void vox_insert_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
     struct vox_node *tree;
@@ -352,26 +390,33 @@ done:
     *tree_ptr = node;
 }
 
-// TODO: Check the tree is not frozen
-int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
-    int res;
+enum vox_modification_result
+vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
+    enum vox_modification_result res;
 
-    vox_align (voxel);
-    res = !(vox_voxel_in_tree (*tree_ptr, voxel));
-    if (res) {
-        vox_insert_voxel_ (tree_ptr, voxel);
+    if (VOX_FROZENP (*tree_ptr)) {
+        res = VOX_MOD_FROZEN;
+    } else {
+        vox_align (voxel);
+        if (vox_voxel_in_tree (*tree_ptr, voxel)) {
+            res = VOX_MOD_NOOP;
+        } else {
+            vox_insert_voxel_ (tree_ptr, voxel);
+            res = VOX_MOD_OK;
+        }
     }
+
     return res;
 }
 
-int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z) {
+enum vox_modification_result
+vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z) {
     vox_dot dot;
     dot[0] = x; dot[1] = y; dot[2] = z;
     return vox_insert_voxel (tree_ptr, dot);
 }
 
 // It always deletes.
-// TODO: Not frozen
 static void vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
     struct vox_node *tree, *node;
@@ -419,18 +464,27 @@ again:
     }
 }
 
-int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
-    int res;
+enum vox_modification_result
+vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
+    enum vox_modification_result res;
 
-    vox_align (voxel);
-    res = vox_voxel_in_tree (*tree_ptr, voxel);
-    if (res) {
-        vox_delete_voxel_ (tree_ptr, voxel);
+    if (VOX_FROZENP(*tree_ptr)) {
+        res = VOX_MOD_FROZEN;
+    } else {
+        vox_align (voxel);
+        if (vox_voxel_in_tree (*tree_ptr, voxel)) {
+            vox_delete_voxel_ (tree_ptr, voxel);
+            res = VOX_MOD_OK;
+        } else {
+            res = VOX_MOD_NOOP;
+        }
     }
+
     return res;
 }
 
-int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z) {
+enum vox_modification_result
+vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z) {
     vox_dot dot;
     dot[0] = x; dot[1] = y; dot[2] = z;
     return vox_delete_voxel (tree_ptr, dot);

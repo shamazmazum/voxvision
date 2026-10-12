@@ -16,8 +16,10 @@
 #define VOX_DENSE_LEAF 2
 #define VOX_LEAF_MASK 3
 #define VOX_OVERFLOW 4
+#define VOX_FROZEN 8
 #define VOX_LEAFP(node) (!(node) || ((node)->flags & VOX_LEAF_MASK))
 #define VOX_FULLP(node) ((node))
+#define VOX_FROZENP(node) ((node) && ((node)->flags & VOX_FROZEN))
 
 typedef struct
 {
@@ -82,8 +84,30 @@ VOX_EXPORT void vox_bounding_box (const struct vox_node *tree, struct vox_box *b
    You can rebuild a tree completely and destroy the old one with
    vox_destroy_tree(). The new tree can be more balanced. Use this
    after a big amount of insertions or deletions.
+
+   \return A new tree or NULL if the tree is frozen.
 **/
 VOX_EXPORT struct vox_node* vox_rebuild_tree (const struct vox_node *tree);
+
+/**
+   \brief Return a frozen copy of a tree.
+
+   A frozen copy cannot be modified. Also some internal structures of
+   a frozen tree may be optimized for better performance of search
+   queries.
+
+   \return A new frozen tree. If the tree is already frozen, NULL is returned.
+**/
+VOX_EXPORT struct vox_node* vox_freeze_tree (const struct vox_node *tree);
+
+/**
+   \brief Enum type returned by vox_insert_voxel() or vox_delete_voxel()
+ **/
+enum vox_modification_result {
+    VOX_MOD_OK,     /**< \brief Success */
+    VOX_MOD_FROZEN, /**< \brief Tree is frozen, no modifications can be performed. */
+    VOX_MOD_NOOP    /**< \brief This operation did nothing. */
+};
 
 /**
    \brief Check if voxel is in the tree.
@@ -98,9 +122,10 @@ VOX_EXPORT int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot vox
    Many applications of this function will result in unbalanced tree.
    You can rebalance the tree by recreating it with vox_rebuild_tree()
 
-   \return 1 on success, 0 if the voxel was already in the tree.
+   \return VOX_MOD_OK on success or an error code VOX_MOD_FROZEN or VOX_MOD_NOOP.
 **/
-VOX_EXPORT int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+VOX_EXPORT enum vox_modification_result
+vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 /**
    \brief Insert a voxel in the tree on the fly.
@@ -108,7 +133,8 @@ VOX_EXPORT int vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
    This is like vox_insert_voxel(), but voxel coordinates are given
    instead of vox_dot value.
 **/
-VOX_EXPORT int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
+VOX_EXPORT enum vox_modification_result
+vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 
 /**
    \brief Delete a voxel from the tree on the fly.
@@ -116,9 +142,10 @@ VOX_EXPORT int vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, floa
    You can call vox_rebuild_tree() after many applications of this
    function to get a more balanced tree.
 
-   \return 1 on success, 0 if there was no such voxel in the tree.
+   \return VOX_MOD_OK on success or an error code VOX_MOD_FROZEN or VOX_MOD_NOOP.
 **/
-VOX_EXPORT int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
+VOX_EXPORT enum vox_modification_result
+vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 /**
    \brief Delete a voxel from the tree on the fly.
@@ -126,7 +153,8 @@ VOX_EXPORT int vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
    This is like vox_delete_voxel(), but voxel coordinates are given
    instead of vox_dot value.
 **/
-VOX_EXPORT int vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
+VOX_EXPORT enum vox_modification_result
+vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 
 /**
    \brief Dump a tree to standard output stream.
