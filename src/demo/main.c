@@ -285,6 +285,26 @@ int main (int argc, char *argv[])
                                               }
                                           });
                 }
+                else if (event.key.keysym.scancode == SDL_SCANCODE_Z)
+                {
+                    /*
+                      Freeze the tree asynchronously and then
+                      update the context.
+                    */
+                    dispatch_group_async (tree_group,
+                                          dispatch_get_global_queue
+                                          (DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+                                              struct vox_node *new_tree = vox_freeze_tree (tree);
+                                              if (new_tree != NULL) {
+                                                  dispatch_sync (tree_queue, ^{
+                                                          vox_destroy_tree (tree);
+                                                          tree = new_tree;
+                                                          vox_context_set_scene (ctx, tree);
+                                                          printf ("Tree frozen\n");
+                                                      });
+                                              }
+                                          });
+                }
                 else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
                 {
                     vox_screenshot (ctx, NULL);
