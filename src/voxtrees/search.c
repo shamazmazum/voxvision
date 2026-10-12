@@ -41,14 +41,14 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
          */
         float dist_closest = INFINITY, dist_far;
         vox_dot *dots = tree->data.dots;
-        struct vox_box *voxel = alloca (sizeof (struct vox_box));
+        struct vox_box voxel;
         vox_dot far_inter;
 
         WITH_STAT (VOXTREES_RTI_VOXELS_TRAVERSED(tree->dots_num));
         for (i=0; i<tree->dots_num; i++) {
-            vox_dot_copy (voxel->min, dots[i]);
-            vox_dot_add (voxel->min, vox_voxel, voxel->max);
-            if (hit_box (voxel, bb_inter, dir, &far_inter)) {
+            voxel.min = dots[i];
+            voxel.max = voxel.min + vox_voxel;
+            if (hit_box (&voxel, bb_inter, dir, &far_inter)) {
                 dist_far = vox_abs_metric (bb_inter, far_inter);
                 /*
                  * This is the optimization I mentioned earlier.
