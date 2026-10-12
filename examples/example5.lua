@@ -87,8 +87,12 @@ function tick (world, time)
             end
 
          elseif event.keysym.sym == vs.key.r then
-            print "Rebuilding tree"
+            print "Rebuilding the tree"
             tree:rebuild()
+
+         elseif event.keysym.sym == vs.key.z then
+            print "Freezing the tree"
+            tree:freeze()
 
          elseif event.keysym.sym == vs.key.m then
             local mode = vs.getRelativeMouseMode()
