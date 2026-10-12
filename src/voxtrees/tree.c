@@ -131,18 +131,6 @@ static void* node_alloc (int flavor) {
     return vox_alloc (size+addend);
 }
 
-struct vox_node* vox_make_dense_leaf (const struct vox_box *box) {
-    struct vox_node *res = node_alloc (VOX_DENSE_LEAF);
-    size_t dim[3];
-
-    vox_box_copy (&(res->bounding_box), box);
-    res->flags = VOX_DENSE_LEAF;
-    get_dimensions (box, dim);
-    res->dots_num = dim[0]*dim[1]*dim[2];
-
-    return res;
-}
-
 /*
   Self-explanatory. No, really.
   Being short: if number of voxels in a set is less or equal

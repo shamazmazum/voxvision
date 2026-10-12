@@ -165,16 +165,6 @@ vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 VOX_EXPORT void vox_dump_tree (const struct vox_node *tree);
 
 /**
-   \brief Create a cuboid tree.
-
-   Create a tree consisting of one big box. The name "dense leaf"
-   comes from the library's internals. It means that the library has a
-   special way for dealing with tree nodes which consist only from one
-   big box. This function is a user interface to that mechanism.
-**/
-VOX_EXPORT struct vox_node* vox_make_dense_leaf (const struct vox_box *box);
-
-/**
    \brief Set global voxel size.
 
    This function sets global voxel size. You must rebuild all trees

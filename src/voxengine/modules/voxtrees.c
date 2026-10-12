@@ -21,18 +21,6 @@ static int newtree (lua_State *L)
     return 1;
 }
 
-static int newdenseleaf (lua_State *L)
-{
-    struct vox_box box;
-    READ_DOT (box.min, 1);
-    READ_DOT (box.max, 2);
-
-    newtree (L);
-    struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
-    *data = vox_make_dense_leaf (&box);
-    return 1;
-}
-
 static int destroytree (lua_State *L)
 {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
@@ -379,7 +367,6 @@ static int find_data_file (lua_State *L)
 static const struct luaL_Reg voxtrees [] = {
     {"tree", newtree},
     {"dotset", newdotset},
-    {"boxtree", newdenseleaf},
     {"settree", newsettree},
     {"voxelsize", voxelsize},
     {"read_raw_data", read_raw_data},

@@ -202,18 +202,3 @@ int divide_box (const struct vox_box *box,
     }
     return 1;
 }
-
-/*
-  XXX: Use of this function is discouraged.
-  This function is used only for dense leafs to get dimensions and number of
-  voxels inside those leafs. If the precision of floating point arithmetic is
-  not enough, this function will return wrong results. Further work must be done
-  to eliminate use of this function (and rework flatten_tree() so it doesn't
-  depend on this one).
-*/
-void get_dimensions (const struct vox_box *box, size_t dim[]) {
-    int i;
-    for (i=0; i<VOX_N; i++) {
-        dim[i] = (box->max[i] - box->min[i]) / vox_voxel[i];
-    }
-}
