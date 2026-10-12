@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tree.h"
 #include "geom.h"
@@ -26,9 +27,10 @@ static void update_fill_ratio (const struct vox_box *box, size_t n) {
 }
 #endif
 
-static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot res) {
+static void find_center (const vox_dot set[], size_t n, const struct vox_box *box, vox_dot *resptr) {
+    vox_dot res;
     size_t i;
-    memset (res, 0, sizeof(vox_dot));
+    memset (&res, 0, sizeof(vox_dot));
     vox_dot tmp;
 
     for (i=0; i<n; i++) {
@@ -39,6 +41,8 @@ static void find_center (const vox_dot set[], size_t n, const struct vox_box *bo
     for (i=0; i<VOX_N; i++) {
         res[i] = ceilf ((res[i]/n + box->min[i])/vox_voxel[i])*vox_voxel[i];
     }
+
+    *resptr = res;
 }
 
 static void calc_bounding_box (const vox_dot set[], size_t n, struct vox_box *box) {
@@ -167,7 +171,7 @@ struct vox_node* vox_make_tree (vox_dot set[], size_t n) {
             size_t new_offset, offset = 0;
 
             node->flags = 0;
-            find_center (set, n, &(node->bounding_box), inner->center);
+            find_center (set, n, &(node->bounding_box), &inner->center);
             for (idx=0; idx<VOX_NS; idx++) {
                 new_offset = sort_set (set, n, offset, idx, inner->center);
                 if (offset == 0 && new_offset == n) {
@@ -300,7 +304,7 @@ struct vox_node* vox_freeze_tree (const struct vox_node *tree) {
         } else {
             newinner = &newnode->data.inner;
             oldinner = &tree->data.inner;
-            memcpy (newinner->center, oldinner->center, sizeof (vox_dot));
+            newinner->center = oldinner->center;
 
             for (unsigned int i = 0; i < VOX_NS; i++) {
                 newinner->children[i] = vox_freeze_tree (oldinner->children[i]);

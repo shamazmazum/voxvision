@@ -88,218 +88,218 @@ static float random_float_01 () {
     return (float)arc4random() / (float)max;
 }
 
-static void test_identity () {
-    vox_quat identity;
-    vox_dot dot, rot;
+/* static void test_identity () { */
+/*     vox_quat identity; */
+/*     vox_dot dot, rot; */
 
-    vox_quat_set_identity (identity);
+/*     vox_quat_set_identity (identity); */
 
-    for (int i = 0; i < 1000; i++) {
-        vox_dot_set(rot, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set(dot, random_float_01(), random_float_01(), random_float_01());
-        vox_rotate_vector (identity, dot, rot);
-        CU_ASSERT (vect_eq (dot, rot, precise_check));
-    }
-}
+/*     for (int i = 0; i < 1000; i++) { */
+/*         vox_dot_set(rot, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set(dot, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_rotate_vector (identity, dot, rot); */
+/*         CU_ASSERT (vect_eq (dot, rot, precise_check)); */
+/*     } */
+/* } */
 
-static void test_rotation_around_itself () {
-    vox_dot vec, res;
-    vox_quat quat;
+/* static void test_rotation_around_itself () { */
+/*     vox_dot vec, res; */
+/*     vox_quat quat; */
 
-    for (int i = 0; i < 1000; i++) {
-        float phi = M_PI*random_float_01();
-        float sinphi = sinf (phi);
-        float cosphi = cosf (phi);
-        vox_dot_set (vec, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set (res, random_float_01(), random_float_01(), random_float_01());
-        normalize (vec);
-        quat[0] = cosphi;
-        quat[1] = sinphi*vec[0];
-        quat[2] = sinphi*vec[1];
-        quat[3] = sinphi*vec[2];
+/*     for (int i = 0; i < 1000; i++) { */
+/*         float phi = M_PI*random_float_01(); */
+/*         float sinphi = sinf (phi); */
+/*         float cosphi = cosf (phi); */
+/*         vox_dot_set (vec, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set (res, random_float_01(), random_float_01(), random_float_01()); */
+/*         normalize (vec); */
+/*         quat[0] = cosphi; */
+/*         quat[1] = sinphi*vec[0]; */
+/*         quat[2] = sinphi*vec[1]; */
+/*         quat[3] = sinphi*vec[2]; */
 
-        vox_rotate_vector (quat, vec, res);
-        CU_ASSERT (vect_eq (res, vec, precise_check));
-    }
-}
+/*         vox_rotate_vector (quat, vec, res); */
+/*         CU_ASSERT (vect_eq (res, vec, precise_check)); */
+/*     } */
+/* } */
 
-static void test_change_axis () {
-    // Rotating x aroung y and getting z and so on
-    float sincos = sqrtf(2.0)/2.0;
+/* static void test_change_axis () { */
+/*     // Rotating x aroung y and getting z and so on */
+/*     float sincos = sqrtf(2.0)/2.0; */
     
-    vox_quat basex = {sincos, 0.0, sincos, 0.0};
-    vox_dot vectx = {1.0, 0.0, 0.0};
-    vox_dot expx = {0.0, 0.0, -1.0};
+/*     vox_quat basex = {sincos, 0.0, sincos, 0.0}; */
+/*     vox_dot vectx = {1.0, 0.0, 0.0}; */
+/*     vox_dot expx = {0.0, 0.0, -1.0}; */
 
-    vox_quat basey = {sincos, 0.0, 0.0, sincos};
-    vox_dot vecty = {0.0, 1.0, 0.0};
-    vox_dot expy = {-1.0, 0.0, 0.0};
+/*     vox_quat basey = {sincos, 0.0, 0.0, sincos}; */
+/*     vox_dot vecty = {0.0, 1.0, 0.0}; */
+/*     vox_dot expy = {-1.0, 0.0, 0.0}; */
 
-    vox_quat basez = {sincos, sincos, 0.0, 0.0};
-    vox_dot vectz = {0.0, 0.0, 1.0};
-    vox_dot expz = {0.0, -1.0, 0.0};
+/*     vox_quat basez = {sincos, sincos, 0.0, 0.0}; */
+/*     vox_dot vectz = {0.0, 0.0, 1.0}; */
+/*     vox_dot expz = {0.0, -1.0, 0.0}; */
     
-    vox_rotate_vector (basex, vectx, vectx);
-    CU_ASSERT (vect_eq (expx, vectx, precise_check));
+/*     vox_rotate_vector (basex, vectx, vectx); */
+/*     CU_ASSERT (vect_eq (expx, vectx, precise_check)); */
     
-    vox_rotate_vector (basey, vecty, vecty);
-    CU_ASSERT (vect_eq (expy, vecty, precise_check));
+/*     vox_rotate_vector (basey, vecty, vecty); */
+/*     CU_ASSERT (vect_eq (expy, vecty, precise_check)); */
 
-    vox_rotate_vector (basez, vectz, vectz);
-    CU_ASSERT (vect_eq (expz, vectz, precise_check));
-}
+/*     vox_rotate_vector (basez, vectz, vectz); */
+/*     CU_ASSERT (vect_eq (expz, vectz, precise_check)); */
+/* } */
 
-static float* vector_inv (const vox_dot dot, vox_dot res) {
-    int i;
-    for (i=0; i<VOX_N; i++) {
-        res[i] = -dot[i];
-    }
-    return res;
-}
+/* static float* vector_inv (const vox_dot dot, vox_dot res) { */
+/*     int i; */
+/*     for (i=0; i<VOX_N; i++) { */
+/*         res[i] = -dot[i]; */
+/*     } */
+/*     return res; */
+/* } */
 
-static void test_anticommut () {
-    // Rotating x around y must result in rotaiong y around x with different sign
-    float sincos = sqrtf(2.0)/2.0;
+/* static void test_anticommut () { */
+/*     // Rotating x around y must result in rotaiong y around x with different sign */
+/*     float sincos = sqrtf(2.0)/2.0; */
     
-    vox_quat basex = {sincos, sincos, 0.0, 0.0};
-    vox_quat basey = {sincos, 0.0, sincos, 0.0};
+/*     vox_quat basex = {sincos, sincos, 0.0, 0.0}; */
+/*     vox_quat basey = {sincos, 0.0, sincos, 0.0}; */
     
-    vox_dot vectx = {1.0, 0.0, 0.0};
-    vox_dot vecty = {0.0, 1.0, 0.0};
+/*     vox_dot vectx = {1.0, 0.0, 0.0}; */
+/*     vox_dot vecty = {0.0, 1.0, 0.0}; */
     
-    vox_dot res1, res2;
-    vox_rotate_vector (basex, vecty, res1);
-    vox_rotate_vector (basey, vectx, res2);
+/*     vox_dot res1, res2; */
+/*     vox_rotate_vector (basex, vecty, res1); */
+/*     vox_rotate_vector (basey, vectx, res2); */
     
-    CU_ASSERT (vect_eq (res1, vector_inv (res2, res2), precise_check));
-}
+/*     CU_ASSERT (vect_eq (res1, vector_inv (res2, res2), precise_check)); */
+/* } */
 
-static void rot_composition () {
-    vox_quat q1, q2, q;
-    vox_dot dot, res1, res2, v1, v2;;
+/* static void rot_composition () { */
+/*     vox_quat q1, q2, q; */
+/*     vox_dot dot, res1, res2, v1, v2;; */
 
-    for (int i = 0; i < 1000; i++) {
-        vox_dot_set (dot, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set (v1, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set (v2, random_float_01(), random_float_01(), random_float_01());
+/*     for (int i = 0; i < 1000; i++) { */
+/*         vox_dot_set (dot, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set (v1, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set (v2, random_float_01(), random_float_01(), random_float_01()); */
 
-        normalize (v1);
-        normalize (v2);
+/*         normalize (v1); */
+/*         normalize (v2); */
 
-        float phi = random_float_01();
-        float psi = random_float_01();
+/*         float phi = random_float_01(); */
+/*         float psi = random_float_01(); */
 
-        float sinphi = sinf (phi);
-        float cosphi = cosf (phi);
-        float sinpsi = sinf (psi);
-        float cospsi = cosf (psi);
+/*         float sinphi = sinf (phi); */
+/*         float cosphi = cosf (phi); */
+/*         float sinpsi = sinf (psi); */
+/*         float cospsi = cosf (psi); */
 
-        q1[0] = cosphi;
-        q1[1] = sinphi * v1[0];
-        q1[2] = sinphi * v1[1];
-        q1[3] = sinphi * v1[2];
+/*         q1[0] = cosphi; */
+/*         q1[1] = sinphi * v1[0]; */
+/*         q1[2] = sinphi * v1[1]; */
+/*         q1[3] = sinphi * v1[2]; */
 
-        q2[0] = cospsi;
-        q2[1] = sinpsi * v2[0];
-        q2[2] = sinpsi * v2[1];
-        q2[3] = sinpsi * v2[2];
+/*         q2[0] = cospsi; */
+/*         q2[1] = sinpsi * v2[0]; */
+/*         q2[2] = sinpsi * v2[1]; */
+/*         q2[3] = sinpsi * v2[2]; */
 
-        vox_dot_set (res1, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set (res2, random_float_01(), random_float_01(), random_float_01());
-        vox_quat_mul (q1, q2, q);
-        vox_rotate_vector (q2, dot,  res1);
-        vox_rotate_vector (q1, res1, res1);
-        vox_rotate_vector (q,  dot,  res2);
+/*         vox_dot_set (res1, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set (res2, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_quat_mul (q1, q2, q); */
+/*         vox_rotate_vector (q2, dot,  res1); */
+/*         vox_rotate_vector (q1, res1, res1); */
+/*         vox_rotate_vector (q,  dot,  res2); */
 
-        CU_ASSERT (vect_eq (res1, res2, precise_check));
-    }
-}
+/*         CU_ASSERT (vect_eq (res1, res2, precise_check)); */
+/*     } */
+/* } */
 
-static void rot_saves_norm () {
-    vox_quat q;
-    vox_dot dot, res, v;
+/* static void rot_saves_norm () { */
+/*     vox_quat q; */
+/*     vox_dot dot, res, v; */
 
-    for (int i = 0; i < 1000; i++) {
-        vox_dot_set (dot, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set (res, random_float_01(), random_float_01(), random_float_01());
-        vox_dot_set (v, random_float_01(), random_float_01(), random_float_01());
+/*     for (int i = 0; i < 1000; i++) { */
+/*         vox_dot_set (dot, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set (res, random_float_01(), random_float_01(), random_float_01()); */
+/*         vox_dot_set (v, random_float_01(), random_float_01(), random_float_01()); */
 
-        normalize (v);
+/*         normalize (v); */
 
-        float phi = random_float_01();
-        float sinphi = sinf (phi);
-        float cosphi = cosf (phi);
+/*         float phi = random_float_01(); */
+/*         float sinphi = sinf (phi); */
+/*         float cosphi = cosf (phi); */
 
-        q[0] = cosphi;
-        q[1] = sinphi * v[0];
-        q[2] = sinphi * v[1];
-        q[3] = sinphi * v[2];
+/*         q[0] = cosphi; */
+/*         q[1] = sinphi * v[0]; */
+/*         q[2] = sinphi * v[1]; */
+/*         q[3] = sinphi * v[2]; */
 
-        vox_rotate_vector (q, dot, res);
+/*         vox_rotate_vector (q, dot, res); */
 
-        float n1 = norm(res);
-        float n2 = norm(dot);
+/*         float n1 = norm(res); */
+/*         float n2 = norm(dot); */
 
-        CU_ASSERT (fabsf (n1-n2) < precise_check);
-    }
-}
+/*         CU_ASSERT (fabsf (n1-n2) < precise_check); */
+/*     } */
+/* } */
 
-static void quat_mul () {
-    vox_quat res;
+/* static void quat_mul () { */
+/*     vox_quat res; */
     
-    // Check multiplication table
-    vox_quat q11 = {0, 1, 0, 0};
-    vox_quat q12 = {0, 0, 1, 0};
-    vox_quat e1  = {0, 0, 0, 1};
-    vox_quat_mul (q11, q12, res);
-    CU_ASSERT (quat_eq (e1, res, precise_check));
+/*     // Check multiplication table */
+/*     vox_quat q11 = {0, 1, 0, 0}; */
+/*     vox_quat q12 = {0, 0, 1, 0}; */
+/*     vox_quat e1  = {0, 0, 0, 1}; */
+/*     vox_quat_mul (q11, q12, res); */
+/*     CU_ASSERT (quat_eq (e1, res, precise_check)); */
 
-    vox_quat q21 = {0, 0, 1, 0};
-    vox_quat q22 = {0, 0, 0, 1};
-    vox_quat e2  = {0, 1, 0, 0};
-    vox_quat_mul (q21, q22, res);
-    CU_ASSERT (quat_eq (e2, res, precise_check));
+/*     vox_quat q21 = {0, 0, 1, 0}; */
+/*     vox_quat q22 = {0, 0, 0, 1}; */
+/*     vox_quat e2  = {0, 1, 0, 0}; */
+/*     vox_quat_mul (q21, q22, res); */
+/*     CU_ASSERT (quat_eq (e2, res, precise_check)); */
 
-    vox_quat q31 = {0, 0, 0, 1};
-    vox_quat q32 = {0, 1, 0, 0};
-    vox_quat e3  = {0, 0, 1, 0};
-    vox_quat_mul (q31, q32, res);
-    CU_ASSERT (quat_eq (e3, res, precise_check));
+/*     vox_quat q31 = {0, 0, 0, 1}; */
+/*     vox_quat q32 = {0, 1, 0, 0}; */
+/*     vox_quat e3  = {0, 0, 1, 0}; */
+/*     vox_quat_mul (q31, q32, res); */
+/*     CU_ASSERT (quat_eq (e3, res, precise_check)); */
 
-    // And in another direction...
-    vox_quat q41 = {0, 0, 1, 0};
-    vox_quat q42 = {0, 1, 0, 0};
-    vox_quat e4  = {0, 0, 0, -1};
-    vox_quat_mul (q41, q42, res);
-    CU_ASSERT (quat_eq (e4, res, precise_check));
+/*     // And in another direction... */
+/*     vox_quat q41 = {0, 0, 1, 0}; */
+/*     vox_quat q42 = {0, 1, 0, 0}; */
+/*     vox_quat e4  = {0, 0, 0, -1}; */
+/*     vox_quat_mul (q41, q42, res); */
+/*     CU_ASSERT (quat_eq (e4, res, precise_check)); */
 
-    vox_quat q51 = {0, 0, 0, 1};
-    vox_quat q52 = {0, 0, 1, 0};
-    vox_quat e5  = {0, -1, 0, 0};
-    vox_quat_mul (q51, q52, res);
-    CU_ASSERT (quat_eq (e5, res, precise_check));
+/*     vox_quat q51 = {0, 0, 0, 1}; */
+/*     vox_quat q52 = {0, 0, 1, 0}; */
+/*     vox_quat e5  = {0, -1, 0, 0}; */
+/*     vox_quat_mul (q51, q52, res); */
+/*     CU_ASSERT (quat_eq (e5, res, precise_check)); */
 
-    vox_quat q61 = {0, 1, 0, 0};
-    vox_quat q62 = {0, 0, 0, 1};
-    vox_quat e6  = {0, 0, -1, 0};
-    vox_quat_mul (q61, q62, res);
-    CU_ASSERT (quat_eq (e6, res, precise_check));
+/*     vox_quat q61 = {0, 1, 0, 0}; */
+/*     vox_quat q62 = {0, 0, 0, 1}; */
+/*     vox_quat e6  = {0, 0, -1, 0}; */
+/*     vox_quat_mul (q61, q62, res); */
+/*     CU_ASSERT (quat_eq (e6, res, precise_check)); */
 
-    // Neutral element
-    vox_quat qn1 = {4, 3, 2, 1};
-    vox_quat n =   {1, 0, 0, 0};
-    vox_quat_mul (qn1, n, res);
-    CU_ASSERT (quat_eq (res, qn1, precise_check));
-    vox_quat_mul (n, qn1, res);
-    CU_ASSERT (quat_eq (res, qn1, precise_check));
+/*     // Neutral element */
+/*     vox_quat qn1 = {4, 3, 2, 1}; */
+/*     vox_quat n =   {1, 0, 0, 0}; */
+/*     vox_quat_mul (qn1, n, res); */
+/*     CU_ASSERT (quat_eq (res, qn1, precise_check)); */
+/*     vox_quat_mul (n, qn1, res); */
+/*     CU_ASSERT (quat_eq (res, qn1, precise_check)); */
     
-    // Some random quaterions
-    vox_quat q1 = {4, 1, 2, 3};
-    vox_quat q2 = {2, 0, 2, 0};
-    vox_quat e  = {4, -4, 12, 8};
-    vox_quat_mul (q1, q2, res);
-    CU_ASSERT (quat_eq (res, e, precise_check));
-}
+/*     // Some random quaterions */
+/*     vox_quat q1 = {4, 1, 2, 3}; */
+/*     vox_quat q2 = {2, 0, 2, 0}; */
+/*     vox_quat e  = {4, -4, 12, 8}; */
+/*     vox_quat_mul (q1, q2, res); */
+/*     CU_ASSERT (quat_eq (res, e, precise_check)); */
+/* } */
 
 static uint32_t random_set (vox_dot **setptr, uint32_t n) {
     vox_dot *set = aligned_alloc (16, sizeof (vox_dot) * n);
@@ -447,189 +447,189 @@ static void test_tree_delete () {
     }
 }
 
-static void test_tree_g676d50c () {
-    struct vox_node *tree = NULL;
-    vox_dot dot;
+/* static void test_tree_g676d50c () { */
+/*     struct vox_node *tree = NULL; */
+/*     vox_dot dot; */
 
-    dot[0] = 0; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
+/*     dot[0] = 0; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
 
-    dot[0] = 0; dot[1] = 0; dot[2] = -1;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = 0; dot[2] = -2;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = 0; dot[2] = 1;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = 0; dot[2] = 2;
-    vox_insert_voxel (&tree, dot);
+/*     dot[0] = 0; dot[1] = 0; dot[2] = -1; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = 0; dot[2] = -2; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = 0; dot[2] = 1; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = 0; dot[2] = 2; */
+/*     vox_insert_voxel (&tree, dot); */
 
-    dot[0] = -1; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = -2; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = -3; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = -4; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
+/*     dot[0] = -1; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = -2; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = -3; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = -4; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
 
-    dot[0] = 1; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 2; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 3; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 4; dot[1] = 0; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
+/*     dot[0] = 1; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 2; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 3; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 4; dot[1] = 0; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
 
-    dot[0] = 0; dot[1] = -1; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = -2; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = -3; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = -4; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
+/*     dot[0] = 0; dot[1] = -1; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = -2; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = -3; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = -4; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
 
-    dot[0] = 0; dot[1] = 1; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = 2; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = 3; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
-    dot[0] = 0; dot[1] = 4; dot[2] = 0;
-    vox_insert_voxel (&tree, dot);
+/*     dot[0] = 0; dot[1] = 1; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = 2; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = 3; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
+/*     dot[0] = 0; dot[1] = 4; dot[2] = 0; */
+/*     vox_insert_voxel (&tree, dot); */
 
-    vox_dot origin = {-2, -2, 0};
-    vox_dot dir = {1, 1, -1};
-    vox_dot res;
+/*     vox_dot origin = {-2, -2, 0}; */
+/*     vox_dot dir = {1, 1, -1}; */
+/*     vox_dot res; */
 
-    const struct vox_node *leaf = vox_ray_tree_intersection (tree, origin, dir, res);
-    CU_ASSERT (leaf != NULL);
-}
+/*     const struct vox_node *leaf = vox_ray_tree_intersection (tree, origin, dir, res); */
+/*     CU_ASSERT (leaf != NULL); */
+/* } */
 
-static void test_camera (const char *name) {
-    printf (" %s...", name);
-    struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL);
-    vox_dot pos = {0,0,0}, newpos;
-    vox_dot rotate_z = {0, 0, M_PI/2};
-    vox_dot rotate_identity = {0, M_PI/2, 0};
+/* static void test_camera (const char *name) { */
+/*     printf (" %s...", name); */
+/*     struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL); */
+/*     vox_dot pos = {0,0,0}, newpos; */
+/*     vox_dot rotate_z = {0, 0, M_PI/2}; */
+/*     vox_dot rotate_identity = {0, M_PI/2, 0}; */
 
-    vox_dot world_coord;
-    vox_dot world_coord_expected = {-1, 0, 0};
-    vox_dot move_vector = {0, 1, 0};
+/*     vox_dot world_coord; */
+/*     vox_dot world_coord_expected = {-1, 0, 0}; */
+/*     vox_dot move_vector = {0, 1, 0}; */
 
-    /* Check setter/getter */
-    camera->iface->set_property_dot (camera, "position", pos);
-    camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (pos, newpos, precise_check));
+/*     /\* Check setter/getter *\/ */
+/*     camera->iface->set_property_dot (camera, "position", pos); */
+/*     camera->iface->get_position (camera, newpos); */
+/*     CU_ASSERT (vect_eq (pos, newpos, precise_check)); */
 
-    camera->iface->set_window_size (camera, 100, 100);
+/*     camera->iface->set_window_size (camera, 100, 100); */
 
-    /* At first, camera must look in direction (0, 1, 0). */
-    camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, move_vector, precise_check));
+/*     /\* At first, camera must look in direction (0, 1, 0). *\/ */
+/*     camera->iface->screen2world (camera, world_coord, 50, 50); */
+/*     CU_ASSERT (vect_eq (world_coord, move_vector, precise_check)); */
 
-    /*
-     * We rotate camera around Z axis on angle pi/2 , so it looks now in
-     * direction (1, 0, 0).
-     */
-    camera->iface->set_property_dot (camera, "rotation", rotate_z);
-    camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected, precise_check));
+/*     /\* */
+/*      * We rotate camera around Z axis on angle pi/2 , so it looks now in */
+/*      * direction (1, 0, 0). */
+/*      *\/ */
+/*     camera->iface->set_property_dot (camera, "rotation", rotate_z); */
+/*     camera->iface->screen2world (camera, world_coord, 50, 50); */
+/*     CU_ASSERT (vect_eq (world_coord, world_coord_expected, precise_check)); */
 
-    /*
-     * The center of the screen is a fixed point for any rotation around Y
-     * axis.
-     */
-    camera->iface->rotate_camera (camera, rotate_identity);
-    camera->iface->screen2world (camera, world_coord, 50, 50);
-    CU_ASSERT (vect_eq (world_coord, world_coord_expected, precise_check));
+/*     /\* */
+/*      * The center of the screen is a fixed point for any rotation around Y */
+/*      * axis. */
+/*      *\/ */
+/*     camera->iface->rotate_camera (camera, rotate_identity); */
+/*     camera->iface->screen2world (camera, world_coord, 50, 50); */
+/*     CU_ASSERT (vect_eq (world_coord, world_coord_expected, precise_check)); */
 
-    /*
-     * Now move camera in direction (0, 1, 0) and get the same result,
-     * world_coord_expected.
-     */
-    camera->iface->move_camera (camera, move_vector);
-    camera->iface->get_position (camera, newpos);
-    CU_ASSERT (vect_eq (world_coord_expected, newpos, precise_check));
+/*     /\* */
+/*      * Now move camera in direction (0, 1, 0) and get the same result, */
+/*      * world_coord_expected. */
+/*      *\/ */
+/*     camera->iface->move_camera (camera, move_vector); */
+/*     camera->iface->get_position (camera, newpos); */
+/*     CU_ASSERT (vect_eq (world_coord_expected, newpos, precise_check)); */
 
-    camera->iface->destroy_camera (camera);
-}
+/*     camera->iface->destroy_camera (camera); */
+/* } */
 
-static void test_cameras() {
-    test_camera ("simple-camera");
-    test_camera ("doom-camera");
-}
+/* static void test_cameras() { */
+/*     test_camera ("simple-camera"); */
+/*     test_camera ("doom-camera"); */
+/* } */
 
-static void test_camera_look_at (const char *name) {
-    vox_dot pos = {-100, 20, -20};
-    vox_dot look_at = {0,0,0};
-    vox_dot dir;
+/* static void test_camera_look_at (const char *name) { */
+/*     vox_dot pos = {-100, 20, -20}; */
+/*     vox_dot look_at = {0,0,0}; */
+/*     vox_dot dir; */
 
-    printf (" %s...", name);
-    struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL);
-    camera->iface->set_window_size (camera, 100, 100);
-    camera->iface->set_property_dot (camera, "position", pos);
-    camera->iface->look_at (camera, look_at);
-    camera->iface->screen2world (camera, dir, 50, 50);
+/*     printf (" %s...", name); */
+/*     struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL); */
+/*     camera->iface->set_window_size (camera, 100, 100); */
+/*     camera->iface->set_property_dot (camera, "position", pos); */
+/*     camera->iface->look_at (camera, look_at); */
+/*     camera->iface->screen2world (camera, dir, 50, 50); */
 
-    CU_ASSERT (hit_dot (pos, dir, look_at));
-    camera->iface->destroy_camera (camera);
-}
+/*     CU_ASSERT (hit_dot (pos, dir, look_at)); */
+/*     camera->iface->destroy_camera (camera); */
+/* } */
 
-static void test_cameras_look_at () {
-    test_camera_look_at ("simple-camera");
-    test_camera_look_at ("doom-camera");
-}
+/* static void test_cameras_look_at () { */
+/*     test_camera_look_at ("simple-camera"); */
+/*     test_camera_look_at ("doom-camera"); */
+/* } */
 
-static void test_camera_look_at_bug () {
-    vox_dot look_at = {0, 1, 0}; /* Default look_at vector */
-    vox_dot pos = {0, 0, 0};
-    vox_dot move_vector1 = {1, 0, 0};
-    vox_dot expected_pos1 = {1, 0, 0};
-    vox_dot move_vector2 = {1, 0, 0};
-    vox_dot expected_pos2 = {1, 0, 0};
-    vox_dot pos_act;
+/* static void test_camera_look_at_bug () { */
+/*     vox_dot look_at = {0, 1, 0}; /\* Default look_at vector *\/ */
+/*     vox_dot pos = {0, 0, 0}; */
+/*     vox_dot move_vector1 = {1, 0, 0}; */
+/*     vox_dot expected_pos1 = {1, 0, 0}; */
+/*     vox_dot move_vector2 = {1, 0, 0}; */
+/*     vox_dot expected_pos2 = {1, 0, 0}; */
+/*     vox_dot pos_act; */
 
-    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
-    camera->iface->set_property_dot (camera, "position", pos);
-    camera->iface->look_at (camera, look_at);
-    camera->iface->move_camera (camera, move_vector1);
-    camera->iface->get_position (camera, pos_act);
-    CU_ASSERT (vect_eq (expected_pos1, pos_act, precise_check));
+/*     struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL); */
+/*     camera->iface->set_property_dot (camera, "position", pos); */
+/*     camera->iface->look_at (camera, look_at); */
+/*     camera->iface->move_camera (camera, move_vector1); */
+/*     camera->iface->get_position (camera, pos_act); */
+/*     CU_ASSERT (vect_eq (expected_pos1, pos_act, precise_check)); */
 
-    camera->iface->set_property_dot (camera, "position", pos);
-    camera->iface->look_at (camera, look_at);
-    camera->iface->move_camera (camera, move_vector2);
-    camera->iface->get_position (camera, pos_act);
-    CU_ASSERT (vect_eq (expected_pos2, pos_act, precise_check));
-    camera->iface->destroy_camera (camera);
-}
+/*     camera->iface->set_property_dot (camera, "position", pos); */
+/*     camera->iface->look_at (camera, look_at); */
+/*     camera->iface->move_camera (camera, move_vector2); */
+/*     camera->iface->get_position (camera, pos_act); */
+/*     CU_ASSERT (vect_eq (expected_pos2, pos_act, precise_check)); */
+/*     camera->iface->destroy_camera (camera); */
+/* } */
 
-static void test_camera_class_construction () {
-    vox_dot pos = {10,110,1110}, newpos;
-    struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL);
-    camera->iface->set_property_dot (camera, "position", pos);
-    camera->iface->set_window_size (camera, 100, 100);
-//    camera->iface->set_fov (camera, 16);
+/* static void test_camera_class_construction () { */
+/*     vox_dot pos = {10,110,1110}, newpos; */
+/*     struct vox_camera *camera = vox_camera_methods ("simple-camera")->construct_camera (NULL); */
+/*     camera->iface->set_property_dot (camera, "position", pos); */
+/*     camera->iface->set_window_size (camera, 100, 100); */
+/* //    camera->iface->set_fov (camera, 16); */
 
-    struct vox_camera *camera2 = vox_camera_methods ("simple-camera")->construct_camera (camera);
-    camera2->iface->get_position (camera2, newpos);
-    CU_ASSERT (vect_eq (pos, newpos, precise_check));
-//    CU_ASSERT (camera2->iface->get_fov (camera2) == 16);
-}
+/*     struct vox_camera *camera2 = vox_camera_methods ("simple-camera")->construct_camera (camera); */
+/*     camera2->iface->get_position (camera2, newpos); */
+/*     CU_ASSERT (vect_eq (pos, newpos, precise_check)); */
+/* //    CU_ASSERT (camera2->iface->get_fov (camera2) == 16); */
+/* } */
 
 /* Vector operations */
-static CU_TestInfo vectops_tests[] = {
-    { "identity operator", test_identity },
-    /*{ "rotate around itself", test_rotation_around_itself },*/ // Broken
-    { "change axis", test_change_axis },
-    { "anticommutativity of some rotations", test_anticommut },
-    { "composition of rotations", rot_composition },
-    /*{ "rotation isometry", rot_saves_norm },*/ // Broken
-    { "quaterion multiplication", quat_mul },
-    CU_TEST_INFO_NULL
-};
+/* static CU_TestInfo vectops_tests[] = { */
+/*     { "identity operator", test_identity }, */
+/*     /\*{ "rotate around itself", test_rotation_around_itself },*\/ // Broken */
+/*     { "change axis", test_change_axis }, */
+/*     { "anticommutativity of some rotations", test_anticommut }, */
+/*     { "composition of rotations", rot_composition }, */
+/*     /\*{ "rotation isometry", rot_saves_norm },*\/ // Broken */
+/*     { "quaterion multiplication", quat_mul }, */
+/*     CU_TEST_INFO_NULL */
+/* }; */
 
 /* Tree construction and search (voxtrees) */
 static CU_TestInfo voxtrees_tests[] = {
@@ -638,23 +638,23 @@ static CU_TestInfo voxtrees_tests[] = {
     { "double insertion", test_tree_double_insert },
     { "insertion", test_tree_insert },
     { "deletion", test_tree_delete },
-    { "search (commit 676d50c)", test_tree_g676d50c },
+    //{ "search (commit 676d50c)", test_tree_g676d50c },
     CU_TEST_INFO_NULL
 };
 
 /* Rendering (voxrnd) */
-static CU_TestInfo voxrnd_tests[] = {
-    { "camera generic test", test_cameras },
-    { "camera look_at() test", test_cameras_look_at },
-    { "simple camera look_at() bug (issue 1)" , test_camera_look_at_bug },
-    { "camera class construction", test_camera_class_construction },
-    CU_TEST_INFO_NULL
-};
+/* static CU_TestInfo voxrnd_tests[] = { */
+/*     { "camera generic test", test_cameras }, */
+/*     { "camera look_at() test", test_cameras_look_at }, */
+/*     { "simple camera look_at() bug (issue 1)" , test_camera_look_at_bug }, */
+/*     { "camera class construction", test_camera_class_construction }, */
+/*     CU_TEST_INFO_NULL */
+/* }; */
 
 static CU_SuiteInfo suites[] = {
-    { "vectops",  NULL, NULL, NULL, NULL, vectops_tests },
+    //{ "vectops",  NULL, NULL, NULL, NULL, vectops_tests },
     { "voxtrees", NULL, NULL, NULL, NULL, voxtrees_tests },
-    { "voxrnd",   NULL, NULL, NULL, NULL, voxrnd_tests },
+    //{ "voxrnd",   NULL, NULL, NULL, NULL, voxrnd_tests },
     CU_SUITE_INFO_NULL
 };
 

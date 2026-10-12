@@ -41,17 +41,17 @@
   0..............128
 */
 
-typedef float vox_dot[3];
-typedef float vox_quat[4];
-#define vox_alloc(size) malloc (size)
-#define vox_dot_copy(d1, d2) memcpy (d1, d2, sizeof (vox_dot))
+typedef float vox_dot  __attribute__((ext_vector_type(4)));
+typedef float vox_quat __attribute__((ext_vector_type(4)));
+#define vox_alloc(size) aligned_alloc (16, size)
+#define vox_dot_copy(d1, d2) d1 = d2
 #define vox_dot_set(dot, x, y, z) do {          \
         dot[0] = x;                             \
         dot[1] = y;                             \
         dot[2] = z;                             \
     } while (0)
-#define vox_dot_equalp(d1, d2) (memcmp (d1, d2, sizeof (vox_dot)) == 0)
-#define vox_quat_copy(q1, q2) memcpy (q1, q2, sizeof (vox_quat))
+#define vox_dot_equalp(d1, d2) ((d1.x == d2.x) && (d1.y == d2.y) && (d1.z == d2.z))
+#define vox_quat_copy(q1, q2) q1 = q2
 #define vox_quat_set(q, w, i, j, k) do { \
         q[0] = w;                        \
         q[1] = i;                        \
@@ -67,7 +67,11 @@ struct vox_box
     vox_dot min; /**< \brief minimal coordinate */
     vox_dot max; /**< \brief maximal coordinate */
 };
-#include <string.h>
-#define vox_box_copy(b1, b2) memcpy ((b1), (b2), sizeof (struct vox_box))
+
+static inline void
+vox_box_copy (struct vox_box *dst, const struct vox_box *src) {
+    dst->min = src->min;
+    dst->max = src->max;
+}
 
 #endif

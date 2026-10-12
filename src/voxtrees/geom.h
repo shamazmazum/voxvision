@@ -94,7 +94,10 @@ unsigned int get_corrected_subspace_idx (const vox_dot center,
    \param res where intersection is stored
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir, vox_dot res);
+int hit_box (const struct vox_box *box,
+             const vox_dot origin,
+             const vox_dot dir,
+             vox_dot *res);
 
 /**
    \brief Find intersection of a ray and a plane.
@@ -111,7 +114,7 @@ int hit_box (const struct vox_box *box, const vox_dot origin, const vox_dot dir,
    \return 1 if intersection is found, 0 otherwise
 **/
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
-                          int planenum, vox_dot res, const struct vox_box *box);
+                          int planenum, vox_dot *res, const struct vox_box *box);
 
 /**
    \brief Find intersection of a box and a ball.
@@ -121,10 +124,9 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
 int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius);
 int dense_set_p (const struct vox_box *box, size_t n);
 int voxel_in_box (const struct vox_box *box, const vox_dot dot);
-void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot res);
+void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot *res);
 int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx);
 void get_dimensions (const struct vox_box *box, size_t dim[]);
-int stripep (const struct vox_box *box, int *which);
 #endif
 
 #endif
