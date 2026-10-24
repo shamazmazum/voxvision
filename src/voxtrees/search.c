@@ -20,7 +20,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
      * This will help us with little optimization technik.
      */
     if (!(VOX_FULLP (tree)) ||
-        !(hit_box (&(tree->bounding_box), origin, dir, &bb_inter))) {
+        !(vox_hit_box (&(tree->bounding_box), origin, dir, &bb_inter))) {
         WITH_STAT (VOXTREES_RTI_EARLY_EXIT());
         goto end;
     }
@@ -48,7 +48,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         for (i=0; i<tree->dots_num; i++) {
             voxel.min = dots[i];
             voxel.max = voxel.min + vox_voxel;
-            if (hit_box (&voxel, bb_inter, dir, &far_inter)) {
+            if (vox_hit_box (&voxel, bb_inter, dir, &far_inter)) {
                 dist_far = vox_abs_metric (bb_inter, far_inter);
                 /*
                  * This is the optimization I mentioned earlier.

@@ -71,10 +71,10 @@ unsigned int get_corrected_subspace_idx (const vox_dot center,
 
 // Most of the following code is taken from C Graphics Gems
 // See C Graphics Gems code for explanation
-int hit_box (const struct vox_box *box,
-             const vox_dot origin,
-             const vox_dot dir,
-             vox_dot *resptr) {
+int vox_hit_box (const struct vox_box *box,
+                 const vox_dot origin,
+                 const vox_dot dir,
+                 vox_dot *resptr) {
     float max_dist, tmp;
     int i, plane_num;
     vox_dot res;

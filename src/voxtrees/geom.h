@@ -94,10 +94,10 @@ unsigned int get_corrected_subspace_idx (const vox_dot center,
    \param res where intersection is stored
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_box (const struct vox_box *box,
-             const vox_dot origin,
-             const vox_dot dir,
-             vox_dot *res);
+VOX_EXPORT int vox_hit_box (const struct vox_box *box,
+                            const vox_dot origin,
+                            const vox_dot dir,
+                            vox_dot *res);
 
 /**
    \brief Find intersection of a ray and a plane.
