@@ -72,16 +72,16 @@ static int quat_eq (const vox_quat v1, const vox_quat v2, float precision) {
     }
 }
 
-static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot target) {
-    float t = (target[0] - origin[0])/dir[0];
-    CU_ASSERT (t >= 0);
-    vox_dot res;
-    res[0] = target[0];
-    res[1] = dir[1]*t + origin[1];
-    res[2] = dir[2]*t + origin[2];
+/* static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot target) { */
+/*     float t = (target[0] - origin[0])/dir[0]; */
+/*     CU_ASSERT (t >= 0); */
+/*     vox_dot res; */
+/*     res[0] = target[0]; */
+/*     res[1] = dir[1]*t + origin[1]; */
+/*     res[2] = dir[2]*t + origin[2]; */
 
-    return vect_eq (target, res, approx_check);
-}
+/*     return vect_eq (target, res, approx_check); */
+/* } */
 
 static float random_float_01 () {
     uint32_t max = 0xffffffff;
@@ -112,6 +112,21 @@ static int brute_force_intersection (vox_dot *set, uint32_t n, vox_dot orig,
         *res = inter;
     }
     return success;
+}
+
+static int brute_force_collides_with_ball_p (vox_dot *set, uint32_t n, vox_dot center,
+                                             float radius) {
+    struct vox_box box;
+
+    for (uint32_t i = 0; i < n; i++) {
+        box.min = set[i];
+        box.max = set[i] + vox_voxel;
+        if (vox_box_ball_interp (&box, center, radius)) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 /* static void test_identity () { */
@@ -500,6 +515,27 @@ static void test_random_intersection () {
     vox_destroy_tree (tree);
 }
 
+static void test_random_ball_collision () {
+    vox_dot *set;
+    uint32_t n = random_set (&set, 10000);
+    struct vox_node *tree = vox_make_tree (set, n);
+
+    for (int i = 0; i < 100000; i++) {
+        vox_dot center = (vox_dot){1000*random_float_01(),
+                                   1000*random_float_01(),
+                                   1000*random_float_01(),
+                                   0.0};
+        float radius = 100*random_float_01();
+        int res1, res2;
+        res1 = vox_tree_ball_collidep (tree, center, radius);
+        res2 = brute_force_collides_with_ball_p (set, n, center, radius);
+        CU_ASSERT ((res1 && res2) || (!res1 && !res2));
+    }
+
+    free (set);
+    vox_destroy_tree (tree);
+}
+
 /* static void test_camera (const char *name) { */
 /*     printf (" %s...", name); */
 /*     struct vox_camera *camera = vox_camera_methods (name)->construct_camera (NULL); */
@@ -632,6 +668,7 @@ static CU_TestInfo voxtrees_tests[] = {
     { "insertion", test_tree_insert },
     { "deletion", test_tree_delete },
     { "random intersection", test_random_intersection },
+    { "collision with a random ball", test_random_ball_collision },
     CU_TEST_INFO_NULL
 };
 
