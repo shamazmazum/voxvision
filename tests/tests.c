@@ -505,6 +505,7 @@ static void test_tree_g676d50c () {
 
     const struct vox_node *leaf = vox_ray_tree_intersection (tree, origin, dir, &res);
     CU_ASSERT (leaf != NULL);
+    CU_ASSERT (res.x == 0 && res.y == 0 && res.z == -2);
 }
 
 /* static void test_camera (const char *name) { */

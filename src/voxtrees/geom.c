@@ -80,6 +80,7 @@ int hit_box (const struct vox_box *box,
     vox_dot res;
 
     if (fit_into_box (box, origin, &res)) {
+        *resptr = res;
         return 1;
     }
 
@@ -107,7 +108,7 @@ int hit_box (const struct vox_box *box,
         }
     }
 
-    *resptr = res;    
+    *resptr = res;
     return 1;
 }
 

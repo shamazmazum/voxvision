@@ -112,10 +112,11 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         unsigned int j;
         vox_dot tmp;
         for (j=i+1; j<plane_counter; j++) {
-            if (vox_abs_metric (bb_inter, plane_inter[j]) < vox_abs_metric (bb_inter, plane_inter[i])) {
-                vox_dot_copy (tmp, plane_inter[j]);
-                vox_dot_copy (plane_inter[j], plane_inter[i]);
-                vox_dot_copy (plane_inter[i], tmp);
+            if (vox_abs_metric (bb_inter, plane_inter[j]) <
+                vox_abs_metric (bb_inter, plane_inter[i])) {
+                tmp = plane_inter[j];
+                plane_inter[j] = plane_inter[i];
+                plane_inter[i] = tmp;
                 tmp2 = plane_inter_idx[j];
                 plane_inter_idx[j] = plane_inter_idx[i];
                 plane_inter_idx[i] = tmp2;
@@ -153,14 +154,13 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
     if (box_ball_interp (&(tree->bounding_box), center, radius)) {
         if (tree->flags & VOX_DENSE_LEAF) {
             return 1;
-        }
-        if (tree->flags & VOX_LEAF) {
+        } else if (tree->flags & VOX_LEAF) {
             vox_dot *dots = tree->data.dots;
-            struct vox_box *voxel = alloca (sizeof (struct vox_box));
+            struct vox_box voxel;
             for (i=0; i<tree->dots_num; i++) {
-                vox_dot_copy (voxel->min, dots[i]);
-                vox_dot_add (voxel->min, vox_voxel, voxel->max);
-                if (box_ball_interp (voxel, center, radius)) {
+                voxel.min = dots[i];
+                voxel.max = voxel.min + vox_voxel;
+                if (box_ball_interp (&voxel, center, radius)) {
                     return 1;
                 }
             }
