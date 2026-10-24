@@ -127,8 +127,6 @@ VOX_EXPORT int vox_box_ball_interp (const struct vox_box *box,
 
 int dense_set_p (const struct vox_box *box, size_t n);
 int voxel_in_box (const struct vox_box *box, const vox_dot dot);
-void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot *res);
-int divide_box (const struct vox_box *box, const vox_dot center, struct vox_box *res, int idx);
 #endif
 
 #endif

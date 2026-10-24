@@ -33,19 +33,6 @@ static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot *
     return the_same;
 }
 
-void closest_vertex (const struct vox_box *box, const vox_dot dot, vox_dot *resptr) {
-    int i;
-    vox_dot res;
-
-    for (i=0; i<VOX_N; i++) {
-        float d1 = fabsf (box->min[i] - dot[i]);
-        float d2 = fabsf (box->max[i] - dot[i]);
-        res[i] = (d1 < d2) ? box->min[i] : box->max[i];
-    }
-
-    *resptr = res;
-}
-
 unsigned int get_subspace_idx (const vox_dot center, const vox_dot dot) {
     unsigned int res, i;
     res = 0;
@@ -180,26 +167,4 @@ int dense_set_p (const struct vox_box *box, size_t n) {
     bb_volume = size[0]*size[1]*size[2];
     vox_volume = vox_voxel[0]*vox_voxel[1]*vox_voxel[2];
     return fabsf (n*vox_volume - bb_volume) < vox_volume;
-}
-
-int divide_box (const struct vox_box *box,
-                const vox_dot center,
-                struct vox_box *res,
-                int idx) {
-    int i;
-
-    vox_box_copy (res, box);
-
-    for (i=0; i<VOX_N; i++) {
-        if (idx & (1<<i)) {
-            res->max[i] = center[i];
-        } else {
-            res->min[i] = center[i];
-        }
-
-        if (res->min[i] == res->max[i]) {
-            return 0;
-        }
-    }
-    return 1;
 }
