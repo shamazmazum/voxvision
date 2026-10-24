@@ -163,7 +163,7 @@ float vox_sqr_norm (const vox_dot dot) {
     return res;
 }
 
-int box_ball_interp (const struct vox_box *box, const vox_dot center, float radius) {
+int vox_box_ball_interp (const struct vox_box *box, const vox_dot center, float radius) {
     vox_dot fitted;
     fit_into_box (box, center, &fitted);
     return vox_sqr_metric (fitted, center) < (radius*radius);

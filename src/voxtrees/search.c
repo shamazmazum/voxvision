@@ -151,7 +151,7 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
     if (!(VOX_FULLP (tree))) {
         return 0;
     }
-    if (box_ball_interp (&(tree->bounding_box), center, radius)) {
+    if (vox_box_ball_interp (&(tree->bounding_box), center, radius)) {
         if (tree->flags & VOX_DENSE_LEAF) {
             return 1;
         } else if (tree->flags & VOX_LEAF) {
@@ -160,7 +160,7 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
             for (i=0; i<tree->dots_num; i++) {
                 voxel.min = dots[i];
                 voxel.max = voxel.min + vox_voxel;
-                if (box_ball_interp (&voxel, center, radius)) {
+                if (vox_box_ball_interp (&voxel, center, radius)) {
                     return 1;
                 }
             }
