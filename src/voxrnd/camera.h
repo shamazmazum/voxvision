@@ -22,11 +22,10 @@ struct vox_camera_interface
      * Methods
      * -------
     */
-    void (*screen2world) (const struct vox_camera *camera, vox_dot ray, int sx, int sy);
+    vox_dot (*screen2world) (const struct vox_camera *camera, int sx, int sy);
     /**<
        \brief Translate screen coordinated to a direction vector.
 
-       \param ray the result is stored in this vector
        \param sx screen x coordinate
        \param sy screen y coordinate
      */
@@ -64,13 +63,9 @@ struct vox_camera_interface
      * Specific setters/getters
      * ------------------------
      */
-    void (*get_position) (const struct vox_camera *camera, vox_dot res);
+    vox_dot (*get_position) (const struct vox_camera *camera);
     /**<
        \brief Get camera position.
-
-       Camera position is copied to function's argument.
-
-       \param res where result is stored
     */
 
     void (*set_window_size) (struct vox_camera *camera, int w, int h);

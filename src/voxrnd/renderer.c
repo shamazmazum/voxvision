@@ -24,15 +24,12 @@ static int rendering_order[] = {
     0, 1, 4, 5, 2, 3, 6, 7, 8, 9, 12, 13, 10, 11, 14, 15
 };
 
-static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter)
-{
+static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter) {
     Uint32 res = SDL_MapRGB (context->surface->format, 255, 0, 0);
-
     return res;
 }
 
-static struct vox_rnd_ctx* allocate_context ()
-{
+static struct vox_rnd_ctx* allocate_context () {
     struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
     ctx->quality = VOX_QUALITY_ADAPTIVE;
@@ -40,8 +37,7 @@ static struct vox_rnd_ctx* allocate_context ()
     return ctx;
 }
 
-static void allocate_squares (struct vox_rnd_ctx *ctx)
-{
+static void allocate_squares (struct vox_rnd_ctx *ctx) {
     int w,h, squares_num;
 
     w = ctx->surface->w >> 2;
@@ -54,14 +50,15 @@ static void allocate_squares (struct vox_rnd_ctx *ctx)
 }
 
 // FIXME: This may be only temporary solution.
-static int bad_geometry (unsigned int width, unsigned int height)
-{
+static int bad_geometry (unsigned int width, unsigned int height) {
     return (width&0xf) || (height&0x3);
 }
 
-struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
-{
-    if (bad_geometry (surface->w, surface->h)) return NULL;
+struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface) {
+    if (bad_geometry (surface->w, surface->h)) {
+        return NULL;
+    }
+
     struct vox_rnd_ctx *ctx = allocate_context ();
     ctx->surface = surface;
     allocate_squares (ctx);
@@ -69,31 +66,29 @@ struct vox_rnd_ctx* vox_make_context_from_surface (SDL_Surface *surface)
     return ctx;
 }
 
-struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height)
-{
-    struct vox_rnd_ctx *ctx;
+struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned int height) {
+    struct vox_rnd_ctx *ctx = NULL;
 
-    if (bad_geometry (width, height)) return NULL;
-    if (!(SDL_WasInit (0) & SDL_INIT_VIDEO)) return NULL;
-    /*
-     * Kludge: This is a workaround for buggy graphics stack on FreeBSD. At
-     * least on FreeBSD 11.1 and mesa 17.2.2 I can get SDL initialized even
-     * without X session, but it fails to load GL library.
-     *
-     * The next call actually is just a detector if we are in X session or not.
-     *
-     * By the way, it is not needed if using proprietary nvidia drivers.
-     */
-#ifdef __FreeBSD__
-    if (SDL_GL_LoadLibrary (NULL) < 0) return NULL;
-#endif
+    if (bad_geometry (width, height)) {
+        goto failure;
+    }
+
+    if (!(SDL_WasInit (0) & SDL_INIT_VIDEO)) {
+        goto failure;
+    }
+
     ctx = allocate_context ();
-    ctx->window = SDL_CreateWindow ("voxrnd window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    ctx->window = SDL_CreateWindow ("voxrnd window",
+                                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                     width, height, 0);
-    if (ctx->window == NULL) goto failure;
+    if (ctx->window == NULL) {
+        goto failure;
+    }
 
     ctx->surface = SDL_GetWindowSurface (ctx->window);
-    if (ctx->surface == NULL) goto failure;
+    if (ctx->surface == NULL) {
+        goto failure;
+    }
 
     /* Sorry, only native pixel format by now */
     assert (ctx->surface->format->BitsPerPixel == 32);
@@ -104,45 +99,54 @@ struct vox_rnd_ctx* vox_make_context_and_window (unsigned int width, unsigned in
     return ctx;
 
 failure:
-    vox_destroy_context (ctx);
+    if (ctx != NULL) {
+        vox_destroy_context (ctx);
+    }
+
     return NULL;
 }
 
-void vox_destroy_context (struct vox_rnd_ctx *ctx)
-{
+void vox_destroy_context (struct vox_rnd_ctx *ctx) {
     if (ctx->window != NULL) {
         SDL_DestroyWindow (ctx->window);
         ctx->surface = NULL; // We do not need to free it manually
     }
-    if (ctx->surface != NULL) SDL_FreeSurface(ctx->surface);
+
+    if (ctx->surface != NULL) {
+        SDL_FreeSurface(ctx->surface);
+    }
+
     free (ctx->square_output);
     free (ctx);
 }
 
-void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera)
-{
+void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_camera *camera) {
     ctx->camera = camera;
     camera->iface->set_window_size (camera, ctx->surface->w, ctx->surface->h);
 }
 
-void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene)
-{
+void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene) {
     ctx->scene = scene;
 }
 
-int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)
-{
+int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality) {
     /* Ray merge mode check */
     if ((quality & VOX_QUALITY_RM_MASK) &&
         ((quality & VOX_QUALITY_MODE_MASK) !=
-         VOX_QUALITY_ADAPTIVE)) return 0;
+         VOX_QUALITY_ADAPTIVE)) {
+        return 0;
+    }
 
     /* Check if reserved values are not set */
     if ((quality & VOX_QUALITY_MODE_MASK) >
-        VOX_QUALITY_MODE_MAX) return 0;
+        VOX_QUALITY_MODE_MAX) {
+        return 0;
+    }
 
     if ((quality & VOX_QUALITY_RM_MASK) >
-        VOX_QUALITY_RM_MAX) return 0;
+        VOX_QUALITY_RM_MAX) {
+        return 0;
+    }
 
     ctx->quality = quality;
     return 1;
@@ -151,8 +155,7 @@ int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality)
 #define LENGTH_THRESHOLD 1.69
 #define MAX_DIST 150
 
-void vox_render (struct vox_rnd_ctx *ctx)
-{
+void vox_render (struct vox_rnd_ctx *ctx) {
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
     int ws = ctx->ws;
@@ -165,7 +168,8 @@ void vox_render (struct vox_rnd_ctx *ctx)
       square of 4x4 pixels. Inside each task we try to render the next pixel
       using previous leaf node, not root scene node, if possible.
     */
-    dispatch_apply (ctx->squares_num, dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+    dispatch_apply (ctx->squares_num,
+                    dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                     ^(size_t cs) {
                         const struct vox_node *corner1, *corner2;
                         vox_dot dir1, dir2;
@@ -187,7 +191,7 @@ void vox_render (struct vox_rnd_ctx *ctx)
                         int leafs_changed = 0;
 #endif
 
-                        camera->iface->get_position (camera, origin);
+                        origin = camera->iface->get_position (camera);
                         WITH_STAT (VOXRND_BLOCKS_TRACED());
                         int block_merge_mode = 0;
 
@@ -202,8 +206,9 @@ void vox_render (struct vox_rnd_ctx *ctx)
                              * value, LENGTH_THRESHOLD.
                              */
                             istart = 1;
-                            camera->iface->screen2world (camera, dir1, xstart, ystart);
-                            corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
+                            dir1 = camera->iface->screen2world (camera, xstart, ystart);
+                            corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1,
+                                                                 &inter1);
                             block_rnd_mode = VOX_QUALITY_FAST;
                             leaf = corner1;
                             if (corner1 != NULL) {
@@ -211,15 +216,15 @@ void vox_render (struct vox_rnd_ctx *ctx)
                                 /* Since we are already there, draw a pixel now. */
                                 color = get_color (ctx, inter1);
                                 output[cs][0] = color;
-                                camera->iface->screen2world (camera, dir2, xstart + 3, ystart + 3);
-                                corner2 = vox_ray_tree_intersection (ctx->scene, origin, dir2, inter2);
+                                dir2 = camera->iface->screen2world (camera, xstart + 3, ystart + 3);
+                                corner2 = vox_ray_tree_intersection (ctx->scene, origin, dir2, &inter2);
                                 if (corner2 != NULL) {
                                     color = get_color (ctx, inter2);
                                     output[cs][15] = color;
-                                    float d1 = vox_sqr_metric (inter1, origin);
+                                    float d1 = vox_sqr_norm (inter1 - origin);
                                     float d2 = vox_sqr_norm (dir1);
-                                    float criteria = d1 / d2 * vox_sqr_metric (dir1, dir2);
-                                    float dist = vox_sqr_metric (inter1, inter2);
+                                    float criteria = d1 / d2 * vox_sqr_norm (dir1 - dir2);
+                                    float dist = vox_sqr_norm (inter1 - inter2);
                                     if (dist/criteria > LENGTH_THRESHOLD) {
                                         block_rnd_mode = VOX_QUALITY_BEST;
                                         WITH_STAT (VOXRND_CANCELED_PREDICTION());
@@ -243,23 +248,29 @@ void vox_render (struct vox_rnd_ctx *ctx)
                             int x = p%4;
                             int merge = block_merge_mode && (i & 1);
 
-                            camera->iface->screen2world (camera, dir1, x+xstart, y+ystart);
+                            dir1 = camera->iface->screen2world (camera, x+xstart, y+ystart);
                             if (!merge) {
                                 if (block_rnd_mode == VOX_QUALITY_FAST) {
                                     WITH_STAT (old_leaf = leaf);
-                                    if (leaf != NULL)
-                                        leaf = vox_ray_tree_intersection (leaf,  origin, dir1, inter1);
+                                    if (leaf != NULL) {
+                                        leaf = vox_ray_tree_intersection (leaf,  origin, dir1, &inter1);
+                                    }
                                     if (leaf == NULL) {
-                                        leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
+                                        leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, &inter1);
 #ifdef STATISTICS
                                         if (old_leaf != NULL) {
-                                            if (leaf != NULL) VOXRND_LEAF_MISPREDICTION();
-                                            else VOXRND_IGNORED_PREDICTION();
+                                            if (leaf != NULL) {
+                                                VOXRND_LEAF_MISPREDICTION();
+                                            } else {
+                                                VOXRND_IGNORED_PREDICTION();
+                                            }
                                             leafs_changed++;
                                         }
 #endif
                                     }
-                                } else leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, inter1);
+                                } else {
+                                    leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, &inter1);
+                                }
                             }
 
                             if (leaf != NULL) {
@@ -272,10 +283,11 @@ void vox_render (struct vox_rnd_ctx *ctx)
                     });
 }
 
-void vox_redraw (struct vox_rnd_ctx *ctx)
-{
+void vox_redraw (struct vox_rnd_ctx *ctx) {
     copy_squares (ctx->square_output, ctx->surface->pixels, ctx->ws, ctx->hs);
     memset (ctx->square_output, 0, ctx->squares_num*sizeof(square));
 
-    if (ctx->window != NULL) SDL_UpdateWindowSurface (ctx->window);
+    if (ctx->window != NULL) {
+        SDL_UpdateWindowSurface (ctx->window);
+    }
 }

@@ -10,11 +10,12 @@
 #ifdef VOXRND_SOURCE
 void vox_method_void_dummy (void *obj, ...);
 float vox_method_float_dummy (void *obj, ...);
-void vox_method_dot_dummy (void *obj, vox_dot dot, ...);
+vox_dot vox_method_dot_dummy (void *obj, ...);
 
 
-#define VOX_OBJECT_METHODS .set_property_number = (void*)vox_method_void_dummy, \
-        .set_property_dot = (void*)vox_method_void_dummy,
+#define VOX_OBJECT_METHODS                                  \
+    .set_property_number = (void*)vox_method_void_dummy,    \
+    .set_property_dot = (void*)vox_method_void_dummy,
 #endif
 
 /**
@@ -26,7 +27,8 @@ void vox_method_dot_dummy (void *obj, vox_dot dot, ...);
 
    See `vox_camera_interface` and `vox_camera` for examples.
 **/   
-#define VOX_OBJECT(type) void (*set_property_number) (struct type *obj, const char *name, float value); \
+#define VOX_OBJECT(type)                                                \
+    void (*set_property_number) (struct type *obj, const char *name, float value); \
     void (*set_property_dot) (struct type *obj, const char *name, const vox_dot value); \
 
 /**

@@ -123,7 +123,7 @@ int main (int argc, char *argv[])
         }
     }
 
-    _iniparser_getvector3_float (cfg, "Scene:Voxsize", vox_voxel);
+    _iniparser_getvector3_float (cfg, "Scene:Voxsize", &vox_voxel);
 
     const char *tmp_set_name = iniparser_getstring (cfg, "Scene:DataSet", NULL);
     if (tmp_set_name == NULL)
@@ -149,7 +149,7 @@ int main (int argc, char *argv[])
     }
 
     vox_dot origin = {0,-100,0};
-    _iniparser_getvector3_float (cfg, "Camera:Position", origin);
+    _iniparser_getvector3_float (cfg, "Camera:Position", &origin);
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
     if (fov < 0)
     {
@@ -195,11 +195,13 @@ int main (int argc, char *argv[])
     camera = camera_iface->construct_camera (NULL);
     camera->iface->set_property_dot (camera, "position", origin);
     camera->iface->set_property_number (camera, "fov", fov);
-    vox_dot look;
-    vox_dot_set (look,
-                 vox_voxel[0]/2 * dim[0],
-                 vox_voxel[1]/2 * dim[1],
-                 vox_voxel[2]/2 * dim[2]);
+    vox_dot look = (vox_dot) {
+        vox_voxel[0]/2 * dim[0],
+        vox_voxel[1]/2 * dim[1],
+        vox_voxel[2]/2 * dim[2],
+        0
+    };
+        
     camera->iface->look_at (camera, look);
     int width = global_settings.window_width;
     int height = global_settings.window_height;
@@ -250,10 +252,10 @@ int main (int argc, char *argv[])
                     */
                     dispatch_group_notify (tree_group, tree_queue, ^{
                             vox_dot inter, dir, origin;
-                            camera->iface->get_position (camera, origin);
-                            camera->iface->screen2world (camera, dir, width/2, height/2);
+                            origin = camera->iface->get_position (camera);
+                            dir = camera->iface->screen2world (camera, width/2, height/2);
                             const struct vox_node* leaf =
-                                vox_ray_tree_intersection (tree, origin, dir, inter);
+                                vox_ray_tree_intersection (tree, origin, dir, &inter);
                             if (leaf != NULL)
                             {
                                 if (event.key.keysym.scancode == global_controls.insert)

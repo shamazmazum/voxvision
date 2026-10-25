@@ -29,7 +29,9 @@ VOX_EXPORT struct vox_cd* vox_make_cd ();
 
    A camera currently has a spherical body with supplied radius.
 **/
-VOX_EXPORT void vox_cd_attach_camera (struct vox_cd *cd, struct vox_camera *camera, float radius);
+VOX_EXPORT void vox_cd_attach_camera (struct vox_cd *cd,
+                                      struct vox_camera *camera,
+                                      float radius);
 
 /**
    \brief Attach a renderer context to collision detector

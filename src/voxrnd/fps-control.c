@@ -11,8 +11,7 @@
  * frame will be rendered slower, and, on the other side, if it was
  * rendered slower than desired, the next will be rendered faster.
  */
-vox_fps_controller_t vox_make_fps_controller (unsigned int fps)
-{
+vox_fps_controller_t vox_make_fps_controller (unsigned int fps) {
     __block unsigned int counter = 0;
     __block int delay = 0;
     __block unsigned int actual_fps = 0;
@@ -35,20 +34,23 @@ vox_fps_controller_t vox_make_fps_controller (unsigned int fps)
         new_time = SDL_GetTicks();
         frame_time = new_time - current_time;
 
-        if (fps)
-        {
+        if (fps) {
             delta = frame_time - delay;
             tmp = (1<<16) - (fps<<16)*(long)frame_time/1000;
             delta *= tmp;
             tmp = delta >> 16;
-            if (tmp == 0) delta >>= 15;
-            else delta = tmp;
+            if (tmp == 0) {
+                delta >>= 15;
+            } else {
+                delta = tmp;
+            }
             delay += (int)delta;
-            if (delay < 0) delay = 0;
+            if (delay < 0) {
+                delay = 0;
+            }
         }
 
-        if (new_time - total_time > 1000)
-        {
+        if (new_time - total_time > 1000) {
             actual_fps = counter;
             counter = 0;
             total_time = new_time;

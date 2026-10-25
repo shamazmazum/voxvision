@@ -100,18 +100,20 @@ int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[]
     return 1;
 }
 
-int _iniparser_getvector3_float (dictionary *dict, const char *entry, float result[])
+int _iniparser_getvector3_float (dictionary *dict, const char *entry, vox_dot *result)
 {
     const char *value;
-    float a[3];
+    vox_dot a;
+    float x,y,z;
     int n;
 
     value = iniparser_getstring (dict, entry, NULL);
     if (value == NULL) return 0;
 
-    n = sscanf (value, "<%f, %f, %f>", &(a[0]), &(a[1]), &(a[2]));
+    n = sscanf (value, "<%f, %f, %f>", &x, &y, &z);
     if (n != 3) return 0;
 
-    memcpy (result, a, sizeof(float)*3);
+    a = (vox_dot) {x, y, z, 0};
+    *result = a;
     return 1;
 }
