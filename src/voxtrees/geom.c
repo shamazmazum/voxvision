@@ -54,50 +54,34 @@ int vox_hit_box (const struct vox_box *box,
                  const vox_dot origin,
                  const vox_dot dir,
                  vox_dot *resptr) {
-    float max_dist, tmp;
-    int i, plane_num;
-    vox_dot res;
+    auto clamped = box_clamp (box, origin);
+    auto diff = clamped - origin;
 
-    res = box_clamp (box, origin);
-    if (extract_mask (res == origin) == 7) {
-        *resptr = res;
+    if (extract_mask (diff == 0) == 7) {
+        *resptr = origin;
         return 1;
     }
 
-    plane_num = 0;
-    max_dist = -1;
-    for (i=0; i<VOX_N; i++) {
-        tmp = (res[i] - origin[i])/dir[i];
-        if (tmp > max_dist) {
-            plane_num = i;
-            max_dist = tmp;
-        }
-    }
+    auto dist = (dir == 0) ? 0 : (diff / dir);
+    auto maxdist = fmaxf (fmaxf (dist.x, dist.y), dist.z);
 
-    if (max_dist <= 0) {
+    if (maxdist <= 0) {
         return 0;
     }
 
-    for (i=0; i<VOX_N; i++) {
-        if (i != plane_num) {
-            tmp = origin[i] + max_dist*dir[i];
-            if ((tmp < box->min[i]) || (tmp > box->max[i])) {
-                return 0;
-            }
-            res[i] = tmp;
-        }
+    auto hit = (maxdist == dist) ? clamped : (maxdist * dir + origin);
+    auto mask = (hit < box->min) || (hit > box->max);
+    if (extract_mask (mask) != 0) {
+        return 0;
     }
 
-    *resptr = res;
+    *resptr = hit;
     return 1;
 }
 
 int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
                           int planenum, vox_dot *resptr, const struct vox_box *box) {
-    vox_dot res;
-    int i;
-    float k;
-    k = planedot[planenum] - origin[planenum];
+    float k = planedot[planenum] - origin[planenum];
     /*
       k == 0 means that origin lays on the plane.
       This is a special case which is not handeled here.
@@ -108,39 +92,30 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     }
 
     k = k / dir[planenum];
+    auto hit = k*dir + origin;
+    auto mask = (hit < box->min) || (hit > box->max);
 
-    for (i=0; i<VOX_N; i++) {
-        res[i] = origin[i] + k*dir[i];
-        if ((res[i] < box->min[i]) || (res[i] > box->max[i])) return 0;
+    if (extract_mask (mask) != 0) {
+        return 0;
     }
 
-    *resptr = res;
+    *resptr = hit;
     return 1;
 }
 
 float vox_abs_metric (const vox_dot dot1, const vox_dot dot2) {
-    int i;
-    float res = 0;
-    for (i=0; i<VOX_N; i++) {
-        res += fabsf (dot1[i] - dot2[i]);
-    }
-    return res;
-}
-
-float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2) {
-    int i;
-    float res = 0;
-    for (i=0; i<VOX_N; i++) {
-        res += powf (dot1[i] - dot2[i], 2.0);
-    }
-    return res;
+    auto v = __builtin_elementwise_abs(dot1 - dot2);
+    return v.x + v.y + v.z;
 }
 
 float vox_sqr_norm (const vox_dot dot) {
-    int i;
-    float res = 0;
-    for (i=0; i<VOX_N; i++) res += powf (dot[i], 2.0);
-    return res;
+    vox_dot p = 2;
+    auto v = __builtin_elementwise_pow (dot, p);
+    return v.x + v.y + v.z;
+}
+
+float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2) {
+    return vox_sqr_norm (dot1 - dot2);
 }
 
 int vox_box_ball_interp (const struct vox_box *box, const vox_dot center, float radius) {
