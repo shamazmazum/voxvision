@@ -10,7 +10,7 @@ set (voxvision_VERSION_MAJOR 0)
 set (voxvision_VERSION_MINOR 34)
 set (voxvision_VERSION ${voxvision_VERSION_MAJOR}.${voxvision_VERSION_MINOR})
 
-set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -fno-honor-nans")
+set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -fno-honor-nans -funsafe-math-optimizations")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-unused-parameter")
 
 # Dances with linux
