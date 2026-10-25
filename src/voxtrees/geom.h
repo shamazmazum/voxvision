@@ -9,36 +9,6 @@
 #include "params.h"
 
 /**
-   \brief Vector addition
-**/
-#define vox_dot_add(a,b,res) do {               \
-        res[0] = a[0] + b[0];                   \
-        res[1] = a[1] + b[1];                   \
-        res[2] = a[2] + b[2];                   \
-    }                                           \
-    while (0);
-
-/**
-   \brief Vector subtraction
-**/
-#define vox_dot_sub(a,b,res) do {               \
-        res[0] = a[0] - b[0];                   \
-        res[1] = a[1] - b[1];                   \
-        res[2] = a[2] - b[2];                   \
-    }                                           \
-    while (0);
-
-/**
-   \brief Vector multiplication by a scalar
-**/
-#define vox_dot_scmul(d,sc,res) do {            \
-        res[0] = sc * d[0];                     \
-        res[1] = sc * d[1];                     \
-        res[2] = sc * d[2];                     \
-    }                                           \
-    while (0);
-
-/**
    \brief Calculate fast metric between two dots.
 
    This is a fast metric on R^3 calculacted as sum of absolute values of
