@@ -1,59 +1,51 @@
 #include <stdlib.h>
 #include <math.h>
+#ifdef __x86_64__
+#include <xmmintrin.h>
+#endif
 #include "geom.h"
 
-int voxel_in_box (const struct vox_box *box, const vox_dot dot) {
-    int i;
+typedef int int4 __attribute__((ext_vector_type(4)));
+#ifdef __x86_64__
+static unsigned int extract_mask (int4 m) {
+    return _mm_movemask_ps ((__m128i)m) & 7;
+}
+#else
+static unsigned int extract_mask (int4 m) {
+    return ((m.x != 0) << 0) | ((m.y != 0) << 1) | ((m.z != 0) << 2);
+}
+#endif
 
-    for (i=0; i<VOX_N; i++) {
-        if ((dot[i] < box->min[i]) || (dot[i] >= box->max[i])) {
-            return 0;
-        }
-    }
-    return 1;
+static vox_dot box_clamp (const struct vox_box *box, const vox_dot dot) {
+    vox_dot clamped;
+    clamped = __builtin_elementwise_min (box->max, dot);
+    clamped = __builtin_elementwise_max (box->min, clamped);
+    return clamped;
 }
 
-static int fit_into_box (const struct vox_box *box, const vox_dot dot, vox_dot *resptr) {
-    int i, the_same = 1;
-    vox_dot res;
-
-    for (i=0; i<VOX_N; i++) {
-        if (dot[i] < box->min[i]) {
-            res[i] = box->min[i];
-            the_same = 0;
-        } else if (dot[i] > box->max[i]) {
-            res[i] = box->max[i];
-            the_same = 0;
-        } else {
-            res[i] = dot[i];
-        }
-    }
-
-    *resptr = res;
-    return the_same;
+int voxel_in_box (const struct vox_box *box, const vox_dot dot) {
+    vox_dot clamped = box_clamp (box, dot);
+    return extract_mask (dot == clamped) == 7;
 }
 
 unsigned int get_subspace_idx (const vox_dot center, const vox_dot dot) {
     unsigned int res, i;
     res = 0;
 
-    for (i=0; i<VOX_N; i++) res |= (center[i] > dot[i]) << i;
+    for (i=0; i<VOX_N; i++) {
+        res |= (center[i] > dot[i]) << i;
+    }
     return res;
 }
 
 unsigned int get_corrected_subspace_idx (const vox_dot center,
                                          const vox_dot dot,
                                          const vox_dot direction) {
-    unsigned int res, a, i;
-    res = 0;
+    auto mask1 = direction < 0;
+    auto mask2 = center > dot;
+    auto mask3 = (center == dot) ? mask1 : mask2;
 
-    for (i=0; i<VOX_N; i++) {
-        if (center[i] == dot[i]) a = direction[i] < 0;
-        else a = center[i] > dot[i];
-        res |= a << i;
-    }
-
-    return res;
+    return extract_mask (mask3);
 }
 
 // Most of the following code is taken from C Graphics Gems
@@ -66,7 +58,8 @@ int vox_hit_box (const struct vox_box *box,
     int i, plane_num;
     vox_dot res;
 
-    if (fit_into_box (box, origin, &res)) {
+    res = box_clamp (box, origin);
+    if (extract_mask (res == origin) == 7) {
         *resptr = res;
         return 1;
     }
@@ -151,9 +144,8 @@ float vox_sqr_norm (const vox_dot dot) {
 }
 
 int vox_box_ball_interp (const struct vox_box *box, const vox_dot center, float radius) {
-    vox_dot fitted;
-    fit_into_box (box, center, &fitted);
-    return vox_sqr_metric (fitted, center) < (radius*radius);
+    vox_dot clamped = box_clamp (box, center);
+    return vox_sqr_metric (clamped, center) < (radius*radius);
 }
 
 int dense_set_p (const struct vox_box *box, size_t n) {
