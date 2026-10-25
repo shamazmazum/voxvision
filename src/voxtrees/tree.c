@@ -325,7 +325,7 @@ again:
         WITH_STAT (VOXTREES_LEAF_INSERTION());
         dots = alloca (sizeof (vox_dot) + 16);
         dots = (void*)(((unsigned long) dots + 15) & ~(unsigned long)15);
-        vox_dot_copy (dots[0], voxel);
+        dots[0] = voxel;
         node = vox_make_tree (dots, 1);
         goto done;
     }

@@ -17,9 +17,6 @@
 static float precise_check;
 static float approx_check;
 
-static vox_dot half_voxel;
-static vox_dot neg_half_voxel;
-
 static float norm (vox_dot d) {
     return sqrtf (d[0]*d[0] + d[1]*d[1] + d[2]*d[2]);
 }
@@ -346,10 +343,11 @@ static uint32_t random_set (vox_dot **setptr, uint32_t n) {
     vox_dot *set = aligned_alloc (16, sizeof (vox_dot) * n);
 
     for (uint32_t i = 0; i < n; i++) {
-        vox_dot_set(set[i],
-                    arc4random_uniform(1000),
-                    arc4random_uniform(1000),
-                    arc4random_uniform(1000));
+        set[i] = (vox_dot) {arc4random_uniform(1000),
+                            arc4random_uniform(1000),
+                            arc4random_uniform(1000),
+                            0
+        };
     }
 
     *setptr = set;
@@ -379,7 +377,7 @@ static void check_tree (struct vox_node *tree) {
             vox_dot *dots = tree->data.dots;
             // Check that all voxels are covered by bounding box
             for (i=0; i<tree->dots_num; i++) {
-                vox_dot_add (dots[i], vox_voxel, tmp);
+                tmp = dots[i] + vox_voxel;
                 CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), dots[i]));
                 CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), tmp));
             }
@@ -399,9 +397,9 @@ static void check_tree (struct vox_node *tree) {
                       to bounding box corners because faces of bounding box may belong to
                       another subspace. What is inside may not.
                     */
-                    vox_dot_add (child->bounding_box.min, half_voxel, tmp);
+                    tmp = child->bounding_box.min + vox_voxel/2;
                     CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
-                    vox_dot_add (child->bounding_box.max, neg_half_voxel, tmp);
+                    tmp = child->bounding_box.max - vox_voxel/2;
                     CU_ASSERT_FATAL (get_subspace_idx (inner.center, tmp) == i);
                 }
                 // Test a child recursively
@@ -459,11 +457,12 @@ static void test_tree_insert () {
         free (set);
 
         for (int j = 0; j < 100; j++) {
-            vox_dot dot;
-            vox_dot_set (dot,
-                         arc4random_uniform (1000),
-                         arc4random_uniform (1000),
-                         arc4random_uniform (1000));
+            vox_dot dot = (vox_dot) {
+                arc4random_uniform (1000),
+                arc4random_uniform (1000),
+                arc4random_uniform (1000),
+                0
+            };
             vox_insert_voxel (&tree, dot);
             check_tree (tree);
         }
@@ -689,7 +688,7 @@ static CU_SuiteInfo suites[] = {
 };
 
 int main () {
-    int i, code;
+    int code;
     char *travis_env;
 
     if (CU_initialize_registry() != CUE_SUCCESS) {
@@ -703,11 +702,6 @@ int main () {
                  CU_get_error_msg ());
         CU_cleanup_registry ();
         return EXIT_FAILURE;
-    }
-
-    for (i=0; i<VOX_N; i++) {
-        half_voxel[i] = vox_voxel[i]/2;
-        neg_half_voxel[i] = -vox_voxel[i]/2;
     }
 
     /*
