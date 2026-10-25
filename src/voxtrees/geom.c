@@ -103,24 +103,20 @@ int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot
     return 1;
 }
 
-float vox_abs_metric (const vox_dot dot1, const vox_dot dot2) {
-    auto v = __builtin_elementwise_abs(dot1 - dot2);
-    return v.x + v.y + v.z;
-}
-
 float vox_sqr_norm (const vox_dot dot) {
     vox_dot p = 2;
     auto v = __builtin_elementwise_pow (dot, p);
     return v.x + v.y + v.z;
 }
 
-float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2) {
-    return vox_sqr_norm (dot1 - dot2);
+float vox_abs_norm (const vox_dot dot) {
+    auto v = __builtin_elementwise_abs (dot);
+    return v.x + v.y + v.z;
 }
 
 int vox_box_ball_interp (const struct vox_box *box, const vox_dot center, float radius) {
     vox_dot clamped = box_clamp (box, center);
-    return vox_sqr_metric (clamped, center) < (radius*radius);
+    return vox_sqr_norm (clamped - center) < (radius*radius);
 }
 
 int dense_set_p (const struct vox_box *box, size_t n) {

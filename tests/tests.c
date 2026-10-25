@@ -29,7 +29,7 @@ static float norm (vox_dot d) {
 /* } */
 
 static int vect_eq (const vox_dot v1, const vox_dot v2, float precision) {
-    float dist = sqrtf (vox_sqr_metric (v1, v2));
+    float dist = norm (v1 - v2);
     return dist < precision;
 }
 

@@ -49,7 +49,7 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
             voxel.min = dots[i];
             voxel.max = voxel.min + vox_voxel;
             if (vox_hit_box (&voxel, bb_inter, dir, &far_inter)) {
-                dist_far = vox_abs_metric (bb_inter, far_inter);
+                dist_far = vox_abs_norm (bb_inter - far_inter);
                 /*
                  * This is the optimization I mentioned earlier.
                  * If a distance between the node's bounding box and newly found
@@ -112,8 +112,8 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
         unsigned int j;
         vox_dot tmp;
         for (j=i+1; j<plane_counter; j++) {
-            if (vox_abs_metric (bb_inter, plane_inter[j]) <
-                vox_abs_metric (bb_inter, plane_inter[i])) {
+            if (vox_abs_norm (bb_inter - plane_inter[j]) <
+                vox_abs_norm (bb_inter - plane_inter[i])) {
                 tmp = plane_inter[j];
                 plane_inter[j] = plane_inter[i];
                 plane_inter[i] = tmp;

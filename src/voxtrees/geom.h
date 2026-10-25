@@ -9,22 +9,12 @@
 #include "params.h"
 
 /**
-   \brief Calculate fast metric between two dots.
-
-   This is a fast metric on R^3 calculacted as sum of absolute values of
-   by-coordinate differences between two dots.
+   \brief Calculate Manhattan norm of a vector.
 **/
-VOX_EXPORT float vox_abs_metric (const vox_dot dot1, const vox_dot dot2);
+VOX_EXPORT float vox_abs_norm (const vox_dot dot);
 
 /**
-   \brief Calculate metric between two dots.
-   
-   This is a square of standard Euclidian metric on R^3
-**/
-VOX_EXPORT float vox_sqr_metric (const vox_dot dot1, const vox_dot dot2);
-
-/**
-   \brief Calculate norm of a vector.
+   \brief Calculate Euclidean norm of a vector.
 
    This is a square of standard Euclidian norm on R^3
 **/
