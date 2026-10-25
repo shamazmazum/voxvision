@@ -5,7 +5,7 @@ include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
 add_definitions (-fblocks)
 add_subdirectory (voxtrees)
-#add_subdirectory (voxrnd)
+add_subdirectory (voxrnd)
 #add_subdirectory (demo)
 
 if (LUA_FOUND)

@@ -23,7 +23,7 @@ static vox_dot box_clamp (const struct vox_box *box, const vox_dot dot) {
     return clamped;
 }
 
-int voxel_in_box (const struct vox_box *box, const vox_dot dot) {
+int vox_voxel_in_box (const struct vox_box *box, const vox_dot dot) {
     vox_dot clamped = box_clamp (box, dot);
     return extract_mask (dot == clamped) == 7;
 }

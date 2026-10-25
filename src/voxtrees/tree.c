@@ -286,7 +286,7 @@ struct vox_node* vox_freeze_tree (const struct vox_node *tree) {
 int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
     unsigned int i;
 
-    if (VOX_FULLP (tree) && voxel_in_box (&(tree->bounding_box), voxel)) {
+    if (VOX_FULLP (tree) && vox_voxel_in_box (&(tree->bounding_box), voxel)) {
         if (tree->flags & VOX_LEAF) {
             for (i=0; i<tree->dots_num; i++) {
                 if (vox_dot_equalp (voxel, tree->data.dots[i])) {

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "object.h"
 
 void vox_method_void_dummy (void *obj, ...) {}

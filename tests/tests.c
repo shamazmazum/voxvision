@@ -18,56 +18,35 @@ static float precise_check;
 static float approx_check;
 
 static float norm (vox_dot d) {
-    return sqrtf (d[0]*d[0] + d[1]*d[1] + d[2]*d[2]);
+    return sqrtf (vox_sqr_norm (d));
 }
 
-static void normalize (vox_dot d) {
-    float n = norm (d);
-    d[1] /= n;
-    d[2] /= n;
-    d[3] /= n;
-}
-
-static int dot_betweenp (const struct vox_box *box, const vox_dot dot) {
-    int i;
-
-    for (i=0; i<VOX_N; i++) {
-        if ((dot[i] < box->min[i]) || (dot[i] > box->max[i])) {
-            return 0;
-        }
-    }
-    return 1;
-}
+/* static void normalize (vox_dot d) { */
+/*     float n = norm (d); */
+/*     d[1] /= n; */
+/*     d[2] /= n; */
+/*     d[3] /= n; */
+/* } */
 
 static int vect_eq (const vox_dot v1, const vox_dot v2, float precision) {
-    int i;
-    float mdiff = precision;
-    for (i=0; i<3; i++) {
-        float diff = fabsf (v1[i] - v2[i]);
-        mdiff = (diff > mdiff) ? diff : mdiff;
-    }
-
-    if (mdiff == precision) {
-        return 1;
-    } else {
-        return 0;
-    }
+    float dist = sqrtf (vox_sqr_metric (v1, v2));
+    return dist < precision;
 }
 
-static int quat_eq (const vox_quat v1, const vox_quat v2, float precision) {
-    int i;
-    float mdiff = precision;
-    for (i=0; i<4; i++) {
-        float diff = fabsf (v1[i] - v2[i]);
-        mdiff = (diff > mdiff) ? diff : mdiff;
-    }
+/* static int quat_eq (const vox_quat v1, const vox_quat v2, float precision) { */
+/*     int i; */
+/*     float mdiff = precision; */
+/*     for (i=0; i<4; i++) { */
+/*         float diff = fabsf (v1[i] - v2[i]); */
+/*         mdiff = (diff > mdiff) ? diff : mdiff; */
+/*     } */
 
-    if (mdiff == precision) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
+/*     if (mdiff == precision) { */
+/*         return 1; */
+/*     } else { */
+/*         return 0; */
+/*     } */
+/* } */
 
 /* static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot target) { */
 /*     float t = (target[0] - origin[0])/dir[0]; */
@@ -126,19 +105,18 @@ static int brute_force_collides_with_ball_p (vox_dot *set, uint32_t n, vox_dot c
     return 0;
 }
 
-/* static void test_identity () { */
-/*     vox_quat identity; */
-/*     vox_dot dot, rot; */
+static void test_identity () {
+    vox_quat identity = (vox_quat) {0, 0, 0, 1};
+    vox_dot dot, rot;
 
-/*     vox_quat_set_identity (identity); */
-
-/*     for (int i = 0; i < 1000; i++) { */
-/*         vox_dot_set(rot, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set(dot, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_rotate_vector (identity, dot, rot); */
-/*         CU_ASSERT (vect_eq (dot, rot, precise_check)); */
-/*     } */
-/* } */
+    for (int i = 0; i < 1000; i++) {
+        dot = (vox_dot) {
+            random_float_01(), random_float_01(), random_float_01(), 0
+        };
+        rot = vox_rotate_vector (identity, dot);
+        CU_ASSERT (vect_eq (dot, rot, precise_check));
+    }
+}
 
 /* static void test_rotation_around_itself () { */
 /*     vox_dot vec, res; */
@@ -378,8 +356,8 @@ static void check_tree (struct vox_node *tree) {
             // Check that all voxels are covered by bounding box
             for (i=0; i<tree->dots_num; i++) {
                 tmp = dots[i] + vox_voxel;
-                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), dots[i]));
-                CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), tmp));
+                CU_ASSERT_FATAL (vox_voxel_in_box (&(tree->bounding_box), dots[i]));
+                CU_ASSERT_FATAL (vox_voxel_in_box (&(tree->bounding_box), tmp));
             }
         } else {
             vox_inner_data inner = tree->data.inner;
@@ -389,8 +367,10 @@ static void check_tree (struct vox_node *tree) {
                 number_sum += vox_voxels_in_tree (child);
                 if (VOX_FULLP (child)) {
                     // Check if child's bounding box is inside parent's
-                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.min));
-                    CU_ASSERT_FATAL (dot_betweenp (&(tree->bounding_box), child->bounding_box.max));
+                    CU_ASSERT_FATAL (vox_voxel_in_box (&(tree->bounding_box),
+                                                       child->bounding_box.min));
+                    CU_ASSERT_FATAL (vox_voxel_in_box (&(tree->bounding_box),
+                                                       child->bounding_box.max));
 
                     /*
                       Check subspace. We add/subtract a small value (half size of a voxel)
@@ -648,16 +628,16 @@ static void test_random_ball_collision () {
 /* } */
 
 /* Vector operations */
-/* static CU_TestInfo vectops_tests[] = { */
-/*     { "identity operator", test_identity }, */
-/*     /\*{ "rotate around itself", test_rotation_around_itself },*\/ // Broken */
-/*     { "change axis", test_change_axis }, */
-/*     { "anticommutativity of some rotations", test_anticommut }, */
-/*     { "composition of rotations", rot_composition }, */
-/*     /\*{ "rotation isometry", rot_saves_norm },*\/ // Broken */
-/*     { "quaterion multiplication", quat_mul }, */
-/*     CU_TEST_INFO_NULL */
-/* }; */
+static CU_TestInfo vectops_tests[] = {
+    { "identity operator", test_identity },
+    /*{ "rotate around itself", test_rotation_around_itself },*/ // Broken
+    //{ "change axis", test_change_axis },
+    //{ "anticommutativity of some rotations", test_anticommut },
+    //{ "composition of rotations", rot_composition },
+    /*{ "rotation isometry", rot_saves_norm },*/ // Broken
+    //{ "quaterion multiplication", quat_mul },
+    CU_TEST_INFO_NULL
+};
 
 /* Tree construction and search (voxtrees) */
 static CU_TestInfo voxtrees_tests[] = {
@@ -681,7 +661,7 @@ static CU_TestInfo voxtrees_tests[] = {
 /* }; */
 
 static CU_SuiteInfo suites[] = {
-    //{ "vectops",  NULL, NULL, NULL, NULL, vectops_tests },
+    { "vectops",  NULL, NULL, NULL, NULL, vectops_tests },
     { "voxtrees", NULL, NULL, NULL, NULL, voxtrees_tests },
     //{ "voxrnd",   NULL, NULL, NULL, NULL, voxrnd_tests },
     CU_SUITE_INFO_NULL

@@ -32,6 +32,9 @@ VOX_EXPORT float vox_sqr_norm (const vox_dot dot);
 
 #ifdef VOXTREES_SOURCE
 
+// Stuff marked VOX_EXPORT is needed for tests.
+// TODO: check it has vox_ prefix.
+
 /**
    \brief Calculate a subspace index for the dot.
    
@@ -42,7 +45,6 @@ VOX_EXPORT float vox_sqr_norm (const vox_dot dot);
    \param dot2 the dot we must calculate index for
    \return The subspace index in the range [0,2^N-1]
 **/
- // KLUDGE: needed for tests
 VOX_EXPORT unsigned int get_subspace_idx (const vox_dot center, const vox_dot dot);
 
 /*
@@ -96,7 +98,7 @@ VOX_EXPORT int vox_box_ball_interp (const struct vox_box *box,
                                     float radius);
 
 int dense_set_p (const struct vox_box *box, size_t n);
-int voxel_in_box (const struct vox_box *box, const vox_dot dot);
+VOX_EXPORT int vox_voxel_in_box (const struct vox_box *box, const vox_dot dot);
 #endif
 
 #endif

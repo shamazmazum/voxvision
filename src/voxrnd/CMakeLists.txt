@@ -5,15 +5,16 @@ add_definitions (-DUSE_GCD)
 endif (GCD_FOUND)
 
 set (VOXRND_SOURCES
-  object.c
-  modules.c
-  camera.c
-  renderer.c
+  #object.c
+  #modules.c
+  #camera.c
+  #renderer.c
   vect-ops.c
-  fps-control.c
-  cd.c
-  copy-helper.c
-  screenshot.c)
+  #fps-control.c
+  #cd.c
+  #copy-helper.c
+  #screenshot.c
+)
 
 add_library (voxrnd SHARED ${VOXRND_SOURCES})
 if (WITH_DTRACE)
@@ -45,15 +46,15 @@ if (GCD_FOUND)
 target_link_libraries (voxrnd PkgConfig::GCD)
 endif (GCD_FOUND)
 
-add_library (simple-camera-module SHARED simple-camera.c)
-set_target_properties (simple-camera-module PROPERTIES OUTPUT_NAME simple-camera PREFIX "")
+#add_library (simple-camera-module SHARED simple-camera.c)
+#set_target_properties (simple-camera-module PROPERTIES OUTPUT_NAME simple-camera PREFIX "")
 
-add_library (doom-camera-module SHARED doom-camera.c)
-set_target_properties (doom-camera-module PROPERTIES OUTPUT_NAME doom-camera PREFIX "")
+#add_library (doom-camera-module SHARED doom-camera.c)
+#set_target_properties (doom-camera-module PROPERTIES OUTPUT_NAME doom-camera PREFIX "")
 
 install (FILES camera.h renderer.h fps-control.h cd.h modules.h object.h screenshot.h
          DESTINATION include/voxvision/voxrnd)
 install (TARGETS voxrnd LIBRARY
          DESTINATION lib)
-install (TARGETS simple-camera-module doom-camera-module LIBRARY
-         DESTINATION share/voxvision/modules)
+#install (TARGETS simple-camera-module doom-camera-module LIBRARY
+#         DESTINATION share/voxvision/modules)

@@ -6,9 +6,12 @@ target_include_directories (run-tests PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../src
 )
 
-target_link_libraries (run-tests m voxtrees
-  #voxrnd
-  PkgConfig::CUnit)
+target_link_libraries (run-tests
+  voxtrees
+  voxrnd
+  PkgConfig::CUnit
+  m
+)
 
 add_custom_target (check
   env "VOXVISION_MODULES=${CMAKE_BINARY_DIR}/src/voxrnd" ./run-tests
