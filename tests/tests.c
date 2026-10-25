@@ -466,14 +466,18 @@ static void test_random_intersection () {
     struct vox_node *tree = vox_make_tree (set, n);
 
     for (int i = 0; i < 100000; i++) {
-        vox_dot origin = (vox_dot){2000*random_float_01() - 1000,
-                                   2000*random_float_01() - 1000,
-                                   2000*random_float_01() - 1000,
-                                   0.0};
-        vox_dot direction = (vox_dot){2*random_float_01() - 1,
-                                      2*random_float_01() - 1,
-                                      2*random_float_01() - 1,
-                                      0.0};
+        vox_dot origin = (vox_dot){
+            2000*random_float_01() - 1000,
+            2000*random_float_01() - 1000,
+            2000*random_float_01() - 1000,
+            0.0
+        };
+        vox_dot direction = (vox_dot){
+            2*random_float_01() - 1,
+            2*random_float_01() - 1,
+            2*random_float_01() - 1,
+            0.0
+        };
         vox_dot res1, res2;
         const struct vox_node *node =
             vox_ray_tree_intersection (tree, origin, direction, &res1);
@@ -493,10 +497,12 @@ static void test_random_ball_collision () {
     struct vox_node *tree = vox_make_tree (set, n);
 
     for (int i = 0; i < 100000; i++) {
-        vox_dot center = (vox_dot){1000*random_float_01(),
-                                   1000*random_float_01(),
-                                   1000*random_float_01(),
-                                   0.0};
+        vox_dot center = (vox_dot){
+            1000*random_float_01(),
+            1000*random_float_01(),
+            1000*random_float_01(),
+            0.0
+        };
         float radius = 100*random_float_01();
         int res1, res2;
         res1 = vox_tree_ball_collidep (tree, center, radius);
