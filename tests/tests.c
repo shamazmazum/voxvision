@@ -33,20 +33,11 @@ static int vect_eq (const vox_dot v1, const vox_dot v2, float precision) {
     return dist < precision;
 }
 
-/* static int quat_eq (const vox_quat v1, const vox_quat v2, float precision) { */
-/*     int i; */
-/*     float mdiff = precision; */
-/*     for (i=0; i<4; i++) { */
-/*         float diff = fabsf (v1[i] - v2[i]); */
-/*         mdiff = (diff > mdiff) ? diff : mdiff; */
-/*     } */
-
-/*     if (mdiff == precision) { */
-/*         return 1; */
-/*     } else { */
-/*         return 0; */
-/*     } */
-/* } */
+static int quat_eq (const vox_quat v1, const vox_quat v2, float precision) {
+    // KLUDGE: vox_dot and vox_quat are actually synonyms
+    float dist = norm (v1 - v2);
+    return dist < precision;
+}
 
 /* static int hit_dot (const vox_dot origin, const vox_dot dir, const vox_dot target) { */
 /*     float t = (target[0] - origin[0])/dir[0]; */
@@ -118,204 +109,206 @@ static void test_identity () {
     }
 }
 
-/* static void test_rotation_around_itself () { */
-/*     vox_dot vec, res; */
-/*     vox_quat quat; */
+static void test_rotation_around_itself () {
+    vox_dot vec, res;
+    vox_quat quat;
 
-/*     for (int i = 0; i < 1000; i++) { */
-/*         float phi = M_PI*random_float_01(); */
-/*         float sinphi = sinf (phi); */
-/*         float cosphi = cosf (phi); */
-/*         vox_dot_set (vec, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set (res, random_float_01(), random_float_01(), random_float_01()); */
-/*         normalize (vec); */
-/*         quat[0] = cosphi; */
-/*         quat[1] = sinphi*vec[0]; */
-/*         quat[2] = sinphi*vec[1]; */
-/*         quat[3] = sinphi*vec[2]; */
+    for (int i = 0; i < 1000; i++) {
+        float phi = M_PI*random_float_01();
+        float sinphi = sinf (phi);
+        float cosphi = cosf (phi);
 
-/*         vox_rotate_vector (quat, vec, res); */
-/*         CU_ASSERT (vect_eq (res, vec, precise_check)); */
-/*     } */
-/* } */
+        vec = (vox_dot) {
+            random_float_01(),
+            random_float_01(),
+            random_float_01(),
+            0
+        };
+        vec = vec / norm (vec);
 
-/* static void test_change_axis () { */
-/*     // Rotating x aroung y and getting z and so on */
-/*     float sincos = sqrtf(2.0)/2.0; */
+        quat = (vox_quat) vec * sinphi;
+        quat.w = cosphi;
+
+        res = vox_rotate_vector (quat, vec);
+        CU_ASSERT (vect_eq (res, vec, precise_check));
+    }
+}
+
+static void test_change_axis () {
+    // Rotating x aroung y and getting z and so on
+    float sincos = sqrtf(2.0)/2.0;
+
+    vox_quat basex = {0.0, sincos, 0.0, sincos};
+    vox_dot vectx = {1.0, 0.0, 0.0};
+    vox_dot expx = {0.0, 0.0, -1.0};
+
+    vox_quat basey = {0.0, 0.0, sincos, sincos};
+    vox_dot vecty = {0.0, 1.0, 0.0};
+    vox_dot expy = {-1.0, 0.0, 0.0};
+
+    vox_quat basez = {sincos, 0.0, 0.0, sincos};
+    vox_dot vectz = {0.0, 0.0, 1.0};
+    vox_dot expz = {0.0, -1.0, 0.0};
+
+    CU_ASSERT (vect_eq (expx, vox_rotate_vector (basex, vectx), precise_check));
+    CU_ASSERT (vect_eq (expy, vox_rotate_vector (basey, vecty), precise_check));
+    CU_ASSERT (vect_eq (expz, vox_rotate_vector (basez, vectz), precise_check));
+}
+
+static void test_anticommut () {
+    // Rotating x around y must result in rotaiong y around x with different sign
+    float sincos = sqrtf(2.0)/2.0;
     
-/*     vox_quat basex = {sincos, 0.0, sincos, 0.0}; */
-/*     vox_dot vectx = {1.0, 0.0, 0.0}; */
-/*     vox_dot expx = {0.0, 0.0, -1.0}; */
-
-/*     vox_quat basey = {sincos, 0.0, 0.0, sincos}; */
-/*     vox_dot vecty = {0.0, 1.0, 0.0}; */
-/*     vox_dot expy = {-1.0, 0.0, 0.0}; */
-
-/*     vox_quat basez = {sincos, sincos, 0.0, 0.0}; */
-/*     vox_dot vectz = {0.0, 0.0, 1.0}; */
-/*     vox_dot expz = {0.0, -1.0, 0.0}; */
+    vox_quat basex = {sincos, 0.0, 0.0, sincos};
+    vox_quat basey = {0.0, sincos, 0.0, sincos};
     
-/*     vox_rotate_vector (basex, vectx, vectx); */
-/*     CU_ASSERT (vect_eq (expx, vectx, precise_check)); */
+    vox_dot vectx = {1.0, 0.0, 0.0};
+    vox_dot vecty = {0.0, 1.0, 0.0};
     
-/*     vox_rotate_vector (basey, vecty, vecty); */
-/*     CU_ASSERT (vect_eq (expy, vecty, precise_check)); */
-
-/*     vox_rotate_vector (basez, vectz, vectz); */
-/*     CU_ASSERT (vect_eq (expz, vectz, precise_check)); */
-/* } */
-
-/* static float* vector_inv (const vox_dot dot, vox_dot res) { */
-/*     int i; */
-/*     for (i=0; i<VOX_N; i++) { */
-/*         res[i] = -dot[i]; */
-/*     } */
-/*     return res; */
-/* } */
-
-/* static void test_anticommut () { */
-/*     // Rotating x around y must result in rotaiong y around x with different sign */
-/*     float sincos = sqrtf(2.0)/2.0; */
+    vox_dot res1 = vox_rotate_vector (basex, vecty);
+    vox_dot res2 = vox_rotate_vector (basey, vectx);
     
-/*     vox_quat basex = {sincos, sincos, 0.0, 0.0}; */
-/*     vox_quat basey = {sincos, 0.0, sincos, 0.0}; */
+    CU_ASSERT (vect_eq (res1, -res2, precise_check));
+}
+
+static void rot_composition () {
+    for (int i = 0; i < 1000; i++) {
+        vox_dot dot = (vox_dot) {
+            random_float_01(),
+            random_float_01(),
+            random_float_01(),
+            1
+        };
+
+        vox_dot v1 = (vox_dot) {
+            random_float_01(),
+            random_float_01(),
+            random_float_01(),
+            1
+        };
+
+        vox_dot v2 = (vox_dot) {
+            random_float_01(),
+            random_float_01(),
+            random_float_01(),
+            1
+        };
+
+        v1 = v1 / norm (v1);
+        v2 = v2 / norm (v2);
+
+        float phi = random_float_01();
+        float psi = random_float_01();
+
+        float sinphi = sinf (phi);
+        float cosphi = cosf (phi);
+        float sinpsi = sinf (psi);
+        float cospsi = cosf (psi);
+
+        vox_quat q1 = v1 * sinphi;
+        vox_quat q2 = v2 * sinpsi;
+        q1.w = cosphi;
+        q2.w = cospsi;
+
+        vox_dot res1 = vox_rotate_vector (q1, vox_rotate_vector (q2, dot));
+        vox_quat q   = vox_quat_mul (q1, q2);
+        vox_dot res2 = vox_rotate_vector (q, dot);
+
+        CU_ASSERT (vect_eq (res1, res2, precise_check));
+    }
+}
+
+static void rot_saves_norm () {
+    vox_quat q;
+    vox_dot dot, res, v;
+
+    for (int i = 0; i < 1000; i++) {
+        dot = (vox_dot) {
+            random_float_01(),
+            random_float_01(),
+            random_float_01(),
+            0
+        };
+
+        v = (vox_dot) {
+            random_float_01(),
+            random_float_01(),
+            random_float_01(),
+            0
+        };
+        v = v / norm (v);
+
+        float phi = random_float_01();
+        float sinphi = sinf (phi);
+        float cosphi = cosf (phi);
+
+        q = v * cosphi;
+        q.w = sinphi;
+
+        res = vox_rotate_vector (q, dot);
+
+        float n1 = norm(res);
+        float n2 = norm(dot);
+        CU_ASSERT (fabsf (n1-n2) < precise_check);
+    }
+}
+
+static void quat_mul () {
+    vox_quat res;
+
+    // Check multiplication table
+    vox_quat q11 = {1, 0, 0, 0};
+    vox_quat q12 = {0, 1, 0, 0};
+    vox_quat e1  = {0, 0, 1, 0};
+    res = vox_quat_mul (q11, q12);
+    CU_ASSERT (quat_eq (e1, res, precise_check));
+
+    vox_quat q21 = {0, 1, 0, 0};
+    vox_quat q22 = {0, 0, 1, 0};
+    vox_quat e2  = {1, 0, 0, 0};
+    res = vox_quat_mul (q21, q22);
+    CU_ASSERT (quat_eq (e2, res, precise_check));
+
+    vox_quat q31 = {0, 0, 1, 0};
+    vox_quat q32 = {1, 0, 0, 0};
+    vox_quat e3  = {0, 1, 0, 0};
+    res = vox_quat_mul (q31, q32);
+    CU_ASSERT (quat_eq (e3, res, precise_check));
+
+    // And in another direction...
+    vox_quat q41 = {0, 1, 0, 0};
+    vox_quat q42 = {1, 0, 0, 0};
+    vox_quat e4  = {0, 0, -1, 0};
+    res = vox_quat_mul (q41, q42);
+    CU_ASSERT (quat_eq (e4, res, precise_check));
+
+    vox_quat q51 = {0, 0, 1, 0};
+    vox_quat q52 = {0, 1, 0, 0};
+    vox_quat e5  = {-1, 0, 0, 0};
+    res = vox_quat_mul (q51, q52);
+    CU_ASSERT (quat_eq (e5, res, precise_check));
+
+    vox_quat q61 = {1, 0, 0, 0};
+    vox_quat q62 = {0, 0, 1, 0};
+    vox_quat e6  = {0, -1, 0, 0};
+    res = vox_quat_mul (q61, q62);
+    CU_ASSERT (quat_eq (e6, res, precise_check));
+
+    // Neutral element
+    vox_quat qn1 = {4, 3, 2, 1};
+    vox_quat n =   {0, 0, 0, 1};
+    res = vox_quat_mul (qn1, n);
+    CU_ASSERT (quat_eq (res, qn1, precise_check));
+    res = vox_quat_mul (n, qn1);
+    CU_ASSERT (quat_eq (res, qn1, precise_check));
     
-/*     vox_dot vectx = {1.0, 0.0, 0.0}; */
-/*     vox_dot vecty = {0.0, 1.0, 0.0}; */
-    
-/*     vox_dot res1, res2; */
-/*     vox_rotate_vector (basex, vecty, res1); */
-/*     vox_rotate_vector (basey, vectx, res2); */
-    
-/*     CU_ASSERT (vect_eq (res1, vector_inv (res2, res2), precise_check)); */
-/* } */
-
-/* static void rot_composition () { */
-/*     vox_quat q1, q2, q; */
-/*     vox_dot dot, res1, res2, v1, v2;; */
-
-/*     for (int i = 0; i < 1000; i++) { */
-/*         vox_dot_set (dot, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set (v1, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set (v2, random_float_01(), random_float_01(), random_float_01()); */
-
-/*         normalize (v1); */
-/*         normalize (v2); */
-
-/*         float phi = random_float_01(); */
-/*         float psi = random_float_01(); */
-
-/*         float sinphi = sinf (phi); */
-/*         float cosphi = cosf (phi); */
-/*         float sinpsi = sinf (psi); */
-/*         float cospsi = cosf (psi); */
-
-/*         q1[0] = cosphi; */
-/*         q1[1] = sinphi * v1[0]; */
-/*         q1[2] = sinphi * v1[1]; */
-/*         q1[3] = sinphi * v1[2]; */
-
-/*         q2[0] = cospsi; */
-/*         q2[1] = sinpsi * v2[0]; */
-/*         q2[2] = sinpsi * v2[1]; */
-/*         q2[3] = sinpsi * v2[2]; */
-
-/*         vox_dot_set (res1, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set (res2, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_quat_mul (q1, q2, q); */
-/*         vox_rotate_vector (q2, dot,  res1); */
-/*         vox_rotate_vector (q1, res1, res1); */
-/*         vox_rotate_vector (q,  dot,  res2); */
-
-/*         CU_ASSERT (vect_eq (res1, res2, precise_check)); */
-/*     } */
-/* } */
-
-/* static void rot_saves_norm () { */
-/*     vox_quat q; */
-/*     vox_dot dot, res, v; */
-
-/*     for (int i = 0; i < 1000; i++) { */
-/*         vox_dot_set (dot, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set (res, random_float_01(), random_float_01(), random_float_01()); */
-/*         vox_dot_set (v, random_float_01(), random_float_01(), random_float_01()); */
-
-/*         normalize (v); */
-
-/*         float phi = random_float_01(); */
-/*         float sinphi = sinf (phi); */
-/*         float cosphi = cosf (phi); */
-
-/*         q[0] = cosphi; */
-/*         q[1] = sinphi * v[0]; */
-/*         q[2] = sinphi * v[1]; */
-/*         q[3] = sinphi * v[2]; */
-
-/*         vox_rotate_vector (q, dot, res); */
-
-/*         float n1 = norm(res); */
-/*         float n2 = norm(dot); */
-
-/*         CU_ASSERT (fabsf (n1-n2) < precise_check); */
-/*     } */
-/* } */
-
-/* static void quat_mul () { */
-/*     vox_quat res; */
-    
-/*     // Check multiplication table */
-/*     vox_quat q11 = {0, 1, 0, 0}; */
-/*     vox_quat q12 = {0, 0, 1, 0}; */
-/*     vox_quat e1  = {0, 0, 0, 1}; */
-/*     vox_quat_mul (q11, q12, res); */
-/*     CU_ASSERT (quat_eq (e1, res, precise_check)); */
-
-/*     vox_quat q21 = {0, 0, 1, 0}; */
-/*     vox_quat q22 = {0, 0, 0, 1}; */
-/*     vox_quat e2  = {0, 1, 0, 0}; */
-/*     vox_quat_mul (q21, q22, res); */
-/*     CU_ASSERT (quat_eq (e2, res, precise_check)); */
-
-/*     vox_quat q31 = {0, 0, 0, 1}; */
-/*     vox_quat q32 = {0, 1, 0, 0}; */
-/*     vox_quat e3  = {0, 0, 1, 0}; */
-/*     vox_quat_mul (q31, q32, res); */
-/*     CU_ASSERT (quat_eq (e3, res, precise_check)); */
-
-/*     // And in another direction... */
-/*     vox_quat q41 = {0, 0, 1, 0}; */
-/*     vox_quat q42 = {0, 1, 0, 0}; */
-/*     vox_quat e4  = {0, 0, 0, -1}; */
-/*     vox_quat_mul (q41, q42, res); */
-/*     CU_ASSERT (quat_eq (e4, res, precise_check)); */
-
-/*     vox_quat q51 = {0, 0, 0, 1}; */
-/*     vox_quat q52 = {0, 0, 1, 0}; */
-/*     vox_quat e5  = {0, -1, 0, 0}; */
-/*     vox_quat_mul (q51, q52, res); */
-/*     CU_ASSERT (quat_eq (e5, res, precise_check)); */
-
-/*     vox_quat q61 = {0, 1, 0, 0}; */
-/*     vox_quat q62 = {0, 0, 0, 1}; */
-/*     vox_quat e6  = {0, 0, -1, 0}; */
-/*     vox_quat_mul (q61, q62, res); */
-/*     CU_ASSERT (quat_eq (e6, res, precise_check)); */
-
-/*     // Neutral element */
-/*     vox_quat qn1 = {4, 3, 2, 1}; */
-/*     vox_quat n =   {1, 0, 0, 0}; */
-/*     vox_quat_mul (qn1, n, res); */
-/*     CU_ASSERT (quat_eq (res, qn1, precise_check)); */
-/*     vox_quat_mul (n, qn1, res); */
-/*     CU_ASSERT (quat_eq (res, qn1, precise_check)); */
-    
-/*     // Some random quaterions */
-/*     vox_quat q1 = {4, 1, 2, 3}; */
-/*     vox_quat q2 = {2, 0, 2, 0}; */
-/*     vox_quat e  = {4, -4, 12, 8}; */
-/*     vox_quat_mul (q1, q2, res); */
-/*     CU_ASSERT (quat_eq (res, e, precise_check)); */
-/* } */
+    // Some random quaterions
+    vox_quat q1 = {1, 2, 3, 4};
+    vox_quat q2 = {0, 2, 0, 2};
+    vox_quat e  = {-4, 12, 8, 4};
+    res = vox_quat_mul (q1, q2);
+    CU_ASSERT (quat_eq (res, e, precise_check));
+}
 
 static uint32_t random_set (vox_dot **setptr, uint32_t n) {
     vox_dot *set = aligned_alloc (16, sizeof (vox_dot) * n);
@@ -630,12 +623,12 @@ static void test_random_ball_collision () {
 /* Vector operations */
 static CU_TestInfo vectops_tests[] = {
     { "identity operator", test_identity },
-    /*{ "rotate around itself", test_rotation_around_itself },*/ // Broken
-    //{ "change axis", test_change_axis },
-    //{ "anticommutativity of some rotations", test_anticommut },
-    //{ "composition of rotations", rot_composition },
-    /*{ "rotation isometry", rot_saves_norm },*/ // Broken
-    //{ "quaterion multiplication", quat_mul },
+    { "rotate around itself", test_rotation_around_itself },
+    { "change axis", test_change_axis },
+    { "anticommutativity of some rotations", test_anticommut },
+    { "composition of rotations", rot_composition },
+    { "rotation isometry", rot_saves_norm },
+    { "quaterion multiplication", quat_mul },
     CU_TEST_INFO_NULL
 };
 
