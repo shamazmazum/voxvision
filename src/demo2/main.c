@@ -8,7 +8,7 @@
 #include <SDL2/SDL.h>
 
 static void usage() {
-    fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] [-f fps] "
+    fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] "
                      "[-q quality] [-m ray-merge-mode] [-d] -s script\n");
     fprintf (stderr, "quality = fast | best | adaptive\n");
     fprintf (stderr, "ray-merge-mode = fast | accurate | no\n");
@@ -59,7 +59,7 @@ static void ensure_datadir_exists() {
 }
 
 int main (int argc, char *argv[]) {
-    int ch, fps = -1;
+    int ch;
     const char *script = NULL;
     char *endptr;
     int quality = VOX_QUALITY_ADAPTIVE;
@@ -67,7 +67,7 @@ int main (int argc, char *argv[]) {
     unsigned int flags = 0;
     int width = 800, height = 600;
 
-    while ((ch = getopt (argc, argv, "w:h:s:f:q:m:d")) != -1) {
+    while ((ch = getopt (argc, argv, "w:h:s:q:m:d")) != -1) {
         switch (ch) {
         case 'w':
             width = strtol (optarg, &endptr, 10);
@@ -83,12 +83,6 @@ int main (int argc, char *argv[]) {
             break;
         case 's':
             script = optarg;
-            break;
-        case 'f':
-            fps = strtol (optarg, &endptr, 10);
-            if (*endptr != '\0') {
-                usage();
-            }
             break;
         case 'q':
             quality = choose_quality (optarg);
@@ -146,27 +140,15 @@ int main (int argc, char *argv[]) {
         }
     }
 
-    vox_fps_controller_t fps_controller = NULL;
-    if (fps >= 0) fps_controller = vox_make_fps_controller (fps);
-
     vox_engine_status status;
     while (1) {
         status = vox_engine_tick (engine);
-        if (fps_controller != NULL) {
-            struct vox_fps_info fps_info = fps_controller();
-            if (vox_fpsstatus_updated (fps_info.status)) {
-                printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
-            }
-        }
         if (vox_engine_quit_requested (status)) {
             goto end;
         }
     }
 
 end:
-    if (fps_controller != NULL) {
-        vox_destroy_fps_controller (fps_controller);
-    }
     vox_destroy_engine (engine);
     
     return 0;

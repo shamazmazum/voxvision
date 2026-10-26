@@ -11,10 +11,7 @@
 #endif
 
 #include "../voxtrees/tree.h"
-#include "../voxrnd/camera.h"
-#include "../voxrnd/fps-control.h"
 #include "../voxrnd/renderer.h"
-#include "../voxrnd/cd.h"
 
 #ifdef VOXENGINE_SOURCE
 struct vox_engine {
