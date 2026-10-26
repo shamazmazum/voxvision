@@ -57,15 +57,14 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                  * it. This works on very rare occasions in normal scenes, but helps a lot
                  * in certain conditions. The branch should be predictible.
                  */
-                if (dist_far == 0) {
+                if (dist_far < dist_closest) {
                     res = far_inter;
                     leaf = tree;
-                    WITH_STAT (VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1));
-                    goto end;
-                } if (dist_far < dist_closest) {
+                    if (dist_far == 0) {
+                        WITH_STAT (VOXTREES_RTI_VOXELS_SKIPPED (tree->dots_num-i-1));
+                        goto end;
+                    }
                     dist_closest = dist_far;
-                    res = far_inter;
-                    leaf = tree;
                 }
             }
         }
