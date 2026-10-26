@@ -10,8 +10,8 @@ add_subdirectory (demo)
 
 if (LUA_FOUND)
 message (STATUS "Lua version OK.")
-#add_subdirectory (voxengine)
-#add_subdirectory (demo2)
+add_subdirectory (voxengine)
+add_subdirectory (demo2)
 endif (LUA_FOUND)
 
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/voxvision.h voxtrees.h voxrnd.h voxengine.h

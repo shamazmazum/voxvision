@@ -10,8 +10,7 @@
 static int get_position (lua_State *L)
 {
     struct cameradata *camera = luaL_checkudata (L, 1, CAMERA_META);
-    vox_dot position;
-    camera->iface->get_position (camera->camera, position);
+    vox_dot position = camera->iface->get_position (camera->camera);
     WRITE_DOT (position);
 
     return 1;
@@ -54,7 +53,7 @@ static int l_camera_screen2world (lua_State *L)
     int y = luaL_checkinteger (L, 3);
     vox_dot res;
 
-    camera->iface->screen2world (camera->camera, res, x, y);
+    res = camera->iface->screen2world (camera->camera, x, y);
     WRITE_DOT (res);
 
     return 1;
@@ -206,8 +205,7 @@ static int l_scene_proxy_insert (lua_State *L)
      * wait for its completion first, and then insert a voxel.
      */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
-            vox_dot dot;
-            vox_dot_set (dot, x, y, z);
+            vox_dot dot = (vox_dot) {x, y, z, 0};
             vox_insert_voxel (&(data->tree), dot);
             *ndata = data->tree;
             vox_context_set_scene (data->context, data->tree);
@@ -228,8 +226,7 @@ static int l_scene_proxy_delete (lua_State *L)
 
     /* See the comment for l_scene_proxy_insert */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
-            vox_dot dot;
-            vox_dot_set (dot, x, y, z);
+            vox_dot dot = (vox_dot) {x, y, z, 0};
             vox_delete_voxel (&(data->tree), dot);
             *ndata = data->tree;
             vox_context_set_scene (data->context, data->tree);
@@ -311,15 +308,18 @@ static int l_scene_proxy_ray_intersection (lua_State *L)
      * queue.
      */
     dispatch_sync (data->scene_sync_queue, ^{
-            vox_dot origin, dir, res;
-            vox_dot_set (origin, o1, o2, o3);
-            vox_dot_set (dir, d1, d2, d3);
-            leaf = vox_ray_tree_intersection (data->tree, origin, dir, res);
-            r1 = res[0]; r2 = res[1]; r3 = res[2];
+            vox_dot origin = (vox_dot) {o1, o2, o3, 0};
+            vox_dot dir    = (vox_dot) {d1, d2, d3, 0};
+            vox_dot res;
+            leaf = vox_ray_tree_intersection (data->tree, origin, dir, &res);
+            r1 = res.x; r2 = res.y; r3 = res.z;
         });
 
-    if (leaf != NULL) WRITE_DOT_3 (r1, r2, r3);
-    else lua_pushnil (L);
+    if (leaf != NULL) {
+        WRITE_DOT_3 (r1, r2, r3);
+    } else {
+        lua_pushnil (L);
+    }
     return 1;
 }
 

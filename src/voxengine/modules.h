@@ -13,7 +13,7 @@
         float t1 = luaL_checknumber (L, -3);      \
         float t2 = luaL_checknumber (L, -2);      \
         float t3 = luaL_checknumber (L, -1);      \
-        vox_dot_set (dot, t1, t2, t3);            \
+        dot = (vox_dot) {t1, t2, t3, 0};          \
         lua_pop (L, 3);                           \
     } while (0)
 
@@ -29,9 +29,9 @@
 
 #define WRITE_DOT(dot) do {                                 \
         lua_newtable (L);                                   \
-        lua_pushnumber (L, dot[0]);                         \
-        lua_pushnumber (L, dot[1]);                         \
-        lua_pushnumber (L, dot[2]);                         \
+        lua_pushnumber (L, dot.x);                          \
+        lua_pushnumber (L, dot.y);                          \
+        lua_pushnumber (L, dot.z);                          \
         lua_rawseti (L, -4, 3);                             \
         lua_rawseti (L, -3, 2);                             \
         lua_rawseti (L, -2, 1);                             \

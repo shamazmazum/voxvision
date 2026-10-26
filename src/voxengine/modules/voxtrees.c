@@ -12,8 +12,7 @@
 #include <malloc_np.h>
 #endif
 
-static int newtree (lua_State *L)
-{
+static int newtree (lua_State *L) {
     struct vox_node **data = lua_newuserdata (L, sizeof (struct vox_node*));
     *data = NULL;
     luaL_getmetatable (L, TREE_META);
@@ -21,23 +20,20 @@ static int newtree (lua_State *L)
     return 1;
 }
 
-static int destroytree (lua_State *L)
-{
+static int destroytree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_destroy_tree (*data);
     *data = NULL;
     return 0;
 }
 
-static int counttree (lua_State *L)
-{
+static int counttree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     lua_pushinteger (L, vox_voxels_in_tree (*data));
     return 1;
 }
 
-static int inserttree (lua_State *L)
-{
+static int inserttree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_dot dot;
 
@@ -47,8 +43,7 @@ static int inserttree (lua_State *L)
     return 1;
 }
 
-static int rebuildtree (lua_State *L)
-{
+static int rebuildtree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     struct vox_node *newtree = vox_rebuild_tree (*data);
     if (newtree != NULL) {
@@ -58,8 +53,7 @@ static int rebuildtree (lua_State *L)
     return 0;
 }
 
-static int freezetree (lua_State *L)
-{
+static int freezetree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     struct vox_node *newtree = vox_freeze_tree (*data);
     if (newtree != NULL) {
@@ -69,8 +63,7 @@ static int freezetree (lua_State *L)
     return 0;
 }
 
-static int deletetree (lua_State *L)
-{
+static int deletetree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_dot dot;
 
@@ -80,16 +73,14 @@ static int deletetree (lua_State *L)
     return 1;
 }
 
-static int printtree (lua_State *L)
-{
+static int printtree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     lua_pushfstring (L, "<tree %p, %d voxels>", *data,
                      vox_voxels_in_tree (*data));
     return 1;
 }
 
-static int bbtree (lua_State *L)
-{
+static int bbtree (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     struct vox_box bb;
 
@@ -100,16 +91,18 @@ static int bbtree (lua_State *L)
     return 2;
 }
 
-static int l_tree_ray_intersection (lua_State *L)
-{
+static int l_tree_ray_intersection (lua_State *L) {
     struct vox_node **data = luaL_checkudata (L, 1, TREE_META);
     vox_dot origin, dir, res;
     READ_DOT (origin, 2);
     READ_DOT (dir, 3);
 
-    const struct vox_node *leaf = vox_ray_tree_intersection (*data, origin, dir, res);
-    if (leaf != NULL) WRITE_DOT (res);
-    else lua_pushnil (L);
+    const struct vox_node *leaf = vox_ray_tree_intersection (*data, origin, dir, &res);
+    if (leaf != NULL) {
+        WRITE_DOT (res);
+    } else {
+        lua_pushnil (L);
+    }
 
     return 1;
 }
@@ -127,8 +120,7 @@ static const struct luaL_Reg tree_methods [] = {
     {NULL, NULL}
 };
 
-static void* dotset_alloc (unsigned int dots)
-{
+static void* dotset_alloc (unsigned int dots) {
     void *res;
     size_t size = sizeof (vox_dot) * dots;
 #ifdef __FreeBSD__
@@ -140,8 +132,7 @@ static void* dotset_alloc (unsigned int dots)
     return res;
 }
 
-static void* dotset_realloc (void *ptr, unsigned int dots)
-{
+static void* dotset_realloc (void *ptr, unsigned int dots) {
     void *res = NULL;
 #ifdef __FreeBSD__
     size_t size = sizeof (vox_dot) * dots;
@@ -151,8 +142,7 @@ static void* dotset_realloc (void *ptr, unsigned int dots)
     return res;
 }
 
-static void dotset_free (void *ptr)
-{
+static void dotset_free (void *ptr) {
 #ifdef __FreeBSD__
     dallocx (ptr, MALLOCX_ALIGN(16));
 #else
@@ -166,8 +156,7 @@ struct dotset {
     float incr_mul;
 };
 
-static int newdotset (lua_State *L)
-{
+static int newdotset (lua_State *L) {
     unsigned int max_length = 100000;
     float incr_mul = 1.5;
 
@@ -192,32 +181,28 @@ static int newdotset (lua_State *L)
     return 1;
 }
 
-static int printdotset (lua_State *L)
-{
+static int printdotset (lua_State *L) {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     lua_pushfstring (L, "<dot array, %d/%d dots>", set->length, set->max_length);
 
     return 1;
 }
 
-static int destroydotset (lua_State *L)
-{
+static int destroydotset (lua_State *L) {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     dotset_free (set->array);
 
     return 0;
 }
 
-static int lengthdotset (lua_State *L)
-{
+static int lengthdotset (lua_State *L) {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     lua_pushinteger (L, set->length);
 
     return 1;
 }
 
-static int pushdotset (lua_State *L)
-{
+static int pushdotset (lua_State *L) {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     vox_dot dot;
     READ_DOT (dot, 2);
@@ -234,7 +219,7 @@ static int pushdotset (lua_State *L)
         }
     }
 
-    vox_dot_copy (set->array[set->length], dot);
+    set->array[set->length] = dot;
     set->length++;
     return 0;
 }
@@ -247,8 +232,7 @@ static const struct luaL_Reg dotset_methods [] = {
     {NULL, NULL}
 };
 
-static int newsettree (lua_State *L)
-{
+static int newsettree (lua_State *L) {
     struct dotset *set = luaL_checkudata (L, 1, DOTSET_META);
     newtree (L);
 
@@ -258,16 +242,12 @@ static int newsettree (lua_State *L)
     return 1;
 }
 
-static int voxelsize (lua_State *L)
-{
-    vox_dot voxel;
-    READ_DOT (voxel, 1);
-    memcpy (vox_voxel, voxel, sizeof (vox_dot));
+static int voxelsize (lua_State *L) {
+    READ_DOT (vox_voxel, 1);
     return 0;
 }
 
-static int read_raw_data (lua_State *L)
-{
+static int read_raw_data (lua_State *L) {
     const char *filename = luaL_checkstring (L, 1);
     vox_dot dim;
     READ_DOT (dim, 2);
@@ -288,15 +268,12 @@ static int read_raw_data (lua_State *L)
                                                    lua_pop (L, 1);
                                                    return res;
                                                }, &errorstr);
-    if (tree != NULL)
-    {
+    if (tree != NULL) {
         res = 1;
         newtree (L);
         struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
         *data = tree;
-    }
-    else
-    {
+    } else {
         res = 2;
         lua_pushnil (L);
         lua_pushstring (L, errorstr);
@@ -305,17 +282,22 @@ static int read_raw_data (lua_State *L)
     return res;
 }
 
-static int read_raw_data_ranged (lua_State *L)
-{
+static int read_raw_data_ranged (lua_State *L) {
     const char *filename = luaL_checkstring (L, 1);
     vox_dot dim;
     READ_DOT (dim, 2);
     unsigned int samplesize = luaL_checkinteger (L, 3);
     unsigned int min, max;
-    if (lua_isnoneornil (L, 4)) min = 1 << (8*samplesize-1);
-    else min = luaL_checkinteger (L, 4);
-    if (lua_isnoneornil (L, 5)) max = 1<<8*samplesize;
-    else max = luaL_checkinteger (L, 5);
+    if (lua_isnoneornil (L, 4)) {
+        min = 1 << (8*samplesize-1);
+    } else {
+        min = luaL_checkinteger (L, 4);
+    }
+    if (lua_isnoneornil (L, 5)) {
+        max = 1<<8*samplesize;
+    } else {
+        max = luaL_checkinteger (L, 5);
+    }
 
     const char *errorstr;
     unsigned int d[3];
@@ -326,15 +308,12 @@ static int read_raw_data_ranged (lua_State *L)
                                                ^(unsigned int sample) {
                                                    return (sample >= min) ? (sample < max) : 0;
                                                }, &errorstr);
-    if (tree != NULL)
-    {
+    if (tree != NULL) {
         res = 1;
         newtree (L);
         struct vox_node **data = luaL_checkudata (L, -1, TREE_META);
         *data = tree;
-    }
-    else
-    {
+    } else {
         res = 2;
         lua_pushnil (L);
         lua_pushstring (L, errorstr);
@@ -343,19 +322,15 @@ static int read_raw_data_ranged (lua_State *L)
     return res;
 }
 
-static int find_data_file (lua_State *L)
-{
+static int find_data_file (lua_State *L) {
     char fullpath[MAXPATHLEN];
     const char *filename = luaL_checkstring (L, 1);
     int res;
 
-    if (vox_find_data_file (filename, fullpath))
-    {
+    if (vox_find_data_file (filename, fullpath)) {
         lua_pushstring (L, fullpath);
         res = 1;
-    }
-    else
-    {
+    } else {
         lua_pushnil (L);
         lua_pushstring (L, "No such file");
         res = 2;
@@ -375,8 +350,7 @@ static const struct luaL_Reg voxtrees [] = {
     {NULL, NULL}
 };
 
-int luaopen_voxtrees (lua_State *L)
-{
+int luaopen_voxtrees (lua_State *L) {
     luaL_newmetatable(L, TREE_META);
     lua_pushvalue (L, -1);
     lua_setfield (L, -2, "__index");
