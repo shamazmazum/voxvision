@@ -10,8 +10,8 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
                            const vox_dot dir, vox_dot *resptr) {
     vox_dot bb_inter;
     unsigned int i;
-    vox_dot *plane_inter;
-    int *plane_inter_idx, tmp2;
+    vox_dot plane_inter[VOX_N];
+    int plane_inter_idx[VOX_N], tmp2;
     vox_dot res;
     const struct vox_node *leaf = NULL;
 
@@ -91,8 +91,6 @@ vox_ray_tree_intersection (const struct vox_node *tree, const vox_dot origin,
      * inside its bounding box), add it to plane_inter and mark with number of plane where
      * intersection is occured.
      */
-    plane_inter = alloca (sizeof (vox_dot) * VOX_N);
-    plane_inter_idx = alloca (sizeof (vox_dot) * VOX_N);
     unsigned int plane_counter = 0;
     for (i=0; i<VOX_N; i++) {
         plane_inter_idx[plane_counter] = i;
