@@ -25,7 +25,18 @@ static int rendering_order[] = {
 };
 
 static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter) {
-    Uint32 res = SDL_MapRGB (context->surface->format, 255, 0, 0);
+    Uint32 res;
+    vox_dot aligned = __builtin_elementwise_round (inter/vox_voxel) * vox_voxel;
+    vox_dot diff = __builtin_elementwise_abs (inter - aligned);
+    float min = fminf (diff.x, fminf (diff.y, diff.z));
+
+    if (min == diff.x) {
+        res = SDL_MapRGB (context->surface->format, 185, 155, 130);
+    } else if (min == diff.y) {
+        res = SDL_MapRGB (context->surface->format, 170, 170, 145);
+    } else {
+        res = SDL_MapRGB (context->surface->format, 190, 110, 60);
+    }
     return res;
 }
 
