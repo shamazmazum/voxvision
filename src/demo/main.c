@@ -287,7 +287,7 @@ int main (int argc, char *argv[])
                                               }
                                           });
                 }
-                else if (event.key.keysym.scancode == SDL_SCANCODE_Z)
+                else if (event.key.keysym.scancode == SDL_SCANCODE_E)
                 {
                     /*
                       Freeze the tree asynchronously and then
