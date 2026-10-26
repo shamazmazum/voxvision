@@ -90,7 +90,7 @@ function tick (world, time)
             print "Rebuilding the tree"
             tree:rebuild()
 
-         elseif event.keysym.sym == vs.key.z then
+         elseif event.keysym.sym == vs.key.e then
             print "Freezing the tree"
             tree:freeze()
 
