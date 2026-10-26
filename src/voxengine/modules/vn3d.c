@@ -4,6 +4,7 @@
 #include <vn3d/vn3d.h>
 #include <time.h>
 #include <stdlib.h>
+#include <voxvision.h>
 #include "../modules.h"
 
 static int l_noise_gen_gc (lua_State *L)
@@ -31,9 +32,10 @@ static int l_getnoise (lua_State *L)
         lua_pushstring (L, "argument table is not three elements long");
         return 2;
     }
-    unsigned int x,y,z,val;
-    READ_DOT_3 (2, x, y, z);
-    val = vn_noise_3d (gen, x, y, z);
+    unsigned int val;
+    vox_dot dot;
+    READ_DOT (dot, 2);
+    val = vn_noise_3d (gen, dot.x, dot.y, dot.z);
     lua_pushnumber (L, (float)val/0xffffffff);
     return 1;
 }

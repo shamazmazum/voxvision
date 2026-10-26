@@ -17,31 +17,11 @@
         lua_pop (L, 3);                           \
     } while (0)
 
-#define READ_DOT_3(idx, x, y, z) do {             \
-        lua_rawgeti (L, idx, 1);                  \
-        lua_rawgeti (L, idx, 2);                  \
-        lua_rawgeti (L, idx, 3);                  \
-        x = luaL_checknumber (L, -3);             \
-        y = luaL_checknumber (L, -2);             \
-        z = luaL_checknumber (L, -1);             \
-        lua_pop (L, 3);                           \
-    } while (0)
-
 #define WRITE_DOT(dot) do {                                 \
         lua_newtable (L);                                   \
         lua_pushnumber (L, dot.x);                          \
         lua_pushnumber (L, dot.y);                          \
         lua_pushnumber (L, dot.z);                          \
-        lua_rawseti (L, -4, 3);                             \
-        lua_rawseti (L, -3, 2);                             \
-        lua_rawseti (L, -2, 1);                             \
-    } while (0)
-
-#define WRITE_DOT_3(x,y,z) do {                             \
-        lua_newtable (L);                                   \
-        lua_pushnumber (L, x);                              \
-        lua_pushnumber (L, y);                              \
-        lua_pushnumber (L, z);                              \
         lua_rawseti (L, -4, 3);                             \
         lua_rawseti (L, -3, 2);                             \
         lua_rawseti (L, -2, 1);                             \

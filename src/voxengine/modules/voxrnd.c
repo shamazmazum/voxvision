@@ -192,8 +192,8 @@ static int l_scene_proxy_insert (lua_State *L)
 {
     struct vox_node **ndata;
     struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
-    float x,y,z;
-    READ_DOT_3 (2, x, y, z);
+    vox_dot dot;
+    READ_DOT (dot, 2);
 
     lua_getfield (L, 1, "__tree");
     ndata = luaL_checkudata (L, -1, TREE_META);
@@ -205,7 +205,6 @@ static int l_scene_proxy_insert (lua_State *L)
      * wait for its completion first, and then insert a voxel.
      */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
-            vox_dot dot = (vox_dot) {x, y, z, 0};
             vox_insert_voxel (&(data->tree), dot);
             *ndata = data->tree;
             vox_context_set_scene (data->context, data->tree);
@@ -218,15 +217,14 @@ static int l_scene_proxy_delete (lua_State *L)
 {
     struct vox_node **ndata;
     struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
-    float x,y,z;
-    READ_DOT_3 (2, x, y, z);
+    vox_dot dot;
+    READ_DOT (dot, 2);
 
     lua_getfield (L, 1, "__tree");
     ndata = luaL_checkudata (L, -1, TREE_META);
 
     /* See the comment for l_scene_proxy_insert */
     dispatch_group_notify (data->scene_group, data->scene_sync_queue, ^{
-            vox_dot dot = (vox_dot) {x, y, z, 0};
             vox_delete_voxel (&(data->tree), dot);
             *ndata = data->tree;
             vox_context_set_scene (data->context, data->tree);
@@ -296,27 +294,22 @@ static int l_scene_proxy_freeze (lua_State *L)
 static int l_scene_proxy_ray_intersection (lua_State *L)
 {
     struct scene_proxydata *data = luaL_checkudata (L, 1, SCENE_PROXY_META);
-    __block const struct vox_node *leaf;
-    float o1, o2, o3;
-    float d1, d2, d3;
-    READ_DOT_3 (2, o1, o2, o3);
-    READ_DOT_3 (3, d1, d2, d3);
+    vox_dot origin, dir;
+    READ_DOT (origin, 2);
+    READ_DOT (dir, 3);
 
-    __block float r1, r2, r3;
+    __block const struct vox_node *leaf;
+    __block vox_dot inter;
     /*
      * To operate on a consistent state, enqueue search operation in sync
      * queue.
      */
     dispatch_sync (data->scene_sync_queue, ^{
-            vox_dot origin = (vox_dot) {o1, o2, o3, 0};
-            vox_dot dir    = (vox_dot) {d1, d2, d3, 0};
-            vox_dot res;
-            leaf = vox_ray_tree_intersection (data->tree, origin, dir, &res);
-            r1 = res.x; r2 = res.y; r3 = res.z;
+            leaf = vox_ray_tree_intersection (data->tree, origin, dir, &inter);
         });
 
     if (leaf != NULL) {
-        WRITE_DOT_3 (r1, r2, r3);
+        WRITE_DOT (inter);
     } else {
         lua_pushnil (L);
     }
