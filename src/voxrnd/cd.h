@@ -25,6 +25,11 @@ struct vox_cd;
 VOX_EXPORT struct vox_cd* vox_make_cd ();
 
 /**
+   \brief Destroy collision detector.
+**/
+VOX_EXPORT void vox_destroy_cd (struct vox_cd *cd);
+
+/**
    \brief Attach a camera to collision detector.
 
    A camera currently has a spherical body with supplied radius.

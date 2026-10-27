@@ -377,7 +377,7 @@ end:
         vox_destroy_fps_controller (fps_controller);
     }
     if (cd != NULL) {
-        free (cd);
+        vox_destroy_cd (cd);
     }
 
     return 0;

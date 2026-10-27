@@ -17,6 +17,10 @@ struct vox_cd* vox_make_cd () {
     return cd;
 }
 
+void vox_destroy_cd (struct vox_cd *cd) {
+    free (cd);
+}
+
 void vox_cd_attach_camera (struct vox_cd *cd, struct vox_camera *camera, float radius) {
     cd->camera = camera;
     cd->camera_radius = radius;

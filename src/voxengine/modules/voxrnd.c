@@ -125,7 +125,7 @@ static int printcd (lua_State *L)
 static int destroycd (lua_State *L)
 {
     struct vox_cd **cd = luaL_checkudata (L, 1, CD_META);
-    free (*cd);
+    vox_destroy_cd (*cd);
 
     return 0;
 }
