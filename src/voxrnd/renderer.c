@@ -43,7 +43,7 @@ static Uint32 get_color (const struct vox_rnd_ctx *context, vox_dot inter) {
 static struct vox_rnd_ctx* allocate_context () {
     struct vox_rnd_ctx *ctx = malloc (sizeof (struct vox_rnd_ctx));
     memset (ctx, 0, sizeof (*ctx));
-    ctx->quality = VOX_QUALITY_ADAPTIVE;
+    ctx->quality = VOX_QUALITY_FAST;
 
     return ctx;
 }
@@ -141,38 +141,23 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene) {
 }
 
 int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality) {
-    /* Ray merge mode check */
-    if ((quality & VOX_QUALITY_RM_MASK) &&
-        ((quality & VOX_QUALITY_MODE_MASK) !=
-         VOX_QUALITY_ADAPTIVE)) {
-        return 0;
+    int res;
+
+    if ((quality & VOX_QUALITY_MODE_MASK) != quality) {
+        res = 0;
+    } else {
+        ctx->quality = quality;
+        res = 1;
     }
 
-    /* Check if reserved values are not set */
-    if ((quality & VOX_QUALITY_MODE_MASK) >
-        VOX_QUALITY_MODE_MAX) {
-        return 0;
-    }
-
-    if ((quality & VOX_QUALITY_RM_MASK) >
-        VOX_QUALITY_RM_MAX) {
-        return 0;
-    }
-
-    ctx->quality = quality;
-    return 1;
+    return res;
 }
-
-#define LENGTH_THRESHOLD 1.69
-#define MAX_DIST 150
 
 void vox_render (struct vox_rnd_ctx *ctx) {
     square *output = ctx->square_output;
     struct vox_camera *camera = ctx->camera;
     int ws = ctx->ws;
-    int quality = ctx->quality;
-    int rnd_mode = quality & VOX_QUALITY_MODE_MASK;
-    int merge_mode = quality & VOX_QUALITY_RM_MASK;
+    int rnd_mode = ctx->quality & VOX_QUALITY_MODE_MASK;
 
     /*
       Render the scene running multiple tasks in parallel. Each task renders a
@@ -182,113 +167,52 @@ void vox_render (struct vox_rnd_ctx *ctx) {
     dispatch_apply (ctx->squares_num,
                     dispatch_get_global_queue (DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
                     ^(size_t cs) {
-                        const struct vox_node *corner1, *corner2;
-                        vox_dot dir1, dir2;
-                        vox_dot inter1, inter2;
+                        vox_dot dir, inter, origin;
                         const struct vox_node *leaf = NULL;
-                        vox_dot origin;
-                        int block_rnd_mode = rnd_mode;
-
-                        int i, xstart, ystart;
+                        Uint32 color;
+                        int xstart, ystart;
                         ystart = cs / ws;
                         xstart = cs % ws;
                         ystart <<= 2; xstart <<= 2;
-
-                        int istart = 0, iend = 16;
-                        Uint32 color;
-
 #ifdef STATISTICS
                         const struct vox_node *old_leaf;
                         int leafs_changed = 0;
 #endif
-
                         origin = camera->iface->get_position (camera);
                         WITH_STAT (VOXRND_BLOCKS_TRACED());
-                        int block_merge_mode = 0;
 
-                        if (block_rnd_mode == VOX_QUALITY_ADAPTIVE) {
-                            block_merge_mode = (merge_mode == VOX_QUALITY_RAY_MERGE);
-                            /*
-                             * Here we choose which mode is actually used for rendering a block. To
-                             * put it simple: choose upper-left and bottom-right pixels in the
-                             * block. If intersections in those points are farther than allowed,
-                             * choose "best" quality, else choose "fast". Allowed distance is
-                             * depending on the camera's field of view and hard-coded threshold
-                             * value, LENGTH_THRESHOLD.
-                             */
-                            istart = 1;
-                            dir1 = camera->iface->screen2world (camera, xstart, ystart);
-                            corner1 = vox_ray_tree_intersection (ctx->scene, origin, dir1,
-                                                                 &inter1);
-                            block_rnd_mode = VOX_QUALITY_FAST;
-                            leaf = corner1;
-                            if (corner1 != NULL) {
-                                iend = 15;
-                                /* Since we are already there, draw a pixel now. */
-                                color = get_color (ctx, inter1);
-                                output[cs][0] = color;
-                                dir2 = camera->iface->screen2world (camera, xstart + 3, ystart + 3);
-                                corner2 = vox_ray_tree_intersection (ctx->scene, origin, dir2, &inter2);
-                                if (corner2 != NULL) {
-                                    color = get_color (ctx, inter2);
-                                    output[cs][15] = color;
-                                    float d1 = vox_sqr_norm (inter1 - origin);
-                                    float d2 = vox_sqr_norm (dir1);
-                                    float criteria = d1 / d2 * vox_sqr_norm (dir1 - dir2);
-                                    float dist = vox_sqr_norm (inter1 - inter2);
-                                    if (dist/criteria > LENGTH_THRESHOLD) {
-                                        block_rnd_mode = VOX_QUALITY_BEST;
-                                        WITH_STAT (VOXRND_CANCELED_PREDICTION());
-                                    }
-
-                                    if (d1 > MAX_DIST * MAX_DIST) {
-                                        block_merge_mode = (block_rnd_mode == VOX_QUALITY_FAST &&
-                                                            merge_mode == VOX_QUALITY_RAY_MERGE_ACCURATE)? 1:
-                                            block_merge_mode;
-                                    } else block_merge_mode = 0;
-                                }
-                            }
-                        }
-                        WITH_STAT (if (block_merge_mode) VOXRND_RAYMERGE_BLOCK ());
-
-                        int prev_p = 0;
-                        /* istart and iend have been adjusted to a not yet drawn region. */
-                        for (i=istart; i<iend; i++) {
+                        for (int i = 0; i < 16; i++) {
                             int p = rendering_order[i];
                             int y = p/4;
                             int x = p%4;
-                            int merge = block_merge_mode && (i & 1);
 
-                            dir1 = camera->iface->screen2world (camera, x+xstart, y+ystart);
-                            if (!merge) {
-                                if (block_rnd_mode == VOX_QUALITY_FAST) {
-                                    WITH_STAT (old_leaf = leaf);
-                                    if (leaf != NULL) {
-                                        leaf = vox_ray_tree_intersection (leaf,  origin, dir1, &inter1);
-                                    }
-                                    if (leaf == NULL) {
-                                        leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, &inter1);
-#ifdef STATISTICS
-                                        if (old_leaf != NULL) {
-                                            if (leaf != NULL) {
-                                                VOXRND_LEAF_MISPREDICTION();
-                                            } else {
-                                                VOXRND_IGNORED_PREDICTION();
-                                            }
-                                            leafs_changed++;
-                                        }
-#endif
-                                    }
-                                } else {
-                                    leaf = vox_ray_tree_intersection (ctx->scene, origin, dir1, &inter1);
+                            dir = camera->iface->screen2world (camera, x+xstart, y+ystart);
+                            if (rnd_mode == VOX_QUALITY_FAST) {
+                                WITH_STAT (old_leaf = leaf);
+                                if (leaf != NULL) {
+                                    leaf = vox_ray_tree_intersection (leaf, origin, dir, &inter);
                                 }
+                                if (leaf == NULL) {
+                                    leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, &inter);
+#ifdef STATISTICS
+                                    if (old_leaf != NULL) {
+                                        if (leaf != NULL) {
+                                            VOXRND_LEAF_MISPREDICTION();
+                                        } else {
+                                            VOXRND_IGNORED_PREDICTION();
+                                        }
+                                        leafs_changed++;
+                                    }
+#endif
+                                }
+                            } else {
+                                leaf = vox_ray_tree_intersection (ctx->scene, origin, dir, &inter);
                             }
 
                             if (leaf != NULL) {
-                                color = (merge)? output[cs][prev_p]: get_color (ctx, inter1);
+                                color = get_color (ctx, inter);
                                 output[cs][p] = color;
                             }
-                            prev_p = p;
                         }
                         WITH_STAT (VOXRND_BLOCK_LEAFS_CHANGED (leafs_changed));
                     });

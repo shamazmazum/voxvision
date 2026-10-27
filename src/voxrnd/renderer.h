@@ -78,45 +78,9 @@ struct vox_rnd_ctx
 #define VOX_QUALITY_FAST 0b01
 
 /**
-   \brief Average rendering speed, good quality.
-
-   This settings tells the renderer to choose between
-   `VOX_QUALITY_FAST` and `VOX_QUALITY_BEST` settings for each block
-   of 4x4 pixels.
-**/
-#define VOX_QUALITY_ADAPTIVE 0b10
-
-/**
-   \brief Enable ray merging mode.
-
-   This mode allows a ray which belongs to every second column on the screen to
-   be merged with a ray from every first if this ray travels a long distance
-   from the origin. This mode works ONLY in conjunction with adaptive mode.
-**/
-#define VOX_QUALITY_RAY_MERGE 0b0100
-
-/**
-   \brief Accurate ray merging mode.
-
-   This mode is like standard ray merging mode, but it disables ray merging on
-   edges of objects.
-**/
-#define VOX_QUALITY_RAY_MERGE_ACCURATE 0b1000
-
-/**
-   \brief Ray merging mode mask.
-**/
-#define VOX_QUALITY_RM_MASK 0b1100 /* RM stands for Ray Merge */
-
-/**
    \brief Rendering mode mask.
 **/
-#define VOX_QUALITY_MODE_MASK 0b11
-
-#ifdef VOXRND_SOURCE
-#define VOX_QUALITY_RM_MAX 0b1000
-#define VOX_QUALITY_MODE_MAX 0b10
-#endif
+#define VOX_QUALITY_MODE_MASK 0b01
 
 /**
    \brief Make a renderer context from SDL surface.
@@ -169,8 +133,7 @@ VOX_EXPORT void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_came
    \brief Set quality of the renderer
 
    \param ctx The renderer's context.
-   \param quality Currently one of `QUALITY_BEST`, `QUALITY_FAST` or
-          `QUALITY_ADAPTIVE`.
+   \param quality Currently one of `QUALITY_BEST` or `QUALITY_FAST`.
    \return 1 on success, 0 otherwise. Function call is unsuccessfull when
           `quality` parameter is wrong.
 **/

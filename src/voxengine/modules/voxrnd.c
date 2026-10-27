@@ -518,10 +518,7 @@ static const struct {
     unsigned int mode;
 } rnd_modes [] = {
     {"best", VOX_QUALITY_BEST},
-    {"adaptive", VOX_QUALITY_ADAPTIVE},
     {"fast", VOX_QUALITY_FAST},
-    {"raymerge", VOX_QUALITY_ADAPTIVE | VOX_QUALITY_RAY_MERGE},
-    {"accurate_raymerge", VOX_QUALITY_ADAPTIVE | VOX_QUALITY_RAY_MERGE_ACCURATE}
 };
 
 int luaopen_voxrnd (lua_State *L)

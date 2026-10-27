@@ -5,8 +5,7 @@
 #include "config.h"
 
 // Initialize global controls with defaults.
-struct controls global_controls =
-{
+struct controls global_controls = {
     .tilt_left      = SDL_SCANCODE_Z,
     .tilt_right     = SDL_SCANCODE_X,
 
@@ -22,27 +21,28 @@ struct controls global_controls =
 };
 
 // And the same for the settings.
-struct settings global_settings =
-{
+struct settings global_settings = {
     .window_width  = 800,
     .window_height = 600,
     .fps           = 30,
-    .quality       = VOX_QUALITY_ADAPTIVE,
+    .quality       = VOX_QUALITY_FAST,
     .xspeed        = 0.01,
     .yspeed        = 0.01,
 };
 
-static void set_control (dictionary *dict, const char *control, SDL_Scancode *place)
-{
+static void set_control (dictionary *dict, const char *control, SDL_Scancode *place) {
     const char *name = iniparser_getstring (dict, control, NULL);
-    if (name != NULL) *place = SDL_GetScancodeFromName (name);
+    if (name != NULL) {
+        *place = SDL_GetScancodeFromName (name);
+    }
 }
 
-int load_configuration (const char *filename)
-{
+int load_configuration (const char *filename) {
     dictionary *dict = iniparser_load (filename);
-    if (dict == NULL) return -1;
-    int res = 0;
+    int res = 1;
+    if (dict == NULL) {
+        return 0;
+    }
 
     set_control (dict, "Controls:TiltLeft", &global_controls.tilt_left);
     set_control (dict, "Controls:TiltRight", &global_controls.tilt_right);
@@ -62,56 +62,54 @@ int load_configuration (const char *filename)
     global_settings.window_width = iniparser_getint (dict, "Window:Width", global_settings.window_width);
     global_settings.window_height = iniparser_getint (dict, "Window:Height", global_settings.window_height);
     global_settings.fps = iniparser_getint (dict, "Renderer:FPS", global_settings.fps);
-    const char *quality = iniparser_getstring (dict, "Renderer:Quality", "Adaptive");
-    if (strcmp (quality, "Adaptive") == 0) global_settings.quality = VOX_QUALITY_ADAPTIVE;
-    else if (strcmp (quality, "Best") == 0) global_settings.quality = VOX_QUALITY_BEST;
-    else if (strcmp (quality, "Fast") == 0) global_settings.quality = VOX_QUALITY_FAST;
-    else {
+    const char *quality = iniparser_getstring (dict, "Renderer:Quality", "Fast");
+    if (strcmp (quality, "Best") == 0) {
+        global_settings.quality = VOX_QUALITY_BEST;
+    } else if (strcmp (quality, "Fast") == 0) {
+        global_settings.quality = VOX_QUALITY_FAST;
+    } else {
         fprintf (stderr, "Wrong quality: %s\n", quality);
-        res = -1;
-    }
-
-    const char *ray_merge = iniparser_getstring (dict, "Renderer:MergeRays", "No");
-    if (strcmp (ray_merge, "Fast") == 0) global_settings.quality |= VOX_QUALITY_RAY_MERGE;
-    else if (strcmp (ray_merge, "Accurate") == 0) global_settings.quality |= VOX_QUALITY_RAY_MERGE_ACCURATE;
-    else if (strcmp (ray_merge, "No") == 0) global_settings.quality |= 0;
-    else {
-        fprintf (stderr, "Wrong ray merge mode: %s\n", ray_merge);
-        res = -1;
+        res = 0;
     }
 
     iniparser_freedict (dict);
     return res;
 }
 
-int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[])
-{
+int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[]) {
     const char *value;
     int a[3];
     int n;
 
     value = iniparser_getstring (dict, entry, NULL);
-    if (value == NULL) return 0;
+    if (value == NULL) {
+        return 0;
+    }
 
     n = sscanf (value, "<%i, %i, %i>", &(a[0]), &(a[1]), &(a[2]));
-    if (n != 3) return 0;
+    if (n != 3) {
+        return 0;
+    }
 
     memcpy (result, a, sizeof(int)*3);
     return 1;
 }
 
-int _iniparser_getvector3_float (dictionary *dict, const char *entry, vox_dot *result)
-{
+int _iniparser_getvector3_float (dictionary *dict, const char *entry, vox_dot *result) {
     const char *value;
     vox_dot a;
     float x,y,z;
     int n;
 
     value = iniparser_getstring (dict, entry, NULL);
-    if (value == NULL) return 0;
+    if (value == NULL) {
+        return 0;
+    }
 
     n = sscanf (value, "<%f, %f, %f>", &x, &y, &z);
-    if (n != 3) return 0;
+    if (n != 3) {
+        return 0;
+    }
 
     a = (vox_dot) {x, y, z, 0};
     *result = a;

@@ -80,7 +80,9 @@ int main (int argc, char *argv[])
         switch (ch)
         {
         case 'c':
-            if (load_configuration (optarg)) fprintf (stderr, "Cannot load configuration file\n");
+            if (load_configuration (optarg) == 0) {
+                fprintf (stderr, "Cannot load configuration file\n");
+            }
             break;
         default:
             usage();
@@ -315,9 +317,6 @@ int main (int argc, char *argv[])
                     unsigned int mode = quality & VOX_QUALITY_MODE_MASK;
                     const char *msg;
                     if (mode == VOX_QUALITY_BEST) {
-                        msg = "adaptive";
-                        mode = VOX_QUALITY_ADAPTIVE;
-                    } else if (mode == VOX_QUALITY_ADAPTIVE) {
                         msg = "fast";
                         mode = VOX_QUALITY_FAST;
                     } else {
@@ -328,31 +327,6 @@ int main (int argc, char *argv[])
                     printf ("Changing to %s mode\n", msg);
                     vox_context_set_quality (ctx, mode);
                     quality = mode;
-                }
-                else if (event.key.keysym.scancode == SDL_SCANCODE_E) {
-                    unsigned int ray_merge = quality & VOX_QUALITY_RM_MASK;
-                    unsigned int mode = quality & VOX_QUALITY_MODE_MASK;
-
-                    if (mode != VOX_QUALITY_ADAPTIVE) {
-                        printf ("Changing to adaptive mode\n");
-                        mode = VOX_QUALITY_ADAPTIVE;
-                    }
-
-                    const char *msg;
-                    if (ray_merge == 0) {
-                        msg = "accurate";
-                        ray_merge = VOX_QUALITY_RAY_MERGE_ACCURATE;
-                    } else if (ray_merge == VOX_QUALITY_RAY_MERGE_ACCURATE) {
-                        msg = "fast";
-                        ray_merge = VOX_QUALITY_RAY_MERGE;
-                    } else {
-                        msg = "no";
-                        ray_merge = 0;
-                    }
-
-                    quality = mode | ray_merge;
-                    printf ("Changing to %s ray merge mode\n", msg);
-                    vox_context_set_quality (ctx, quality);
                 }
                 break;
             case SDL_QUIT:

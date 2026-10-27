@@ -10,8 +10,7 @@
 static void usage() {
     fprintf (stderr, "Usase: voxvision-engine [-w width] [-h height] "
                      "[-q quality] [-m ray-merge-mode] [-d] -s script\n");
-    fprintf (stderr, "quality = fast | best | adaptive\n");
-    fprintf (stderr, "ray-merge-mode = fast | accurate | no\n");
+    fprintf (stderr, "quality = fast | best\n");
     exit (EXIT_FAILURE);
 }
 
@@ -22,24 +21,6 @@ static int choose_quality (const char *quality_str) {
         quality = VOX_QUALITY_FAST;
     } else if (strcmp (quality_str, "best") == 0) {
         quality = VOX_QUALITY_BEST;
-    } else if (strcmp (quality_str, "adaptive") == 0) {
-        quality = VOX_QUALITY_ADAPTIVE;
-    } else {
-        quality = -1;
-    }
-
-    return quality;
-}
-
-static int choose_raymerge (const char *quality_str) {
-    int quality;
-
-    if (strcmp (quality_str, "fast") == 0) {
-        quality = VOX_QUALITY_RAY_MERGE;
-    } else if (strcmp (quality_str, "accurate") == 0) {
-        quality = VOX_QUALITY_RAY_MERGE_ACCURATE;
-    } else if (strcmp (quality_str, "no") == 0) {
-        quality = 0;
     } else {
         quality = -1;
     }
@@ -62,12 +43,12 @@ int main (int argc, char *argv[]) {
     int ch;
     const char *script = NULL;
     char *endptr;
-    int quality = VOX_QUALITY_ADAPTIVE;
+    int quality = VOX_QUALITY_FAST;
     int merge_rays = 0;
     unsigned int flags = 0;
     int width = 800, height = 600;
 
-    while ((ch = getopt (argc, argv, "w:h:s:q:m:d")) != -1) {
+    while ((ch = getopt (argc, argv, "w:h:s:q:d")) != -1) {
         switch (ch) {
         case 'w':
             width = strtol (optarg, &endptr, 10);
@@ -86,9 +67,6 @@ int main (int argc, char *argv[]) {
             break;
         case 'q':
             quality = choose_quality (optarg);
-            break;
-        case 'm':
-            merge_rays = choose_raymerge (optarg);
             break;
         case 'd':
             flags |= VOX_ENGINE_DEBUG;
