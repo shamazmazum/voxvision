@@ -20,34 +20,31 @@
 #include <voxrnd.h>
 #include "config.h"
 
-static void usage ()
-{
+static void usage () {
     fprintf (stderr, "Usage: voxvision-demo [-c config-file] dataset-config\n");
     exit (1);
 }
 
-static void amend_box (struct vox_node **tree, vox_dot center, int size, int add)
-{
+static void amend_box (struct vox_node **tree, vox_dot center, int size, int add) {
     int i,j,k;
     vox_dot dot;
-    for (i=-size; i<size; i++)
-    {
-        for (j=-size; j<size; j++)
-        {
-            for (k=-size; k<size; k++)
-            {
+    for (i=-size; i<size; i++) {
+        for (j=-size; j<size; j++) {
+            for (k=-size; k<size; k++) {
                 dot[0] = center[0] + i*vox_voxel[0];
                 dot[1] = center[1] + j*vox_voxel[1];
                 dot[2] = center[2] + k*vox_voxel[2];
-                if (add) vox_insert_voxel (tree, dot);
-                else vox_delete_voxel (tree, dot);
+                if (add) {
+                    vox_insert_voxel (tree, dot);
+                } else {
+                    vox_delete_voxel (tree, dot);
+                }
             }
         }
     }
 }
 
-int main (int argc, char *argv[])
-{
+int main (int argc, char *argv[]) {
     int dim[3];
     dictionary *cfg = NULL;
     int ch, res;
@@ -62,11 +59,11 @@ int main (int argc, char *argv[])
     char dataset_path[MAXPATHLEN];
     char dataset_name[MAXPATHLEN];
 
-    printf ("This is my simple renderer version %i.%i\n", VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
+    printf ("This is my simple renderer version %i.%i\n",
+            VOX_VERSION_MAJOR, VOX_VERSION_MINOR);
 
     // Ensure data directory exists
-    if (getenv ("VOXVISION_DATA") != NULL)
-    {
+    if (getenv ("VOXVISION_DATA") != NULL) {
         res = mkdir (getenv ("VOXVISION_DATA"), 0750);
         if (res == -1 && errno != EEXIST) {
             fprintf (stderr, "Cannot create voxvision home directory, exiting\n");
@@ -75,10 +72,8 @@ int main (int argc, char *argv[])
     }
 
     // Parse command line arguments
-    while ((ch = getopt (argc, argv, "c:")) != -1)
-    {
-        switch (ch)
-        {
+    while ((ch = getopt (argc, argv, "c:")) != -1) {
+        switch (ch) {
         case 'c':
             if (load_configuration (optarg) == 0) {
                 fprintf (stderr, "Cannot load configuration file\n");
@@ -91,20 +86,20 @@ int main (int argc, char *argv[])
     argc -= optind;
     argv += optind;
 
-    if (argc != 1) usage();
+    if (argc != 1) {
+        usage();
+    }
     const char *datacfgname = argv[0];
 
     // Parse dataset configuration file
     cfg = iniparser_load (datacfgname);
-    if (cfg == NULL)
-    {
+    if (cfg == NULL) {
         fprintf (stderr, "Cannot load scene configuration file\n");
         return 1;
     }
 
     res = _iniparser_getvector3_int (cfg, "Scene:Geometry", dim);
-    if (!res)
-    {
+    if (!res) {
         fprintf (stderr, "You must specify correct geometry\n");
         goto end;
     }
@@ -114,10 +109,8 @@ int main (int argc, char *argv[])
       will capture this error anyway, it's probably good idea to inform about
       malformed entry in .cfg file.
     */
-    for (res=0; res<3; res++)
-    {
-        if (dim[res] < 0)
-        {
+    for (res=0; res<3; res++) {
+        if (dim[res] < 0) {
             fprintf (stderr, "You must specify correct geometry\n");
             fprintf (stderr, "geometry element n.%i is invalid: %i\n",
                      res, dim[res]);
@@ -128,8 +121,7 @@ int main (int argc, char *argv[])
     _iniparser_getvector3_float (cfg, "Scene:Voxsize", &vox_voxel);
 
     const char *tmp_set_name = iniparser_getstring (cfg, "Scene:DataSet", NULL);
-    if (tmp_set_name == NULL)
-    {
+    if (tmp_set_name == NULL) {
         fprintf (stderr, "You must specify dataset\n");
         goto end;
     }
@@ -139,13 +131,11 @@ int main (int argc, char *argv[])
     int samplesize = iniparser_getint (cfg, "Scene:SampleSize", 1);
 
     // Sanity check on the last two
-    if ((samplesize <= 0) || (samplesize > 3))
-    {
+    if ((samplesize <= 0) || (samplesize > 3)) {
         fprintf (stderr, "Invalid samplesize: %i. It can be 1, 2 or 3\n", samplesize);
         goto end;
     }
-    if ((threshold < 0) || (threshold > (1 << 8*samplesize) - 1))
-    {
+    if ((threshold < 0) || (threshold > (1 << 8*samplesize) - 1)) {
         fprintf (stderr, "Invalid threshold: %i\n", threshold);
         goto end;
     }
@@ -153,8 +143,7 @@ int main (int argc, char *argv[])
     vox_dot origin = {0,-100,0};
     _iniparser_getvector3_float (cfg, "Camera:Position", &origin);
     float fov = (float)iniparser_getdouble (cfg, "Camera:Fov", 1.0);
-    if (fov < 0)
-    {
+    if (fov < 0) {
         fprintf (stderr, "Field of view cannot be negative: %f", fov);
         goto end;
     }
@@ -169,15 +158,13 @@ int main (int argc, char *argv[])
     tree = vox_read_raw_data (dataset_path, (unsigned int*)dim, samplesize,
                               ^(unsigned int sample){return sample > (unsigned int) threshold;},
                               &errorstr);
-    if (tree == NULL)
-    {
+    if (tree == NULL) {
         fprintf (stderr, "Cannot read dataset: %s\n", errorstr);
         goto end;
     }
 
     // Init SDL
-    if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0)
-    {
+    if (SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         fprintf (stderr, "Cannot init SDL: %s\n", SDL_GetError());
         goto end;
     }
@@ -208,8 +195,7 @@ int main (int argc, char *argv[])
     int width = global_settings.window_width;
     int height = global_settings.window_height;
     ctx = vox_make_context_and_window (width, height);
-    if (ctx == NULL)
-    {
+    if (ctx == NULL) {
         fprintf (stderr, "Cannot create the context: %s\n", SDL_GetError());
         goto end;
     }
@@ -227,8 +213,7 @@ int main (int argc, char *argv[])
     unsigned int quality = global_settings.quality;
     vox_context_set_quality (ctx, quality);
     fps_controller = vox_make_fps_controller (global_settings.fps);
-    while (1)
-    {
+    while (1) {
         SDL_Event event;
         /*
           Wait for all synchronous tree operations to complete then
@@ -240,14 +225,11 @@ int main (int argc, char *argv[])
         dispatch_sync (tree_queue, ^{vox_render (ctx);});
         vox_redraw (ctx);
 
-        if (SDL_PollEvent(&event))
-        {
-            switch (event.type)
-            {
+        if (SDL_PollEvent(&event)) {
+            switch (event.type) {
             case SDL_KEYDOWN:
                 if ((event.key.keysym.scancode == global_controls.insert) ||
-                    (event.key.keysym.scancode == global_controls.delete))
-                {
+                    (event.key.keysym.scancode == global_controls.delete)) {
                     /*
                       Tree modification will be performed when there
                       are no other operations in the group.
@@ -267,10 +249,9 @@ int main (int argc, char *argv[])
                                 vox_context_set_scene (ctx, tree);
                             }
                         });
-                }
-                else if (event.key.keysym.scancode == SDL_SCANCODE_Q) goto end;
-                else if (event.key.keysym.scancode == SDL_SCANCODE_R)
-                {
+                } else if (event.key.keysym.scancode == SDL_SCANCODE_Q) {
+                    goto end;
+                } else if (event.key.keysym.scancode == SDL_SCANCODE_R) {
                     /*
                       Rebuild the tree asynchronously and then
                       update the context.
@@ -288,9 +269,7 @@ int main (int argc, char *argv[])
                                                       });
                                               }
                                           });
-                }
-                else if (event.key.keysym.scancode == SDL_SCANCODE_E)
-                {
+                } else if (event.key.keysym.scancode == SDL_SCANCODE_E) {
                     /*
                       Freeze the tree asynchronously and then
                       update the context.
@@ -308,12 +287,9 @@ int main (int argc, char *argv[])
                                                       });
                                               }
                                           });
-                }
-                else if (event.key.keysym.scancode == SDL_SCANCODE_F11)
-                {
+                } else if (event.key.keysym.scancode == SDL_SCANCODE_F11) {
                     vox_screenshot (ctx, NULL);
-                }
-                else if (event.key.keysym.scancode == SDL_SCANCODE_M) {
+                } else if (event.key.keysym.scancode == SDL_SCANCODE_M) {
                     unsigned int mode = quality & VOX_QUALITY_MODE_MASK;
                     const char *msg;
                     if (mode == VOX_QUALITY_BEST) {
@@ -339,20 +315,33 @@ int main (int argc, char *argv[])
         const Uint8 *keystate = SDL_GetKeyboardState (NULL);
         int x,y;
 
-        if (keystate[global_controls.walk_forwards]) step[1] += 5;
-        else if (keystate[global_controls.walk_backwards]) step[1] -= 5;
-        if (keystate[global_controls.walk_right]) step[0] += 5;
-        else if (keystate[global_controls.walk_left]) step[0] -= 5;
-        if (keystate[global_controls.fly_up]) step[2] += 5;
-        else if (keystate[global_controls.fly_down]) step[2] -= 5;
-        if (keystate[global_controls.tilt_left]) rot_delta[1] += 0.01;
-        else if (keystate[global_controls.tilt_right]) rot_delta[1] -= 0.01;
+        if (keystate[global_controls.walk_forwards]) {
+            step[1] += 5;
+        } else if (keystate[global_controls.walk_backwards]) {
+            step[1] -= 5;
+        }
+        if (keystate[global_controls.walk_right]) {
+            step[0] += 5;
+        } else if (keystate[global_controls.walk_left]) {
+            step[0] -= 5;
+        }
+        if (keystate[global_controls.fly_up]) {
+            step[2] += 5;
+        } else if (keystate[global_controls.fly_down]) {
+            step[2] -= 5;
+        }
+        if (keystate[global_controls.tilt_left]) {
+            rot_delta[1] += 0.01;
+        } else if (keystate[global_controls.tilt_right]) {
+            rot_delta[1] -= 0.01;
+        }
         camera->iface->move_camera (camera, step);
 
         vox_cd_collide (cd);
         struct vox_fps_info fps_info = fps_controller();
-        if (vox_fpsstatus_updated (fps_info.status))
+        if (vox_fpsstatus_updated (fps_info.status)) {
             printf ("Frames per second: %i\n", vox_fpsstatus_fps (fps_info.status));
+        }
 
         SDL_GetRelativeMouseState (&x, &y);
         rot_delta[2] = -global_settings.xspeed*x;
@@ -361,17 +350,35 @@ int main (int argc, char *argv[])
     }
 
 end:
-    if (cfg != NULL) iniparser_freedict (cfg);
-    if (ctx != NULL) vox_destroy_context (ctx);
-    if (camera != NULL) camera->iface->destroy_camera (camera);
-    if (tree != NULL) vox_destroy_tree (tree);
-    if (SDL_WasInit(0)) SDL_Quit();
+    if (cfg != NULL) {
+        iniparser_freedict (cfg);
+    }
+    if (ctx != NULL) {
+        vox_destroy_context (ctx);
+    }
+    if (camera != NULL) {
+        camera->iface->destroy_camera (camera);
+    }
+    if (tree != NULL) {
+        vox_destroy_tree (tree);
+    }
+    if (SDL_WasInit(0)) {
+        SDL_Quit();
+    }
 #if USE_GCD
-    if (tree_queue != NULL) dispatch_release (tree_queue);
-    if (tree_group != NULL) dispatch_release (tree_group);
+    if (tree_queue != NULL) {
+        dispatch_release (tree_queue);
+    }
+    if (tree_group != NULL) {
+        dispatch_release (tree_group);
+    }
 #endif
-    if (fps_controller != NULL) vox_destroy_fps_controller (fps_controller);
-    if (cd != NULL) free (cd);
+    if (fps_controller != NULL) {
+        vox_destroy_fps_controller (fps_controller);
+    }
+    if (cd != NULL) {
+        free (cd);
+    }
 
     return 0;
 }
