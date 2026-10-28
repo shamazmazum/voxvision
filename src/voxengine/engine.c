@@ -199,20 +199,18 @@ void initialize_arguments (const struct vox_engine *engine,
                            int nargs, char * const arguments[])
 {
     lua_State *L = engine->L;
-    int i;
 
-    if (nargs != 0) {
-        lua_getglobal (L, "voxvision");
-        lua_newtable (L);
-        for (i=0; i<nargs; i++) {
-            lua_pushstring (L, arguments[i]);
-            lua_seti (L, -2, i+1);
-        }
+    lua_getglobal (L, "voxvision");
+    lua_newtable (L);
 
-        lua_setfield (L, -2, "arg");
-        // Pop voxvision table from the stack
-        lua_pop (L, 1);
+    for (int i = 0; i < nargs; i++) {
+        lua_pushstring (L, arguments[i]);
+        lua_seti (L, -2, i+1);
     }
+
+    lua_setfield (L, -2, "arg");
+    // Pop voxvision table from the stack
+    lua_pop (L, 1);
 
     assert (lua_gettop (L) == 0);
 }
