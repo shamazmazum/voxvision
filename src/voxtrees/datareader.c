@@ -56,6 +56,14 @@ struct vox_node* vox_read_data (const char *filename,
     h = array->shape[1];
     w = array->shape[2];
     total = d * w * h;
+
+    if (total > 500*500*500) {
+        if (error != NULL) {
+            *error = "This array is too big for the datareader to handle, sorry";
+        }
+        goto done;
+    }
+
     set = malloc (sizeof (vox_dot) * total);
 
     for (size_t i = 0; i < d; i++) {
