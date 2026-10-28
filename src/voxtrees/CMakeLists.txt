@@ -6,6 +6,7 @@ add_library (voxtrees SHARED
   tree.c
   datareader.c
 )
+
 if (WITH_DTRACE)
   include_directories (${CMAKE_CURRENT_BINARY_DIR})
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/voxtrees-dtrace.d
@@ -32,7 +33,7 @@ set_target_properties (voxtrees PROPERTIES VERSION ${voxvision_VERSION}
   SOVERSION ${voxvision_VERSION_MAJOR}
   C_VISIBILITY_PRESET hidden)
 
-target_link_libraries (voxtrees m BlocksRuntime)
+target_link_libraries (voxtrees m BlocksRuntime PkgConfig::NpyArray)
 install (FILES params.h tree.h search.h geom.h datareader.h
          DESTINATION include/voxvision/voxtrees)
 install (TARGETS voxtrees LIBRARY

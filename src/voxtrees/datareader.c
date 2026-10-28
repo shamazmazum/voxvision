@@ -1,126 +1,102 @@
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <npy_array.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
 #include "tree.h"
 #include "datareader.h"
 
-struct vox_node* vox_read_raw_data (const char *filename, unsigned int dim[],
-                                    unsigned int samplesize, int (^test)(unsigned int sample),
-                                    const char **error)
-{
-#define SETERROR(x) if (error != NULL) *error = (x)
-#define SETSYSERROR() if (error != NULL) *error = strerror(errno)
-
+struct vox_node* vox_read_data (const char *filename,
+                                bool (^test)(uint64_t sample, uint8_t bps),
+                                const char **error) {
+    npy_array_t *array = npy_array_load (filename);
     struct vox_node *tree = NULL;
-    int fd = open (filename, O_RDONLY);
-    if (fd == -1) {
-        SETSYSERROR();
+    vox_dot *set = NULL;
+    uint8_t bps;
+    size_t d, h, w, total;
+    size_t array_count = 0, set_count = 0;
+    void *ptr;
+    uint64_t sample;
+
+    if (array == NULL) {
+        if (error != NULL) {
+            *error = "Cannot open Numpy array";
+        }
         goto done;
     }
-    vox_dot *array;
 
-#define BUFSIZE 4096
-    unsigned char buf[BUFSIZE];
-    ssize_t end = 0;
-    ssize_t pos = 0;
-
-    unsigned int i,j,k,l,n = dim[0]*dim[1]*dim[2];
-    size_t counter = 0;
-    unsigned int value;
-
-    struct stat sb;
-    if (fstat (fd, &sb) == -1) {
-        SETSYSERROR();
-        goto closefd;
-    }
-    if (n*samplesize != sb.st_size) {
-        SETERROR ("Wrong size of dataset");
-        goto closefd;
+    if (array->ndim != 3) {
+        if (error != NULL) {
+            *error = "Array must be 3-dimensional";
+        }
+        goto done;
     }
 
-    array = vox_alloc (n*sizeof(vox_dot));
-    if (array == NULL) {
-        SETSYSERROR();
-        goto freemem;
+    if (array->typechar != 'b' && array->typechar != 'u') {
+        if (error != NULL) {
+            *error = "Unknown array format";
+        }
+        goto done;
     }
 
-    for (i=0; i<dim[0]; i++) {
-        for (j=0; j<dim[1]; j++) {
-            for (k=0; k<dim[2]; k++) {
-                value = 0;
-                for (l=0; l<samplesize; l++) {
-                    if (pos==end) {
-                        ssize_t res = read (fd, buf, BUFSIZE);
-                        if (res <= 0) {
-                            SETSYSERROR();
-                            goto freemem;
-                        }
-                        end = res;
-                        pos = 0;
-                    }
-                    value |= buf[pos] << (8*l);
-                    pos++;
+    if ((array->typechar == 'b') && (array->elem_size == 1)) {
+        bps = 1;
+    } else if ((array->typechar == 'u') && (array->elem_size == 1)) {
+        bps = 8;
+    } else if ((array->typechar == 'u') && (array->elem_size == 2)) {
+        bps = 16;
+    } else if ((array->typechar == 'u') && (array->elem_size == 4)) {
+        bps = 32;
+    } else {
+        if (error != NULL) {
+            *error = "Unknown array format";
+        }
+        goto done;
+    }
+
+    ptr = array->data;
+    d = array->shape[0];
+    h = array->shape[1];
+    w = array->shape[2];
+    total = d * w * h;
+    set = malloc (sizeof (vox_dot) * total);
+
+    for (size_t i = 0; i < d; i++) {
+        for (size_t j = 0; j < h; j++) {
+            for (size_t k = 0; k < w; k++) {
+                switch (bps) {
+                case 1:
+                case 8:
+                    sample = ((uint8_t*)ptr)[array_count];
+                    break;
+                case 16:
+                    sample = ((uint16_t*)ptr)[array_count];
+                    break;
+                case 32:
+                    sample = ((uint32_t*)ptr)[array_count];
+                    break;
+                case 64:
+                    sample = ((uint64_t*)ptr)[array_count];
+                    break;                    
                 }
-                if (test (value)) {
-                    array[counter][0] = i*vox_voxel[0];
-                    array[counter][1] = j*vox_voxel[1];
-                    array[counter][2] = k*vox_voxel[2];
-                    counter++;
+                if (test (sample, bps)) {
+                    vox_dot point = (vox_dot) {i, j, k};
+                    point *= vox_voxel;
+                    set[set_count] = point;
+                    set_count++;
                 }
+                array_count++;
             }
         }
     }
-    tree = vox_make_tree (array, counter);
 
-freemem:
-    free (array);
-closefd:
-    close (fd);
+    tree = vox_make_tree (set, set_count);
+
 done:
-    return tree;
-}
-
-static int check_file (const char* filename)
-{
-    struct stat sb;
-
-    if (!stat (filename, &sb) && S_ISREG(sb.st_mode)) return 1;
-    return 0;
-}
-
- __attribute__((constructor))
-static void set_voxvision_data ()
-{
-    char path[MAXPATHLEN];
-    if (snprintf (path, MAXPATHLEN, "%s/.voxvision", getenv ("HOME")) >= MAXPATHLEN)
-        return;
-
-    setenv ("VOXVISION_DATA", path, 0);
-}
-
-int vox_find_data_file (const char *filename, char *fullpath)
-{
-    // At first, try the path "as is"
-    if (check_file (strncpy (fullpath, filename, MAXPATHLEN))) return 1;
-
-    // Then try to find data file in system-wide data directory
-    if (snprintf (fullpath, MAXPATHLEN,
-                  "%s%s", VOX_DATA_PATH, filename) >= MAXPATHLEN)
-        return 0;
-    if (check_file (fullpath)) return 1;
-
-    // Check if VOXVISION_DATA environment variable contains directory with needed file.
-    if (getenv ("VOXVISION_DATA") != NULL) {
-        if (snprintf (fullpath, MAXPATHLEN,
-                      "%s/%s", getenv ("VOXVISION_DATA"), filename) >= MAXPATHLEN)
-            return 0;
-        if (check_file (fullpath)) return 1;
+    if (array != NULL) {
+        npy_array_free (array);
     }
 
-    return 0;
+    if (set != NULL) {
+        free (set);
+    }
+
+    return tree;
 }

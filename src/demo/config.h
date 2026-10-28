@@ -2,10 +2,22 @@
 #define _CONFIG_H_
 #include <iniparser.h>
 #include <SDL2/SDL.h>
+#include <voxvision.h>
 
-struct controls
+struct settings
 {
-    // Head movement
+    int          window_width;
+    int          window_height;
+    int          fps;
+    unsigned int quality;
+    float        xspeed;
+    float        yspeed;
+    vox_dot      voxel_size;
+    vox_dot      camera_pos;
+    float        camera_fov;
+    float        threshold;
+
+    // Controls
     SDL_Scancode tilt_left;
     SDL_Scancode tilt_right;
 
@@ -19,23 +31,8 @@ struct controls
     SDL_Scancode insert;
     SDL_Scancode delete;
 };
-extern struct controls global_controls;
 
-struct settings
-{
-    int window_width;
-    int window_height;
-    int fps;
-    unsigned int quality;
-    float xspeed;
-    float yspeed;
-};
-extern struct settings global_settings;
-
-int load_configuration (const char *filename);
-
-// Underscore is to distinguish iniparser's functions from ours
-int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[]);
-int _iniparser_getvector3_float (dictionary *dict, const char *entry, vox_dot *result);
+int load_configuration (const char *filename, struct settings *config);
+void init_configuration (struct settings *config);
 
 #endif

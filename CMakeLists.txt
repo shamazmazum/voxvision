@@ -40,6 +40,7 @@ if (WITH_GCD)
   pkg_check_modules (GCD REQUIRED IMPORTED_TARGET libdispatch)
 endif (WITH_GCD)
 find_package (VN3D REQUIRED)
+pkg_check_modules (NpyArray REQUIRED IMPORTED_TARGET npy_array)
 
 add_definitions (-DVOXVISION_BUILDING)
 add_subdirectory (src)

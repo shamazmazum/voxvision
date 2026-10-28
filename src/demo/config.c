@@ -4,8 +4,19 @@
 #include <voxrnd.h>
 #include "config.h"
 
-// Initialize global controls with defaults.
-struct controls global_controls = {
+// Default settings
+const static struct settings default_settings = {
+    .window_width   = 800,
+    .window_height  = 600,
+    .fps            = 30,
+    .quality        = VOX_QUALITY_FAST,
+    .xspeed         = 0.01,
+    .yspeed         = 0.01,
+    .voxel_size     = (vox_dot) {1, 1, 1, 0},
+    .camera_pos     = (vox_dot) {0, 0, 0, 0},
+    .camera_fov     = 1.0,
+    .threshold      = 0.5,
+
     .tilt_left      = SDL_SCANCODE_Z,
     .tilt_right     = SDL_SCANCODE_X,
 
@@ -20,16 +31,6 @@ struct controls global_controls = {
     .delete         = SDL_SCANCODE_O,
 };
 
-// And the same for the settings.
-struct settings global_settings = {
-    .window_width  = 800,
-    .window_height = 600,
-    .fps           = 30,
-    .quality       = VOX_QUALITY_FAST,
-    .xspeed        = 0.01,
-    .yspeed        = 0.01,
-};
-
 static void set_control (dictionary *dict, const char *control, SDL_Scancode *place) {
     const char *name = iniparser_getstring (dict, control, NULL);
     if (name != NULL) {
@@ -37,65 +38,9 @@ static void set_control (dictionary *dict, const char *control, SDL_Scancode *pl
     }
 }
 
-int load_configuration (const char *filename) {
-    dictionary *dict = iniparser_load (filename);
-    int res = 1;
-    if (dict == NULL) {
-        return 0;
-    }
-
-    set_control (dict, "Controls:TiltLeft", &global_controls.tilt_left);
-    set_control (dict, "Controls:TiltRight", &global_controls.tilt_right);
-
-    set_control (dict, "Controls:WalkLeft", &global_controls.walk_left);
-    set_control (dict, "Controls:WalkRight", &global_controls.walk_right);
-    set_control (dict, "Controls:WalkForwards", &global_controls.walk_forwards);
-    set_control (dict, "Controls:WalkBackwards", &global_controls.walk_backwards);
-    set_control (dict, "Controls:FlyUp", &global_controls.fly_up);
-    set_control (dict, "Controls:FlyDown", &global_controls.fly_down);
-
-    set_control (dict, "Controls:Insert", &global_controls.insert);
-    set_control (dict, "Controls:Delete", &global_controls.delete);
-
-    global_settings.xspeed = iniparser_getdouble (dict, "Controls:MouseXSpeed", global_settings.yspeed);
-    global_settings.yspeed = iniparser_getdouble (dict, "Controls:MouseYSpeed", global_settings.yspeed);
-    global_settings.window_width = iniparser_getint (dict, "Window:Width", global_settings.window_width);
-    global_settings.window_height = iniparser_getint (dict, "Window:Height", global_settings.window_height);
-    global_settings.fps = iniparser_getint (dict, "Renderer:FPS", global_settings.fps);
-    const char *quality = iniparser_getstring (dict, "Renderer:Quality", "Fast");
-    if (strcmp (quality, "Best") == 0) {
-        global_settings.quality = VOX_QUALITY_BEST;
-    } else if (strcmp (quality, "Fast") == 0) {
-        global_settings.quality = VOX_QUALITY_FAST;
-    } else {
-        fprintf (stderr, "Wrong quality: %s\n", quality);
-        res = 0;
-    }
-
-    iniparser_freedict (dict);
-    return res;
-}
-
-int _iniparser_getvector3_int (dictionary *dict, const char *entry, int result[]) {
-    const char *value;
-    int a[3];
-    int n;
-
-    value = iniparser_getstring (dict, entry, NULL);
-    if (value == NULL) {
-        return 0;
-    }
-
-    n = sscanf (value, "<%i, %i, %i>", &(a[0]), &(a[1]), &(a[2]));
-    if (n != 3) {
-        return 0;
-    }
-
-    memcpy (result, a, sizeof(int)*3);
-    return 1;
-}
-
-int _iniparser_getvector3_float (dictionary *dict, const char *entry, vox_dot *result) {
+static int _iniparser_getvector3_float (dictionary *dict,
+                                        const char *entry,
+                                        vox_dot *result) {
     const char *value;
     vox_dot a;
     float x,y,z;
@@ -113,5 +58,51 @@ int _iniparser_getvector3_float (dictionary *dict, const char *entry, vox_dot *r
 
     a = (vox_dot) {x, y, z, 0};
     *result = a;
+    return 1;
+}
+
+
+void init_configuration (struct settings *config) {
+    memcpy (config, &default_settings, sizeof (struct settings));
+}
+
+int load_configuration (const char *filename, struct settings *config) {
+    dictionary *dict = iniparser_load (filename);
+    if (dict == NULL) {
+        return 0;
+    }
+
+    set_control (dict, "Controls:TiltLeft",      &config->tilt_left);
+    set_control (dict, "Controls:TiltRight",     &config->tilt_right);
+
+    set_control (dict, "Controls:WalkLeft",      &config->walk_left);
+    set_control (dict, "Controls:WalkRight",     &config->walk_right);
+    set_control (dict, "Controls:WalkForwards",  &config->walk_forwards);
+    set_control (dict, "Controls:WalkBackwards", &config->walk_backwards);
+    set_control (dict, "Controls:FlyUp",         &config->fly_up);
+    set_control (dict, "Controls:FlyDown",       &config->fly_down);
+
+    set_control (dict, "Controls:Insert",        &config->insert);
+    set_control (dict, "Controls:Delete",        &config->delete);
+
+    config->xspeed = iniparser_getdouble (dict, "Controls:MouseXSpeed", config->xspeed);
+    config->yspeed = iniparser_getdouble (dict, "Controls:MouseYSpeed", config->yspeed);
+    config->window_width = iniparser_getint (dict, "Window:Width", config->window_width);
+    config->window_height = iniparser_getint (dict, "Window:Height", config->window_height);
+    config->fps = iniparser_getint (dict, "Renderer:FPS", config->fps);
+    const char *quality = iniparser_getstring (dict, "Renderer:Quality", "Fast");
+    if (strcmp (quality, "Best") == 0) {
+        config->quality = VOX_QUALITY_BEST;
+    } else if (strcmp (quality, "Fast") == 0) {
+        config->quality = VOX_QUALITY_FAST;
+    } else {
+        fprintf (stderr, "Wrong quality: %s\n", quality);
+    }
+    _iniparser_getvector3_float (dict, "Renderer:VoxelSize", &config->voxel_size);
+    _iniparser_getvector3_float (dict, "Camera:Position", &config->camera_pos);
+    config->camera_fov = iniparser_getdouble (dict, "Camera:FoV", config->camera_fov);
+    config->threshold = iniparser_getdouble (dict, "Dataset:Threshold", config->threshold);
+
+    iniparser_freedict (dict);
     return 1;
 }
