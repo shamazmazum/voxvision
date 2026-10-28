@@ -247,27 +247,24 @@ static int voxelsize (lua_State *L) {
     return 0;
 }
 
-static int read_raw_data (lua_State *L) {
+static int read_data (lua_State *L) {
     const char *filename = luaL_checkstring (L, 1);
-    vox_dot dim;
-    READ_DOT (dim, 2);
-    unsigned int samplesize = luaL_checkinteger (L, 3);
     const char *errorstr;
-    unsigned int d[3];
-    d[0] = dim[0]; d[1] = dim[1]; d[2] = dim[2];
     int res;
 
-    struct vox_node *tree = vox_read_raw_data (filename, d, samplesize,
-                                               ^(unsigned int sample) {
-                                                   lua_pushvalue (L, -1);
-                                                   lua_pushinteger (L, sample);
-                                                   if (lua_pcall (L, 1, 1, 0))
-                                                       luaL_error (L, "Error executing callback: %s",
-                                                                   lua_tostring (L, -1));
-                                                   int res = lua_toboolean (L, -1);
-                                                   lua_pop (L, 1);
-                                                   return res;
-                                               }, &errorstr);
+    struct vox_node *tree = vox_read_data (filename,
+                                           ^(uint32_t sample, uint8_t bps) {
+                                               lua_pushvalue (L, -1);
+                                               lua_pushinteger (L, sample);
+                                               lua_pushinteger (L, bps);
+                                               if (lua_pcall (L, 2, 1, 0)) {
+                                                   luaL_error (L, "Error executing callback: %s",
+                                                               lua_tostring (L, -1));
+                                               }
+                                               bool res = lua_toboolean (L, -1);
+                                               lua_pop (L, 1);
+                                               return res;
+                                           }, &errorstr);
     if (tree != NULL) {
         res = 1;
         newtree (L);
@@ -282,32 +279,35 @@ static int read_raw_data (lua_State *L) {
     return res;
 }
 
-static int read_raw_data_ranged (lua_State *L) {
+static int read_data_ranged (lua_State *L) {
     const char *filename = luaL_checkstring (L, 1);
-    vox_dot dim;
-    READ_DOT (dim, 2);
-    unsigned int samplesize = luaL_checkinteger (L, 3);
-    unsigned int min, max;
-    if (lua_isnoneornil (L, 4)) {
-        min = 1 << (8*samplesize-1);
+    float min, max;
+    if (lua_isnoneornil (L, 2)) {
+        min = 0;
     } else {
-        min = luaL_checkinteger (L, 4);
+        min = luaL_checknumber (L, 2);
     }
-    if (lua_isnoneornil (L, 5)) {
-        max = 1<<8*samplesize;
+    if (lua_isnoneornil (L, 3)) {
+        max = 1;
     } else {
-        max = luaL_checkinteger (L, 5);
+        max = luaL_checknumber (L, 3);
     }
 
     const char *errorstr;
-    unsigned int d[3];
-    d[0] = dim[0]; d[1] = dim[1]; d[2] = dim[2];
     int res;
 
-    struct vox_node *tree = vox_read_raw_data (filename, d, samplesize,
-                                               ^(unsigned int sample) {
-                                                   return (sample >= min) ? (sample < max) : 0;
-                                               }, &errorstr);
+    struct vox_node *tree = vox_read_data (filename,
+                                           ^(uint32_t sample, uint8_t bps) {
+                                               bool res;
+                                               if (bps == 1) {
+                                                   res = sample;
+                                               } else {
+                                                   uint32_t min_th = min * (1 << bps);
+                                                   uint32_t max_th = max * (1 << bps);
+                                                   res = (sample >= min_th) && (sample < max_th);
+                                               }
+                                               return res;
+                                           }, &errorstr);
     if (tree != NULL) {
         res = 1;
         newtree (L);
@@ -317,23 +317,6 @@ static int read_raw_data_ranged (lua_State *L) {
         res = 2;
         lua_pushnil (L);
         lua_pushstring (L, errorstr);
-    }
-
-    return res;
-}
-
-static int find_data_file (lua_State *L) {
-    char fullpath[MAXPATHLEN];
-    const char *filename = luaL_checkstring (L, 1);
-    int res;
-
-    if (vox_find_data_file (filename, fullpath)) {
-        lua_pushstring (L, fullpath);
-        res = 1;
-    } else {
-        lua_pushnil (L);
-        lua_pushstring (L, "No such file");
-        res = 2;
     }
 
     return res;
@@ -344,9 +327,8 @@ static const struct luaL_Reg voxtrees [] = {
     {"dotset", newdotset},
     {"settree", newsettree},
     {"voxelsize", voxelsize},
-    {"read_raw_data", read_raw_data},
-    {"read_raw_data_ranged", read_raw_data_ranged},
-    {"find_data_file", find_data_file},
+    {"read_data", read_data},
+    {"read_data_ranged", read_data_ranged},
     {NULL, NULL}
 };
 

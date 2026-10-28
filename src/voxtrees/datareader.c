@@ -4,7 +4,7 @@
 #include "datareader.h"
 
 struct vox_node* vox_read_data (const char *filename,
-                                bool (^test)(uint64_t sample, uint8_t bps),
+                                bool (^test)(uint32_t sample, uint8_t bps),
                                 const char **error) {
     npy_array_t *array = npy_array_load (filename);
     struct vox_node *tree = NULL;
@@ -96,6 +96,9 @@ struct vox_node* vox_read_data (const char *filename,
     }
 
     tree = vox_make_tree (set, set_count);
+    if (error != NULL) {
+        *error = "OK";
+    }
 
 done:
     if (array != NULL) {

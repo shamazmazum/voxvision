@@ -116,12 +116,12 @@ int main (int argc, char *argv[]) {
     // Read dataset
     printf ("Reading data\n");
     const char *errorstr;
-    tree = vox_read_data (dataset_name,  ^(uint64_t sample, uint8_t bps) {
+    tree = vox_read_data (dataset_name,  ^(uint32_t sample, uint8_t bps) {
             bool solid;
             if (bps == 1) {
                 solid = sample;
             } else {
-                uint64_t th = threshold * (1 << bps);
+                uint32_t th = threshold * (1 << bps);
                 solid = sample > th;
             }
             return solid;

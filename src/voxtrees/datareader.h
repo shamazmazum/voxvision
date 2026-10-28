@@ -27,7 +27,7 @@
 
 VOX_EXPORT struct vox_node*
 vox_read_data (const char *filename,
-               bool (^test)(uint64_t sample, uint8_t bps),
+               bool (^test)(uint32_t sample, uint8_t bps),
                const char **error);
 
 #endif
