@@ -137,7 +137,7 @@ VOX_EXPORT void vox_context_set_camera (struct vox_rnd_ctx *ctx, struct vox_came
    \return 1 on success, 0 otherwise. Function call is unsuccessfull when
           `quality` parameter is wrong.
 **/
-VOX_EXPORT int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality);
+VOX_EXPORT bool vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality);
 
 /**
    \brief Free context after use

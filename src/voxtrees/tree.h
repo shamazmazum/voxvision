@@ -114,7 +114,7 @@ enum vox_modification_result {
 
    \return 1 if yes, 0 otherwise.
  **/
-VOX_EXPORT int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel);
+VOX_EXPORT bool vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel);
 
 /**
    \brief Insert a voxel in the tree on the fly.
@@ -128,15 +128,6 @@ VOX_EXPORT enum vox_modification_result
 vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel);
 
 /**
-   \brief Insert a voxel in the tree on the fly.
-
-   This is like vox_insert_voxel(), but voxel coordinates are given
-   instead of vox_dot value.
-**/
-VOX_EXPORT enum vox_modification_result
-vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
-
-/**
    \brief Delete a voxel from the tree on the fly.
 
    You can call vox_rebuild_tree() after many applications of this
@@ -146,15 +137,6 @@ vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 **/
 VOX_EXPORT enum vox_modification_result
 vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel);
-
-/**
-   \brief Delete a voxel from the tree on the fly.
-
-   This is like vox_delete_voxel(), but voxel coordinates are given
-   instead of vox_dot value.
-**/
-VOX_EXPORT enum vox_modification_result
-vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z);
 
 /**
    \brief Dump a tree to standard output stream.

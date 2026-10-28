@@ -140,14 +140,14 @@ void vox_context_set_scene (struct vox_rnd_ctx *ctx, struct vox_node *scene) {
     ctx->scene = scene;
 }
 
-int vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality) {
-    int res;
+bool vox_context_set_quality (struct vox_rnd_ctx *ctx, unsigned int quality) {
+    bool res;
 
     if ((quality & VOX_QUALITY_MODE_MASK) != quality) {
-        res = 0;
+        res = false;
     } else {
         ctx->quality = quality;
-        res = 1;
+        res = true;
     }
 
     return res;

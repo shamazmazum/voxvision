@@ -283,14 +283,14 @@ struct vox_node* vox_freeze_tree (const struct vox_node *tree) {
     return newnode;
 }
 
-int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
+bool vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
     unsigned int i;
 
     if (VOX_FULLP (tree) && vox_voxel_in_box (&(tree->bounding_box), voxel)) {
         if (tree->flags & VOX_LEAF) {
             for (i=0; i<tree->dots_num; i++) {
                 if (vox_dot_equalp (voxel, tree->data.dots[i])) {
-                    return 1;
+                    return true;
                 }
             }
         } else {
@@ -299,7 +299,7 @@ int vox_voxel_in_tree (const struct vox_node *tree, const vox_dot voxel) {
             return vox_voxel_in_tree (inner->children[i], voxel);
         }
     }
-    return 0;
+    return false;
 }
 
 // always inserts
@@ -381,13 +381,6 @@ vox_insert_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
     return res;
 }
 
-enum vox_modification_result
-vox_insert_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z) {
-    vox_dot dot;
-    dot[0] = x; dot[1] = y; dot[2] = z;
-    return vox_insert_voxel (tree_ptr, dot);
-}
-
 // It always deletes.
 static void vox_delete_voxel_ (struct vox_node **tree_ptr, const vox_dot voxel)
 {
@@ -453,13 +446,6 @@ vox_delete_voxel (struct vox_node **tree_ptr, vox_dot voxel) {
     }
 
     return res;
-}
-
-enum vox_modification_result
-vox_delete_voxel_coord (struct vox_node **tree_ptr, float x, float y, float z) {
-    vox_dot dot;
-    dot[0] = x; dot[1] = y; dot[2] = z;
-    return vox_delete_voxel (tree_ptr, dot);
 }
 
 void vox_dump_tree (const struct vox_node *tree) {

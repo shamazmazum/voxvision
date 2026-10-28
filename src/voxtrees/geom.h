@@ -56,10 +56,9 @@ unsigned int get_corrected_subspace_idx (const vox_dot center,
    \param res where intersection is stored
    \return 1 if intersection is found, 0 otherwise
 **/
-VOX_EXPORT int vox_hit_box (const struct vox_box *box,
-                            const vox_dot origin,
-                            const vox_dot dir,
-                            vox_dot *res);
+VOX_EXPORT bool
+vox_hit_box (const struct vox_box *box, const vox_dot origin,
+             const vox_dot dir, vox_dot *res);
 
 /**
    \brief Find intersection of a ray and a plane.
@@ -75,20 +74,19 @@ VOX_EXPORT int vox_hit_box (const struct vox_box *box,
    \param box a box
    \return 1 if intersection is found, 0 otherwise
 **/
-int hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
-                          int planenum, vox_dot *res, const struct vox_box *box);
+bool hit_plane_within_box (const vox_dot origin, const vox_dot dir, const vox_dot planedot,
+                           int planenum, vox_dot *res, const struct vox_box *box);
 
 /**
    \brief Find intersection of a box and a ball.
    
    The box and the ball are solid
 **/
-VOX_EXPORT int vox_box_ball_interp (const struct vox_box *box,
-                                    const vox_dot center,
-                                    float radius);
+VOX_EXPORT bool
+vox_box_ball_interp (const struct vox_box *box, const vox_dot center, float radius);
 
-int dense_set_p (const struct vox_box *box, size_t n);
-VOX_EXPORT int vox_voxel_in_box (const struct vox_box *box, const vox_dot dot);
+bool dense_set_p (const struct vox_box *box, size_t n);
+VOX_EXPORT bool vox_voxel_in_box (const struct vox_box *box, const vox_dot dot);
 #endif
 
 #endif

@@ -143,13 +143,15 @@ end:
     return leaf;
 }
 
-int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, float radius) {
+bool vox_tree_ball_collidep (const struct vox_node *tree,
+                             const vox_dot center,
+                             float radius) {
     unsigned int i;
-    int result = 0;
+    bool result = false;
 
     if (VOX_FULLP (tree) && vox_box_ball_interp (&(tree->bounding_box), center, radius)) {
         if (tree->flags & VOX_DENSE_LEAF) {
-            result = 1;
+            result = true;
         } else if (tree->flags & VOX_LEAF) {
             vox_dot *dots = tree->data.dots;
             struct vox_box voxel;
@@ -157,7 +159,7 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
                 voxel.min = dots[i];
                 voxel.max = voxel.min + vox_voxel;
                 if (vox_box_ball_interp (&voxel, center, radius)) {
-                    result = 1;
+                    result = true;
                     break;
                 }
             }
@@ -165,7 +167,7 @@ int vox_tree_ball_collidep (const struct vox_node *tree, const vox_dot center, f
             vox_inner_data inner = tree->data.inner;
             for (i=0; i<VOX_NS; i++) {
                 if (vox_tree_ball_collidep (inner.children[i], center, radius)) {
-                    result = 1;
+                    result = true;
                     break;
                 }
             }
