@@ -85,7 +85,7 @@ struct vox_node* vox_read_data (const char *filename,
                     break;                    
                 }
                 if (test (sample, bps)) {
-                    vox_dot point = (vox_dot) {i, j, k};
+                    vox_dot point = (vox_dot) {i - d/2.0, j - h/2.0, k - w/2.0};
                     point *= vox_voxel;
                     set[set_count] = point;
                     set_count++;
