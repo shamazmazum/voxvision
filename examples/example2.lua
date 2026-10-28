@@ -3,12 +3,17 @@ vr = voxrnd
 vs = voxsdl
 
 function init (ctx)
+   if (#arg ~= 1) then
+      print ("You must specify a numpy array to render")
+      return
+   end
+
    local test = function (sample) return sample > 40 end
    --[[
       Build tree from a raw file 'skull.dat' in voxvision's system-wide data
       directory. 'skull.dat' is provided as an example.
    ]]--
-   local tree = vt.read_raw_data (vt.find_data_file "skull.dat", {256,256,256}, 1, test)
+   local tree = vt.read_data (arg[1], test)
    print (#tree)
 
    local camera = vr.camera "simple-camera"

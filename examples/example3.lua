@@ -3,13 +3,17 @@ vr = voxrnd
 vs = voxsdl
 
 function init (ctx)
-   --[[
-      Build tree from a raw file 'skull.dat' in voxvision's system-wide data directory.
-      read_raw_data_ranged() is like faster read_raw_data() with test function checking
-      min <= sample < max (in current example sample >= 40)
-   ]]--
    print (ctx:get_geometry())
-   local tree = vt.read_raw_data_ranged (vt.find_data_file "skull.dat", {256,256,256}, 1, 40)
+   if (#arg ~= 1) then
+      print ("You must specify a numpy array to render")
+      return
+   end
+
+   --[[
+      read_data_ranged() is like faster read_data() with test function checking
+      min <= sample < max (in current example sample >= 0.156 * SAMPLE_MAX)
+   ]]--
+   local tree = vt.read_data_ranged (arg[1], 0.156)
    print (#tree)
 
    local camera = vr.camera "simple-camera"

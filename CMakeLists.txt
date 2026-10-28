@@ -56,7 +56,5 @@ if(CUnit_FOUND)
   add_subdirectory (tests)
 endif(CUnit_FOUND)
 
-install (DIRECTORY data/ DESTINATION share/voxvision/data
-  FILES_MATCHING PATTERN "*.dat")
 install (DIRECTORY examples/ DESTINATION share/examples/voxvision
-  FILES_MATCHING PATTERN "*.cfg" PATTERN "*.lua")
+  FILES_MATCHING PATTERN "*.cfg" PATTERN "*.lua" PATTERN "*.npy")
